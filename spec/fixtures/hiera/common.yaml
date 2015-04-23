@@ -1,0 +1,6 @@
+---
+bareos::secret: 'A long and secret password string'
+bareos::client::directors:
+  - Name: backup.example.com-dir
+  - Name: systray-dir
+    Password: 'not so secret after all'

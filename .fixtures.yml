@@ -1,0 +1,3 @@
+fixtures:
+  symlinks:
+    "bareos": "#{source_dir}"
