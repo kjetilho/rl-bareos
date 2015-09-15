@@ -1,0 +1,15 @@
+<%
+  require 'digest/sha1'
+  actual_password = Digest::SHA1.hexdigest [scope['bareos::secret'], @password].join('') %>
+-%>
+Client {
+  Name = "<%= @client_name %>"
+  Address = <%= @address %>
+  FDPort = 9102
+  Catalog = MyCatalog
+  Password = "<%= actual_password %>"
+  File Retention = <%= @file_retention %>
+  Job Retention = <%= @job_retention %>
+  AutoPrune = yes
+  Maximum Concurrent Jobs = <%= @concurrency %>
+}

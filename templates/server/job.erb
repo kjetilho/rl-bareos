@@ -1,0 +1,11 @@
+Job {
+  Name = "<%= @title %>"
+  JobDefs = "<%= jobdef %>"
+<% if @fileset != '' -%>
+  Fileset = "<%= @fileset %>"
+<% end -%>
+  Accurate = yes
+  Maximum Concurrent Jobs = 1
+  Schedule = <%= @schedule %>
+  Client = "<%= @client_name %>"
+}

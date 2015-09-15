@@ -4,18 +4,21 @@
 # used by the backup server.
 #
 class bareos::params::client {
-  $service_ensure = 'running'
-  $service        = 'bacula-fd'
-  $config_file    = '/etc/bacula/bacula-fd.conf'
-  $directors      = {}
+  $implementation = hiera('bareos::client::implementation', 'bacula')
+  $service        = "${implementation}-fd"
+  $config_file    = "/etc/${implementation}/${implementation}-fd.conf"
+  $log_dir        = "/var/log/${implementation}"
+  $log_file       = "${log_dir}/${implementation}-fd.log"
+  $working_dir    = "/var/lib/${implementation}"
+  $pid_dir        = "/var/run/${implementation}"
   $hostname       = $::fqdn
 
   case $::osfamily {
     'RedHat': {
-      $package = 'bacula-client'
+      $package = "${implementation}-client"
     }
     'Debian': {
-      $package = 'bacula-fd'
+      $package = "${implementation}-fd"
     }
     default: {
       $package = undef

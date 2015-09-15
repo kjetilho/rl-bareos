@@ -11,7 +11,7 @@ describe 'bareos::client' do
         # These test against data from hiera, see
         # spec/fixtures/hiera/common.yaml
         should contain_file('/etc/bacula/bacula-fd.conf')
-                .with_content(/Name = "systray-dir"/)
+                .with_content(/Name = "systray-mon"/)
                 .with_content(/Name = "backup.example.com-dir"/)
       end
     end
