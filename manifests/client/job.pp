@@ -1,5 +1,5 @@
 define bareos::client::job(
-  $job_name,
+  $job_name = '',
   $jobdef = 'DefaultJob',
   $fileset = '',
 )
