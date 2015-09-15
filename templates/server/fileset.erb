@@ -1,0 +1,30 @@
+FileSet {
+  Name = "<%= @fileset_name %>"
+  Ignore FileSet Changes = <%= @ignore_changes.to_s %>
+  Include {
+    Options {
+        aclsupport = no
+        sparse = yes
+        signature = MD5
+        compression = GZIP
+        OneFS = no
+        FSType = rootfs
+        FSType = ext2
+        FSType = ext3
+        FSType = ext4
+        FSType = jfs
+        FSType = reiserfs
+        FSType = xfs
+    }
+<% @include_paths.each do |path| -%>    
+    File = <%= path %>
+<% end -%>
+  }
+<% if not @exclude_paths.empty? -%>
+  Exclude {
+<% @exclude_paths.each do |path| -%>    
+    File = <%= path %>
+<% end -%>
+  }
+<% end -%>
+}

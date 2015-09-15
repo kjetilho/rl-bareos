@@ -6,6 +6,7 @@
 class bareos::server(
   $client_file_prefix = '/etc/bareos/clients.d/',
   $job_file_prefix = '/etc/bareos/jobs.d/',
+  $fileset_file_prefix = '/etc/bareos/filesets.d/',
 )
 {
   include bareos

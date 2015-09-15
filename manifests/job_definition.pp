@@ -4,8 +4,8 @@
 #
 define bareos::job_definition(
   $client_name,
-  $jobdef = 'DefaultJob',
-  $fileset = '',
+  $jobdef,
+  $fileset,
 )
 {
   $filename = "${bareos::server::job_file_prefix}${title}.conf"
