@@ -22,8 +22,7 @@ Director {
 
 FileDaemon {
   Name                     = <%= @client_name %>
-  FDAddress                = {ipv6 = {port = 9102}}
-  FDport                   = 9102
+  FDAddresses              = {ipv6 = {port = 9102}}
   WorkingDirectory         = <%= @working_dir %>
   Pid Directory            = <%= @pid_dir %>
   Maximum Concurrent Jobs  = 20
@@ -32,7 +31,7 @@ FileDaemon {
 
 Messages {
   Name     = Standard
-  director = all, !skipped, !restored
+  director = <%= scope['bareos::director'] %> = all, !skipped, !restored
   syslog   = error, fatal
   append   = "<%= @log_file %>" = all, !skipped
 }
