@@ -75,9 +75,6 @@ class bareos::client (
   }
 
   if ! empty($jobs) {
-    Bareos::Job_definition {
-      tag => "bareos::server::${bareos::director}"
-    }
-    create_resources('@@bareos::job_definition', $jobs)
+    create_resources('bareos::client::job', $jobs)
   }
 }

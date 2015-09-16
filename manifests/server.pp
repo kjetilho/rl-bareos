@@ -13,5 +13,6 @@ class bareos::server(
 
   Bareos::Client_definition <<| tag == "bareos::server::${bareos::director}" |>>
   Bareos::Job_definition <<| tag == "bareos::server::${bareos::director}" |>>
+  Bareos::Fileset_definition <<| tag == "bareos::server::${bareos::director}" |>>
 
 }
