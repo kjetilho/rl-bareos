@@ -4,6 +4,7 @@
 #
 define bareos::job_definition(
   $client_name,
+  $name_suffix,
   $jobdef,
   $fileset,
   $runscript,

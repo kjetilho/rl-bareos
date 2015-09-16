@@ -7,7 +7,7 @@ Job {
   Accurate = yes
   Maximum Concurrent Jobs = 1
   Schedule = <%= @schedule %>
-  Client = "<%= @client_name %>"
+  Client = "<%= @client_name %><%= @name_suffix %>"
 <% @runscript.each do |params|
      params['runswhen'] ||= 'before'
      params['abortjobonerror'] ||= 'false' -%>

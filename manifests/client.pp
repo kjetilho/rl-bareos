@@ -3,16 +3,17 @@
 # This class installs a backup client, and exports a definition to be
 # used by the backup server.
 #
-# password:
-# Set this parameter to get the same password on several clients.
-# This is not the actual password used in the configuration files, for
-# that we hash it with ${bareos::secret}.  We do that extra step to
-# avoid putting the actual password in PuppetDB.
+# +password+:
+#   Set this parameter to get the same password on several clients.
+#   This is not the actual password used in the configuration files,
+#   for that we hash it with ${bareos::secret}.  We do that extra step
+#   to avoid putting the actual password in PuppetDB.
 # 
 #
 class bareos::client (
   $implementation = $bareos::params::client::implementation,
-  $client_name    = "${::fqdn}-fd",
+  $client_name    = $::fqdn,
+  $name_suffix    = $bareos::params::client::name_suffix,
   $address        = $::fqdn,
   $password       = $::fqdn,
   $job_retention  = '180d',
@@ -74,7 +75,7 @@ class bareos::client (
     ensure => directory,
   }
 
-  @@bareos::client_definition { $client_name:
+  @@bareos::client_definition { "${client_name}${name_suffix}":
     password       => $password,
     address        => $address,
     job_retention  => $job_retention,

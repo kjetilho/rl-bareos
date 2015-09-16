@@ -27,6 +27,7 @@ define bareos::client::job(
   @@bareos::job_definition {
     $_job_name:
       client_name => $bareos::client::client_name,
+      name_suffix => $bareos::client::name_suffix,
       jobdef      => $jobdef,
       fileset     => $fileset,
       runscript   => $runscript,
