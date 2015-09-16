@@ -4,7 +4,7 @@
 #
 <%
   require 'digest/sha1'
-  actual_password = Digest::SHA1.hexdigest [scope['bareos::secret'], @password].join('') %>
+  actual_password = Digest::SHA1.hexdigest [scope['bareos::secret'], @password].join('')
 -%>
 Director {
    Name = "<%= scope['bareos::director'] %>"
@@ -21,7 +21,7 @@ Director {
 <% end -%>
 
 FileDaemon {
-  Name                     = <%= @client_name %>-fd
+  Name                     = <%= @client_name %>
   FDAddress                = {ipv6 = {port = 9102}}
   FDport                   = 9102
   WorkingDirectory         = <%= @working_dir %>
