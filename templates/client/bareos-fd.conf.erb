@@ -21,7 +21,7 @@ Director {
 <% end -%>
 
 FileDaemon {
-  Name                     = <%= @client_name %>
+  Name                     = <%= @client_name %><%= @name_suffix %>
   FDAddresses              = {ipv6 = {port = 9102}}
   WorkingDirectory         = <%= @working_dir %>
   Pid Directory            = <%= @pid_dir %>
