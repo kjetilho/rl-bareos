@@ -6,6 +6,7 @@ define bareos::job_definition(
   $client_name,
   $jobdef,
   $fileset,
+  $runscript,
 )
 {
   $filename = "${bareos::server::job_file_prefix}${title}.conf"

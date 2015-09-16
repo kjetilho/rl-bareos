@@ -1,0 +1,3 @@
+<% scheds = scope['bareos::client::schedules'][@schedule_set] -%>
+<% num = @random_schedule % scheds.count -%>
+<%= scheds[num-1] %>

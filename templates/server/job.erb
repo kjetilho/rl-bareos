@@ -8,4 +8,17 @@ Job {
   Maximum Concurrent Jobs = 1
   Schedule = <%= @schedule %>
   Client = "<%= @client_name %>"
+<% @runscript.each do |params|
+     params['runswhen'] ||= 'before'
+     params['abortjobonerror'] ||= 'false' -%>
+  RunScript {
+<%   Array(params['command']).each do |cmd| -%>
+    Command = "<%= cmd %>"
+<%   end -%>
+<%   params.delete('command') -%>
+<%   params.each do |p, v| -%>
+    <%= p.capitalize %> = <%= v %>
+<%   end -%>
+  }
+<% end -%>
 }

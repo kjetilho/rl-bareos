@@ -11,8 +11,7 @@ class bareos::params::client {
   $log_file       = "${log_dir}/${implementation}-fd.log"
   $working_dir    = "/var/lib/${implementation}"
   $pid_dir        = "/var/run/${implementation}"
-  $hostname       = $::fqdn
-
+  $schedules      = { 'normal' => ['Friday', 'Saturday', 'Sunday'] }
   case $::osfamily {
     'RedHat': {
       $package = "${implementation}-client"

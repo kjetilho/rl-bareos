@@ -21,6 +21,7 @@ class bareos::client (
   $service_ensure = 'running',
   $monitors       = {},
   $jobs           = {},
+  $schedules      = $bareos::params::client::schedules,
   # the remainder are unlikely to need changing
   $package        = $bareos::params::client::package,
   $config_file    = $bareos::params::client::config_file,
