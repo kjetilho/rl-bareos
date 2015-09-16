@@ -10,7 +10,7 @@ define bareos::client_definition(
   $concurrency,
 )
 {
-  file { "${bareos::server::client_file_prefix}${title}-fd.conf":
+  file { "${bareos::server::client_file_prefix}${title}.conf":
     content => template('bareos/server/client.erb');
   }
 }
