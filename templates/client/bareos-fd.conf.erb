@@ -33,5 +33,5 @@ Messages {
   Name     = Standard
   director = <%= scope['bareos::director'] %> = all, !skipped, !restored
   syslog   = error, fatal
-  append   = "<%= @log_file %>" = all, !skipped
+  append   = "<%= @log_dir %>/<%= @implementation %>-fd.log" = all, !skipped
 }

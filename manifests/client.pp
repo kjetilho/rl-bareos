@@ -27,7 +27,6 @@ class bareos::client (
   $config_file    = $bareos::params::client::config_file,
   $service        = $bareos::params::client::service,
   $log_dir        = $bareos::params::client::log_dir,
-  $log_file       = $bareos::params::client::log_file,
   $pid_dir        = $bareos::params::client::pid_dir,
   $working_dir    = $bareos::params::client::working_dir,
 ) inherits bareos::params::client
@@ -43,8 +42,18 @@ class bareos::client (
     before  => Service[$service],
   }
 
+  validate_re($implementation, '^(bareos|bacula)$')
+  validate_re($job_retention, '^[0-9]+d$')
+  validate_re($file_retention, '^[0-9]+d$')
+  validate_hash($monitors)
+  validate_hash($jobs)
+  validate_hash($schedules)
+  validate_absolute_path($config_file)
+  validate_absolute_path($log_dir)
+  validate_absolute_path($pid_dir)
+  validate_absolute_path($working_dir)
+
   ensure_packages($package)
-  # package { $package: ensure => present }
 
   service { $service: }
 

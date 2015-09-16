@@ -8,16 +8,18 @@ class bareos::params::client {
   $service        = "${implementation}-fd"
   $config_file    = "/etc/${implementation}/${implementation}-fd.conf"
   $log_dir        = "/var/log/${implementation}"
-  $log_file       = "${log_dir}/${implementation}-fd.log"
-  $working_dir    = "/var/lib/${implementation}"
-  $pid_dir        = "/var/run/${implementation}"
   $schedules      = { 'normal' => ['Friday', 'Saturday', 'Sunday'] }
+
   case $::osfamily {
     'RedHat': {
-      $package = "${implementation}-client"
+      $package     = "${implementation}-client"
+      $working_dir = "/var/spool/${implementation}"
+      $pid_dir     = '/var/run'
     }
     'Debian': {
-      $package = "${implementation}-fd"
+      $package     = "${implementation}-fd"
+      $working_dir = "/var/lib/${implementation}"
+      $pid_dir     = "/var/run/${implementation}"
     }
     default: {
       $package = undef
