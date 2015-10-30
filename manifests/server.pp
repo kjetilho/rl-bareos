@@ -10,6 +10,7 @@ class bareos::server(
 )
 {
   include bareos
+  require bareos::server::install
 
   Bareos::Client_definition <<| tag == "bareos::server::${bareos::director}" |>>
   Bareos::Job_definition <<| tag == "bareos::server::${bareos::director}" |>>

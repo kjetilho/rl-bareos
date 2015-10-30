@@ -5,6 +5,3 @@ class bareos::server::install(
   validate_array($packages)
   ensure_packages($packages)
 }
-
-
-  
