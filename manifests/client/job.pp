@@ -18,10 +18,10 @@ define bareos::client::job(
     $_schedule = $schedule
   } else {
     validate_hash($bareos::client::schedules)
-    validate_array($bareos::client::schedules[$schedule_set])
-
-    $random_schedule = fqdn_rand(65537, $title)
-    $_schedule = template('bareos/schedule_picker.erb')
+    $set = $bareos::client::schedules[$schedule_set]
+    validate_array($set)
+    $random_index = fqdn_rand(65537, $title) % count($set)
+    $_schedule = $set[$random_index]
   }
 
   @@bareos::job_definition {

@@ -23,8 +23,9 @@ class bareos::params::client {
       $pid_dir     = "/var/run/${implementation}"
     }
     default: {
-      $package = undef
+      $package     = undef
+      $working_dir = "/var/spool/${implementation}"
+      $pid_dir     = '/var/run'
     }
   }
-
 }
