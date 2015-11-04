@@ -46,6 +46,7 @@ define bareos::job::preset::mysqldumpbackup(
     $instance = 'mysqldumpbackup'
     $command = "/usr/local/sbin/mysqldumpbackup -c"
   }
+
   if (count(keys($params)) > 0) {
     ensure_resource('file', "/etc/default/${instance}", {
       content => template('bareos/preset/mysqldumpbackup.conf.erb'),
@@ -61,7 +62,7 @@ define bareos::job::preset::mysqldumpbackup(
       name_suffix => $bareos::client::name_suffix,
       jobdef      => $_jobdef,
       fileset     => $fileset,
-      runscript   => [$command],
+      runscript   => [ { 'command' => $command } ],
       sched       => $sched,
       tag         => "bareos::server::${bareos::director}"
   }

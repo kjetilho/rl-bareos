@@ -2,6 +2,7 @@ require 'spec_helper'
 
 describe 'bareos::client' do
   on_supported_os.each do |os, facts|
+
     context "on #{os}" do
       let(:facts) { facts }
       it { should compile.with_all_deps }
@@ -13,6 +14,7 @@ describe 'bareos::client' do
                 .with_content(/Name = "backup.example.com-dir"/)
       end
     end
+
     context "on #{os} with jobs" do
       let(:facts) { facts }
       let(:params) do
@@ -41,6 +43,7 @@ describe 'bareos::client' do
                                        .with_sched('SpecialSchedule')
       end
     end
+
     context "on #{os} with fileset" do
       let(:facts) { facts }
       let(:params) do
@@ -57,13 +60,14 @@ describe 'bareos::client' do
                                        .with_acl_support(false)
       end
     end
+
     context "on #{os} with preset mysqldumpbackup" do
       let(:facts) { facts }
       let(:params) do
         { :jobs => {
             'mysql' => {
               'preset' => 'bareos::job::preset::mysqldumpbackup',
-              'preset_params' => {'keep_backup' => 1},
+              'preset_params' => { 'keep_backup' => 1 },
             },
             'mysql-ece' => {
               'preset' => 'bareos::job::preset::mysqldumpbackup',
@@ -78,14 +82,20 @@ describe 'bareos::client' do
       it do
         expect(exported_resources).to contain_bareos__job_definition("#{facts[:fqdn]}-mysql")
                                        .with_jobdef('DefaultMySQLJob')
-                                       .with_runscript(['/usr/local/sbin/mysqldumpbackup -c'])
+                                       .with_runscript(
+                                         [ { 'command' =>
+                                             '/usr/local/sbin/mysqldumpbackup -c' }
+                                         ])
       end
       it { should contain_file('/etc/default/mysqldumpbackup')
                    .with_content(/KEEPBACKUP="1"/) }
       it do
         expect(exported_resources).to contain_bareos__job_definition("#{facts[:fqdn]}-mysql-ece")
                                        .with_jobdef('DefaultMySQLJob')
-                                       .with_runscript(['/usr/local/sbin/mysqldumpbackup -c mysqldumpbackup-ece'])
+                                       .with_runscript(
+                                         [ { 'command' =>
+                                             '/usr/local/sbin/mysqldumpbackup -c mysqldumpbackup-ece' }
+                                         ])
       end
       it { should contain_file('/etc/default/mysqldumpbackup-ece')
                    .with_content(/GZIP="xz"/)
