@@ -13,8 +13,6 @@ define bareos::job_definition(
 {
   $filename = "${bareos::server::job_file_prefix}${title}.conf"
 
-  validate_array($runscript)
-
   file { $filename:
     content => template('bareos/server/job.erb');
   }

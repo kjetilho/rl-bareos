@@ -8,7 +8,7 @@ Job {
   Maximum Concurrent Jobs = 1
   Schedule = <%= @sched %>
   Client = "<%= @client_name %><%= @name_suffix %>"
-<% @runscript.each do |params|
+<% [@runscript].flatten.each do |params|
      p = params.dup
      p['runswhen'] ||= 'before'
      p['abortjobonerror'] ||= 'false' -%>
