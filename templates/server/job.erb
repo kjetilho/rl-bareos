@@ -9,15 +9,16 @@ Job {
   Schedule = <%= @sched %>
   Client = "<%= @client_name %><%= @name_suffix %>"
 <% @runscript.each do |params|
-     params['runswhen'] ||= 'before'
-     params['abortjobonerror'] ||= 'false' -%>
+     p = params.dup
+     p['runswhen'] ||= 'before'
+     p['abortjobonerror'] ||= 'false' -%>
   RunScript {
-<%   Array(params['command']).each do |cmd| -%>
+<%   Array(p['command']).each do |cmd| -%>
     Command = "<%= cmd %>"
 <%   end -%>
-<%   params.delete('command') -%>
-<%   params.each do |p, v| -%>
-    <%= p.capitalize %> = <%= v %>
+<%   p.delete('command') -%>
+<%   p.each do |k, v| -%>
+    <%= k.capitalize %> = <%= v %>
 <%   end -%>
   }
 <% end -%>
