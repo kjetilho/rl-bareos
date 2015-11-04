@@ -41,5 +41,21 @@ describe 'bareos::client' do
                                        .with_schedule('SpecialSchedule')
       end
     end
+    context "on #{os} with fileset" do
+      let(:facts) { facts }
+      let(:params) do
+        { :filesets => {
+            'srv' => {'include_paths' => ['/srv'], 'acl_support' => false}
+          }
+        }
+      end
+
+      it { should compile.with_all_deps }
+      it do
+        expect(exported_resources).to contain_bareos__fileset_definition("#{facts[:fqdn]}-srv")
+                                       .with_include_paths(['/srv'])
+                                       .with_acl_support(false)
+      end
+    end
   end
 end

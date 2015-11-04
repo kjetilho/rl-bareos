@@ -1,9 +1,9 @@
 FileSet {
   Name = "<%= @fileset_name %>"
-  Ignore FileSet Changes = <%= @ignore_changes.to_s %>
+  Ignore FileSet Changes = <%= @ignore_changes ? 'yes' : 'no' %>
   Include {
     Options {
-        aclsupport = no
+        aclsupport = <%= @acl_support ? 'yes' : 'no' %>
         sparse = yes
         signature = MD5
         compression = GZIP

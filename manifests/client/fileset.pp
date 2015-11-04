@@ -13,8 +13,14 @@ define bareos::client::fileset(
   $include_paths,
   $exclude_paths = [],
   $ignore_changes = true,
+  $acl_support = true,
 )
 {
+  validate_array($include_paths)
+  validate_array($exclude_paths)
+  validate_bool($ignore_changes)
+  validate_bool($acl_support)
+
   if $fileset_name {
     $_fileset_name = $fileset_name
   } else {
@@ -24,6 +30,7 @@ define bareos::client::fileset(
     $_fileset_name:
       include_paths => $include_paths,
       exclude_paths => $exclude_paths,
+      acl_support   => $acl_support,
       tag           => "bareos::server::${bareos::director}"
   }
 }

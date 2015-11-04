@@ -22,6 +22,7 @@ class bareos::client (
   $service_ensure = 'running',
   $monitors       = {},
   $jobs           = {},
+  $filesets       = {},
   $schedules      = $bareos::params::client::schedules,
   # the remainder are unlikely to need changing
   $package        = $bareos::params::client::package,
@@ -86,5 +87,8 @@ class bareos::client (
 
   if ! empty($jobs) {
     create_resources('bareos::client::job', $jobs)
+  }
+  if ! empty($filesets) {
+    create_resources('bareos::client::fileset', $filesets)
   }
 }
