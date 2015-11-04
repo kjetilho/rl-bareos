@@ -1,10 +1,12 @@
 define bareos::client::job(
   $job_name = '',
-  $jobdef = 'DefaultJob',
+  $jobdef = '',
   $runscript = [],
   $fileset = '',
-  $schedule = '',
+  $sched = '', # "schedule" is a metaparameter, hence reserved
   $schedule_set = 'normal',
+  $preset = '',
+  $preset_params = {},
 )
 {
   validate_array($runscript)
@@ -14,24 +16,42 @@ define bareos::client::job(
   } else {
     $_job_name = "${bareos::client::client_name}-${title}"
   }
-  if $schedule {
-    $_schedule = $schedule
+  if $sched {
+    $_sched = $sched
   } else {
     validate_hash($bareos::client::schedules)
     $set = $bareos::client::schedules[$schedule_set]
     validate_array($set)
     $random_index = fqdn_rand(65537, $title) % count($set)
-    $_schedule = $set[$random_index]
+    $_sched = $set[$random_index]
   }
 
-  @@bareos::job_definition {
-    $_job_name:
-      client_name => $bareos::client::client_name,
-      name_suffix => $bareos::client::name_suffix,
-      jobdef      => $jobdef,
-      fileset     => $fileset,
-      runscript   => $runscript,
-      schedule    => $_schedule,
-      tag         => "bareos::server::${bareos::director}"
+  if ($preset != '') {
+    $preset_def = {
+      "${_job_name}" => {
+        'jobdef'  => $jobdef,
+        'fileset' => $fileset,
+        'sched'   => $_sched,
+        'params'  => $preset_params,
+      }
+    }
+    create_resources($preset, $preset_def)
+  } else {
+    if ($jobdef == '') {
+      $_jobdef = 'DefaultJob'
+    } else {
+      $_jobdef = $jobdef
+    }
+    
+    @@bareos::job_definition {
+      $_job_name:
+        client_name => $bareos::client::client_name,
+        name_suffix => $bareos::client::name_suffix,
+        jobdef      => $_jobdef,
+        fileset     => $fileset,
+        runscript   => $runscript,
+        sched       => $_sched,
+        tag         => "bareos::server::${bareos::director}"
+    }
   }
 }

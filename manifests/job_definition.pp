@@ -7,6 +7,7 @@ define bareos::job_definition(
   $name_suffix,
   $jobdef,
   $fileset,
+  $sched,
   $runscript,
 )
 {

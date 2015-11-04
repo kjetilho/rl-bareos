@@ -1,0 +1,35 @@
+<% unless @params['environment'] == "" -%>
+<%   [@params['environment']].flatten.each do |var| -%>
+export <%= var %>
+<%   end -%>
+<% end -%>
+<% unless @params['backupdir'] == "" -%>
+BACKUPDIR="<%= @params['backupdir'] %>"
+<% end -%>
+<% unless @params['compress_program'] == "gzip" -%>
+GZIP="<%= @params['compress_program'] %>"
+<% end -%>
+<% unless @params['keep_backup'] == "" -%>
+KEEPBACKUP="<%= @params['keep_backup'] %>"
+<% end -%>
+<% unless @params['my_cnf'] == "" -%>
+MYCNF="<%= @params['my_cnf'] %>"
+<% end -%>
+<% unless @params['log_method'] == "console" -%>
+LOG_METHOD="<%= @params['log_method'] %>"
+<% end -%>
+<% unless @params['skip_databases'] == "" -%>
+SKIP="$SKIP <%= [@params['skip_databases']].flatten.join(" ") %>"
+<% end -%>
+<% unless @params['server'] == '' -%>
+DBSERVER="<%= @params['server'] %>"
+<% end -%>
+<% unless @params['initscript'] == "" -%>
+INITSCRIPT="<%= @params['initscript'] %>"
+<% end -%>
+<% unless @params['servicename'] == "" -%>
+SERVICENAME="<%= @params['servicename'] %>"
+<% end -%>
+<% unless @params['dumpoptions'] == "" -%>
+DUMPOPTIONS="$DUMPOPTIONS <%= @params['dumpoptions'] %>"
+<% end -%>
