@@ -1,0 +1,25 @@
+Job {
+  Name = "<%= @title %>"
+  JobDefs = "<%= @jobdef %>"
+<% if @fileset != '' -%>
+  Fileset = "<%= @fileset %>"
+<% end -%>
+  Accurate = yes
+  Maximum Concurrent Jobs = 1
+  Schedule = <%= @sched %>
+  Client = "<%= @client_name %><%= @name_suffix %>"
+<% [@runscript].flatten.each do |params|
+     p = params.dup
+     p['runswhen'] ||= 'before'
+     p['abortjobonerror'] ||= 'false' -%>
+  RunScript {
+<%   Array(p['command']).each do |cmd| -%>
+    Command = "<%= cmd %>"
+<%   end -%>
+<%   p.delete('command') -%>
+<%   p.each do |k, v| -%>
+    <%= k.capitalize %> = <%= v %>
+<%   end -%>
+  }
+<% end -%>
+}

@@ -1,0 +1,37 @@
+# <%= @implementation.capitalize %> File Daemon configuration file
+#
+# This file is handled by Puppet, all modifications will be lost.
+#
+<%
+  require 'digest/sha1'
+  actual_password = Digest::SHA1.hexdigest [scope['bareos::secret'], @password].join('')
+-%>
+Director {
+   Name = "<%= scope['bareos::director'] %>"
+   Password = "<%= actual_password %>"
+}
+<% @monitors.each do |mon, params| -%>
+
+Director {
+   Name = "<%= mon %>"
+<%   params.each do |par, val| -%>
+   <%= par.capitalize %> = <%= val %>
+<%   end -%>
+}
+<% end -%>
+
+FileDaemon {
+  Name                     = <%= @client_name %><%= @name_suffix %>
+  FDAddresses              = {ipv6 = {port = 9102}}
+  WorkingDirectory         = <%= @working_dir %>
+  Pid Directory            = <%= @pid_dir %>
+  Maximum Concurrent Jobs  = 20
+  Heartbeat Interval       = 1 min
+}
+
+Messages {
+  Name     = Standard
+  director = <%= scope['bareos::director'] %> = all, !skipped, !restored
+  syslog   = error, fatal
+  append   = "<%= @log_dir %>/<%= @implementation %>-fd.log" = all, !skipped
+}

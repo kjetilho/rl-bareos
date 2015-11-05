@@ -1,0 +1,497 @@
+#! /bin/bash
+
+# Simple shell script to dump and compress the databases on host db.
+# The script is broken into several steps instead of taking the whole dump
+# into one large file. This is done for easier reverting of backups, and easier
+# debugging of errors.
+#
+# ingvar@linpro.no
+#
+# The source of this script is puppet/modules/mysql/files/mysqldumpbackup
+# (it was previously called mysql-dump-for-backup")
+#
+# If overrides are needed, put them in
+#   /etc/{sysconfig,default}/mysqldumpbackup
+# or specify the name of the override file if the servers handles several
+# MySQL instances.
+#
+# Configuration is best generated with mysql::mysqldumpbackup::config
+# See modules/mysql/README.OLD in Puppet-SVN
+
+usage() {
+    echo "Usage: $0 [-c] [-r] [-n] [-d] [CONFIGFILE]" >&2
+    echo "-c  remove old backups before making new backup" >&2
+    echo "-r  exit silently if mysqld is not running" >&2
+    echo "-n  don't make new backup" >&2
+    echo "-d  verbose debug output" >&2
+    exit 64
+}
+
+log() {
+    level="$1"; shift
+    case $LOG_METHOD in
+        syslog|both)
+            logger -t mysqldumpbackup -p $SYSLOG_FACILITY.$level "$*"
+            ;;
+    esac
+    case $level-$DEBUG in
+        debug-false) return ;;
+    esac
+    case $LOG_METHOD in
+        console|both)
+            echo "<$level>: $*"
+            ;;
+    esac
+    case $level in
+        debug|warning) : ;;
+        *)     retcode=1 ;;
+    esac
+}
+
+logstatus() {
+    status=$1; shift
+    log error "$* failed (exit status $status)" >&2
+}
+
+fail() {
+    status=$?
+    logstatus $status "$@"
+    exit $status
+}
+
+die() {
+    log error "$*"
+    exit 1
+}
+
+check_success() {
+    declare -a ps="${PIPESTATUS[@]}"
+    what="$1"; shift;
+    for status in ${ps[@]}; do
+        if [ $status != 0 ]; then
+            logstatus $status "$1"
+            retcode=$status
+            [ "$what" = "die" ] && exit $status
+        fi
+        shift
+    done
+}
+
+CLEAN=false
+NOBACKUP=false
+LOG_METHOD=console
+SYSLOG_FACILITY=daemon
+EXIT_SILENTLY_WHEN_NOT_RUNNING=false
+TABLEFILTER=.
+retcode=0
+
+# Set to true for debugging output
+DEBUG=${DEBUG-false}
+
+while true; do
+    case $1 in
+        -c) CLEAN=true; shift ;;
+        -n) NOBACKUP=true; shift ;;
+        -d) DEBUG=true; shift ;;
+        -t) TABLEFILTER=$2; shift; shift;;
+        -r) EXIT_SILENTLY_WHEN_NOT_RUNNING=true; shift ;;
+        -*) usage ;;
+        *)  break;;
+    esac
+done
+
+conf="${1:-mysqldumpbackup}"
+
+##################
+# Default values
+#
+
+if [ "$HOME" = "" -o "$HOME" = "/" -o "$EUID" = 0 ]
+then
+    export HOME="/root"
+fi
+PATH=/usr/bin:/bin:/usr/sbin:/sbin
+export PATH
+
+# For large databases. These are dumped table-by-table
+SPECIALS=""
+
+# Databases that should NOT be dumped
+SKIP=""
+
+# Defaults
+DBSERVER="localhost"
+MYSQL="mysql"
+BACKUPDIR="/var/backups/mysql"
+MYSQLDUMP="mysqldump"
+MYSQLADMIN="mysqladmin"
+MY_PRINT_DEFAULTS="my_print_defaults"
+GZIP=gzip
+type -p pigz >/dev/null && GZIP=pigz
+IONICE=$(type -p ionice)
+if [ "$IONICE" ]; then
+    IONICE="$IONICE -c3"
+fi
+if [ -r /etc/init/mysql.conf ]
+then
+    INITSCRIPT="service mysql"
+else
+    INITSCRIPT="/etc/init.d/mysqld"
+    for i in /etc/init.d/mysql $INITSCRIPT; do
+        [ -x $i ] && INITSCRIPT=$i
+    done
+    if type -p service >/dev/null
+    then
+        INITSCRIPT="service $(basename $INITSCRIPT)"
+    fi
+fi
+
+# Service name for Red Hat Cluster, will override usage of initscript:
+SERVICENAME=""
+# Number of days to keep dump on disk
+KEEPBACKUP=5
+# Set this if configuration is in a non-standard place
+# (only needed to find binary log location)
+MYCNF=""
+COPYBINLOG=true
+
+DAY=$(date +'%Y-%m-%d_%H')
+
+# This date must be on a format PURGE BINARY understands
+STARTTIME=$(date +"%Y-%m-%d %H:%M:%S")
+
+DUMPOPTIONS="$DUMPOPTIONS --quick --create-options --disable-keys --set-charset --single-transaction --hex-blob"
+# These options are added when binary log is enabled
+DUMPOPTIONS_BINLOG="--flush-logs --master-data=2"
+
+# Debian stores root's mysql-password in this file
+debian_cnf=/etc/mysql/debian.cnf
+if [ -s $debian_cnf -a -r $debian_cnf ]; then
+    MYSQL="$MYSQL --defaults-file=$debian_cnf"
+    # Unfortunately, setting defaults-file like this means the normal
+    # settings are ignored, so we must set what we need explicitly here.
+    MYSQLDUMP="$MYSQLDUMP --defaults-file=$debian_cnf --max_allowed_packet=512M"
+    MYSQLADMIN="$MYSQLADMIN --defaults-file=$debian_cnf"
+    DBUSER=$(awk '$1 == "user" { print $3; exit }' $debian_cnf)
+fi
+DBUSER=${DBUSER:-"root"}
+
+case $conf in
+    /*)
+        . "$conf"
+        ;;
+    *)
+        for d in /etc/sysconfig /etc/default; do
+            if [ -r "$d/$conf" ]; then
+                if . "$d/$conf"; then
+                    break
+                else
+                    # Only complain if an explicit argument was provided
+                    [ "$1" = "" ] || die "$0: $d/$conf:"
+                fi
+            fi
+        done
+        ;;
+esac
+
+if [ -s "$MYCNF" -a -r "$MYCNF" ]; then
+    MYSQL="$MYSQL --defaults-extra-file=$MYCNF"
+    MYSQLDUMP="$MYSQLDUMP --defaults-extra-file=$MYCNF"
+    MYSQLADMIN="$MYSQLADMIN --defaults-extra-file=$MYCNF"
+    MY_PRINT_DEFAULTS="$MY_PRINT_DEFAULTS --defaults-extra-file=$MYCNF"
+fi
+
+case $GZIP in
+    # don't override it if someone sets GZ explicitly
+    xz*) GZ=${GZ:-xz} ;;
+    *)   GZ=${GZ:-gz} ;;
+esac
+
+# This will return 1 on usage (missing params) and 2 on unknown option
+$MYSQLDUMP --events >/dev/null 2>&1
+[ $? = 1 ] && MYSQLDUMP="$MYSQLDUMP --events"
+
+MYSQL="$MYSQL -s"
+
+if [ "$DBSERVER" != "" ]; then
+    MYSQL="$MYSQL -h $DBSERVER"
+    MYSQLDUMP="$MYSQLDUMP -h $DBSERVER"
+    MYSQLADMIN="$MYSQLADMIN -h $DBSERVER"
+fi
+
+###############################
+# Configuration done, let's go
+
+
+# Check if I'm supposed to run this.
+if [ "$SERVICENAME" ]; then
+    type clustat >/dev/null || exit 1
+    this_node=$(hostname --fqdn)
+    mysql_owner=$(clustat -ls $SERVICENAME | awk '$1 == "Owner" {print $NF}')
+    [ "$this_node" = "$mysql_owner" ] || exit 0
+elif ! $INITSCRIPT status > /dev/null 2>&1; then
+    if $EXIT_SILENTLY_WHEN_NOT_RUNNING; then
+        echo "Mysql is not running here, bailing out."
+        exit 0
+    fi
+    exec $INITSCRIPT status
+elif $INITSCRIPT status 2>/dev/null | grep -q stop/waiting; then
+    if $EXIT_SILENTLY_WHEN_NOT_RUNNING; then
+        echo "Mysql is not running here, bailing out."
+        exit 0
+    fi
+    exec $INITSCRIPT status
+fi
+
+if $CLEAN; then
+    case $KEEPBACKUP in
+        0)       NUM=1; KEEPBACKUP=1440 ;;
+        [0-9]*m) KEEPBACKUP=${KEEPBACKUP%m} ;;
+        [0-9]*h) KEEPBACKUP=$((${KEEPBACKUP%h}*60)) ;;
+        [0-9]*)  NUM=$KEEPBACKUP; KEEPBACKUP=$((KEEPBACKUP*1440)) ;;
+        *)       die "$KEEPBACKUP: invalid value for keepbackup" ;;
+    esac
+    log debug "Cleaning $BACKUPDIR, keeping $((KEEPBACKUP/1440)) days"
+    case $BACKUPDIR in
+        /*/*/*)
+            :
+            ;;
+        *)
+            die "$BACKUPDIR: too few directory levels, won't clean, dump"
+            ;;
+    esac
+    find ${BACKUPDIR} -maxdepth 1 -mindepth 1 -mmin +${KEEPBACKUP} -type d -exec rm -rf {} \;
+    if [ "$NUM" ]
+    then
+        find ${BACKUPDIR} -maxdepth 1 -mindepth 1 -type d -print |
+            sort -r |
+            tail -n +$((NUM+1)) |
+            xargs --no-run-if-empty rm -rf
+    fi  
+fi
+$NOBACKUP && exit 0
+
+check_dump_perms="
+    SELECT host FROM user
+        WHERE user = '$DBUSER'
+          AND Lock_tables_priv = 'Y'
+          AND Select_priv = 'Y'
+          AND Show_db_priv = 'Y'
+          AND Show_view_priv = 'Y';"
+
+perm_output="$(echo "$check_dump_perms" | LC_ALL=C $MYSQL mysql 2>&1)"
+if [ $? = 0 ]
+then
+    if [ "$perm_output" = "" ]
+    then
+        die "Insufficient permissions, please run: GRANT SHOW VIEW ON *.* TO '$DBUSER'@'$DBSERVER';"
+    fi
+else
+    case $perm_output in
+        *"Unknown column"*) # probably MySQL 4, carry on.
+            : ;;
+        *)  die "Checking grants failed: $perm_output"
+            ;;
+    esac
+fi
+
+log debug "Dump running as $(whoami) started at $STARTTIME" 
+log debug "Database server is $DBSERVER, connecting as $DBUSER"
+
+mkdir -p $BACKUPDIR/$DAY || fail "mkdir $BACKUPDIR/$DAY"
+cd $BACKUPDIR/$DAY || fail "cd $BACKUPDIR/$DAY"
+log debug "Dumping to $BACKUPDIR/$DAY"
+
+DBS=$(echo "show databases" | $MYSQL) ||
+    fail "mysql show databases"
+
+for db in $DBS; do
+    case " $SKIP mysql.org lost+found performance_schema information_schema " in
+        *" $db "*)
+            log debug skipping $db
+            ;;
+        *)
+            DATABASES="$DATABASES $db"
+            log debug including $db
+            ;;
+    esac
+done
+
+posfile=$BACKUPDIR/$DAY/timestamp-and-binlog-position
+echo "Dump started at $(date)" > "$posfile"
+
+if [ `id -u` = 0 ]
+then
+    show_master_status() {
+        echo "Before dumping database $1.  Binlog and position is" >> "$posfile"
+        echo "SHOW MASTER STATUS" | $MYSQL >> "$posfile" ||
+            fail "mysql master status"
+    }
+else
+    show_master_status() { :; }
+fi
+
+############################
+# The database descriptions
+#
+
+DESCR_OPTIONS="--no-data"
+$MYSQLDUMP --routines >/dev/null 2>&1
+case $? in
+    2)  # Unknown option, so don't use it
+        : ;;
+    *)  # Usage message with exit code 1
+        DESCR_OPTIONS="$DESCR_OPTIONS --routines"
+        ;;
+esac
+
+log debug "Dumping descriptions"
+$MYSQLDUMP $DUMPOPTIONS $DESCR_OPTIONS --databases $DATABASES |
+    $GZIP --stdout > descriptions.$GZ
+check_success die "mysqldump" "descriptions.$GZ: $GZIP"
+
+# Copy my.cnf if one exists, since it is useful.  (my.cnf in other
+# locations will presumably be part of the normal backup.)
+DATADIR=$($MYSQLADMIN variables | awk '$2 == "datadir" {print $4}')
+[ "$DATADIR" = "" ] && die "mysqladmin failed"
+if [ -e "$DATADIR/my.cnf" ]; then
+    cp -p "$DATADIR/my.cnf" . || fail "cp $DATADIR/my.cnf"
+fi
+
+########################
+# Function to copy binary logs.  Does nothing if LOGBIN is unset
+#
+
+copy_binlogs() {
+    pushd $BACKUPDIR/$DAY >/dev/null
+
+    log debug "Will copy" "$LOGBIN".[0-9]*
+    NAME="$(basename $LOGBIN)"
+    for binfile in $LOGBIN.[0-9]*
+    do
+        case $binfile in
+            *\*)
+                log warning "No binary log files found (at $LOGBIN*)"
+                continue
+                ;;
+        esac
+
+        case $binfile in
+    	*.$GZ)
+    	    dest=$(basename "$binfile") ;;
+    	*)
+    	    dest=$(basename "$binfile").$GZ ;;
+        esac
+    	
+        if [ ! -s "$dest" -o "$binfile" -nt "$dest" ]
+        then
+    	    case $binfile in
+    	        *.$GZ)
+    		    if ! $IONICE cp -p "$binfile" "$dest"
+    		    then
+    		        log warning "Could not copy binary log file $binfile"
+    		    fi
+    		    ;;
+    	        *)
+                    # We make a reference timestamp file from when we started copying
+                    # in case $binfile keeps changing
+                    touch -r "$binfile" "$dest.tstamp"
+    		    if ! $IONICE nice $GZIP -c "$binfile" > "$dest.tmp"
+    		    then
+    		        log warning "Could not copy and compress binary log file $binfile"
+                        rm -f "$dest.tmp" "$dest.tstamp"
+                    else
+                        mv "$dest.tmp" "$dest"
+                        touch -r "$dest.tstamp" "$dest"
+                        rm -f "$dest.tstamp"
+    		    fi
+    	    esac
+        fi
+    done
+    popd >/dev/null
+}
+
+########################
+# Check for binary logs
+#
+
+if $MYSQLADMIN variables | grep ' log_bin *. *ON' >/dev/null
+then
+    log debug "Binary log is enabled"
+    if $COPYBINLOG; then
+        LOGBIN=$($MY_PRINT_DEFAULTS mysqld |
+            sed -n -e 's/^--log[_-]bin=\(.*\)\.log/\1/p' \
+                   -e 's/^--log[_-]bin=\(.*\)/\1/p' |
+            tail -1)
+        case $LOGBIN in
+            "")     LOGBIN="$DATADIR/mysql-bin" ;;
+            [^/]*)  LOGBIN="$DATADIR/$LOGBIN" ;;
+        esac
+        if [ -z "$LOGBIN" ]; then
+            log warning "Unable to establish log-bin path"
+        fi
+    fi
+    DUMPOPTIONS="$DUMPOPTIONS $DUMPOPTIONS_BINLOG"
+fi
+
+
+########################
+# Dumping the databases
+#
+
+for db in $DATABASES; do
+
+
+    show_master_status $db
+
+    log debug "Dumping database $db"
+
+    mkdir -p $BACKUPDIR/$DAY/$db || fail "mkdir failed"
+    cd $BACKUPDIR/$DAY/$db || fail "cd failed"
+
+    # Should we dump table by table
+    
+    tablebytable=false
+    if [ "$TABLEFILTER" != "." ]
+    then
+        log debug "  Tablefilter is set, dump $db table by table..."
+        tablebytable=true
+    fi
+    case " $SPECIALS " in
+        *" $db "*)
+            log debug "  Database $db is special, dump table by table..."
+            tablebytable=true
+            ;;
+    esac
+
+    if $tablebytable
+    then
+        tabs=$(echo "show tables" | $MYSQL $db | grep "$TABLEFILTER")
+        for i in $tabs; do 
+            show_master_status $db.$i
+            $IONICE $MYSQLDUMP $DUMPOPTIONS $db $i | $IONICE nice $GZIP -c > $db.$i.$GZ
+            check_success log "$db/$i: mysqldump" "$db.$i.$GZ: $GZIP"
+        done
+    else
+        # just put the complete database into one single file
+        $IONICE $MYSQLDUMP $DUMPOPTIONS $db | $IONICE nice $GZIP -c > $db.$GZ
+        check_success log "$db: mysqldump failed" "$db.$GZ: $GZIP failed"
+    fi
+done
+
+[ $retcode = 0 ] && touch $BACKUPDIR/last-run
+
+if [ "$LOGBIN" ]
+then
+    copy_binlogs
+    if [ "$DEBUG" = true ]
+    then
+        log debug "Would do: PURGE BINARY LOGS BEFORE '$STARTTIME';"
+    else
+        echo "PURGE BINARY LOGS BEFORE '$STARTTIME';" | $MYSQL
+        # We don't care about errors from this
+    fi
+fi
+
+log debug "Dump ended at `date`"
+exit $retcode

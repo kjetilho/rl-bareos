@@ -1,0 +1,3 @@
+---
+:yaml:
+  :datadir: 'spec/fixtures/hiera'

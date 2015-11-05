@@ -1,0 +1,15 @@
+---
+bareos::secret: 'A long and secret password string'
+bareos::director: backup.example.com-dir
+bareos::client::monitors:
+  systray-mon:
+    password: 'not so secret after all'
+bareos::client::schedules:
+  normal:
+    - NormalSchedule
+  multiple:
+    - Monday
+    - Tuesday
+    - Wednesday
+    - Thursday
+    - Friday

@@ -1,0 +1,59 @@
+{
+    "name": "rl-bareos",
+    "version": "develop",
+    "author": "rl",
+    "summary": "Redpill Linpro bareos",
+    "license": "Restricted",
+    "source": "https://git.i.bitbit.net/puppet-mod/rl-bareos.git",
+    "project_page": "https://git.i.bitbit.net/puppet-mod/rl-bareos",
+    "issues_url": "https://git.i.bitbit.net/puppet-mod/rl-bareos/issues",
+    "operatingsystem_support": [
+        {
+            "operatingsystem": "RedHat",
+            "operatingsystemrelease": [
+                "7"
+            ]
+        },
+        {
+            "operatingsystem": "CentOS",
+            "operatingsystemrelease": [
+                "7"
+            ]
+        },
+        {
+            "operatingsystem": "Scientific",
+            "operatingsystemrelease": [
+                "7"
+            ]
+        },
+        {
+            "operatingsystem": "Debian",
+            "operatingsystemrelease": [
+                "7",
+                "8"
+            ]
+        },
+        {
+            "operatingsystem": "Ubuntu",
+            "operatingsystemrelease": [
+                "14.04"
+            ]
+        }
+    ],
+    "requirements": [
+        {
+            "name": "apt",
+            "version_requirement": ">= 0"
+        },
+        {
+            "name": "nrpe",
+            "version_requirement": ">= 0"
+        },
+        {
+            "name": "stdlib",
+            "version_requirement": ">= 2"
+        }
+    ],
+    "description": "Redpill Linpro bareos",
+    "dependencies": []
+}

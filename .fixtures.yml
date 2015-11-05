@@ -1,0 +1,7 @@
+fixtures:
+  symlinks:
+    bareos: "#{source_dir}"
+  repositories:
+    stdlib:
+      repo: git@git.i.bitbit.net:mirror/puppetlabs-stdlib
+      ref:  4.6.0
