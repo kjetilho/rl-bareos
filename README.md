@@ -3,9 +3,12 @@ Bareos
 
 1. [Server](#server)
 2. [Client](#client)
-  1. [Client parameters](#client_parameters)
+  1. [Client parameters](#client-parameters)
   2. [Jobs](#jobs)
-  3. [Job presets](#job_presets)
+  3. [Job presets](#job-presets)
+    1. [mysqldumpbackup](#mysqldumpbackup)
+    2. [pgdumpbackup](#pgdumpbackup)
+    3. [Writing your own](#writing-your-own)
   4. [Filesets](#filesets)
 
 # Server
@@ -15,9 +18,9 @@ resources associated with it.
 
 In order to get a working setup, a few common Hiera keys must be set:
 
-bareos::secret
-bareos::director
-bareos::client::schedules  *REFACTOR to bareos::schedules*
+* bareos::secret
+* bareos::director
+* bareos::client::schedules  *REFACTOR to bareos::schedules*
 
 # Client
 
@@ -29,9 +32,9 @@ Fileset) which the director collects.
 
 __`bareos::client::password`__:
 Set this parameter to get the same password on several clients.  This
-is not the actual password used in the configuration files, for that
-we hash it with `${bareos::secret}`.  We do that extra step to avoid
-putting the actual password in PuppetDB.
+is not the actual password used in the configuration files, this is
+just a seed which is hashed with `${bareos::secret}`.  We do that
+extra step to avoid putting the actual password in PuppetDB.  Default: FQDN
 
 __`bareos::client::concurrency`__:
 How many jobs can run at the same time on this client.  Default: 10
@@ -46,7 +49,7 @@ __`bareos::client::name_suffix`__:
 The suffix to use.  Default: "-fd"
 
 __`bareos::client::address`__:
-The address or hostname the director should connect to.  Default: FQDN.
+The address or hostname the director should connect to.  Default: FQDN
 
 __`bareos::client::job_retention`__:
 How long to keep jobs from this client in the database.  Default: "180d"
@@ -65,12 +68,6 @@ Additional list of monitors to add to bacula-fd.conf.  Typical use:
 Use eyaml to protect "password-in-plain-text".  All keys in the hash
 are added as parameters to the Director directive.
 
-##
-
-  $monitors       = {},
-  $jobs           = {},
-  $filesets       = {},
-
 ## Jobs
 
 Jobs are defined in the `bareos::client::jobs` hash.
@@ -87,11 +84,10 @@ __`fileset`__: The (full) name of the fileset.  Overrides the fileset
 defined in the jobdef.
 
 __`schedule_set`__: The name of the list of schedules to pick randomly
-from.  Default: normal.
+from.  Default: normal
 
-__`sched`__: Explicit name of schedule to override random selection.
-(strange parameter name is due to `schedule` being a reserved word in
-Puppet.)
+__`sched`__: Explicit name of schedule, overrides random selection.
+(`schedule` is a reserved word in Puppet, hence the strange parameter name.)
 
 __`runscript`__: Array of script specifications to run before or after
 job.  Each script specification is a hash containing values for the
@@ -107,3 +103,79 @@ __`preset_params`__: Parameters to pass to preset class.
 
 ## Job presets
 
+A job normally declares a job_define for `bareos::server` to pick up.
+If `preset` is used, that declaration is the responsibility of the
+preset define.  Such a preset define can additionally install scripts
+or other software.
+
+### mysqldumpbackup
+
+This preset installs the script mysqldumpbackup and installs a
+configuration file for it.  See [code](manifests/job/preset/mysqldumpbackup.pp) for details.
+
+Example usage:
+
+    bareos::client::jobs:
+      job1:
+         preset:        bareos::job::preset::mysqldumpbackup
+         preset_params:
+           keep_backup: 5
+           backupdir:   /srv/mysql/backup
+
+### pgdumpbackup
+
+This preset installs the script pgdumpbackup and installs a
+configuration file for it.  See [code](manifests/job/preset/pgdumpbackup.pp) for details.
+
+
+### Writing your own preset
+
+The signature for a preset should be this:
+
+    define widget::backup::preset::widgetdump(
+        $jobdef,
+        $fileset,
+        $sched,
+        $params,
+    )
+
+`title` for the define will be the full job name.
+
+`jobdef` will be the empty string if the user didn't specify a jobdef
+explicitly.  You should respect the user's wishes, but replace the
+value of '' with a value which works for your preset.  (New job
+defaults can not be defined in Puppet code, contact MS0 to add it to
+main Git repo.)
+
+`fileset` will normally be empty, and should just be passed on.
+
+`sched` is the chosen schedule for this job.
+
+`params` is the hash passed by the user as `preset_params`.  The
+preset is free to specify its format and content.
+
+The exported job should be declared like this:
+
+    $_jobdef = $jobdef ? { '' => 'WidgetJob', default => $jobdef }
+    @@bareos::job_definition {
+        $title:
+            client_name => $bareos::client::client_name,
+            name_suffix => $bareos::client::name_suffix,
+            jobdef      => $_jobdef,
+            fileset     => $fileset,
+            sched       => $sched,
+            runscript   => [ { 'command' => '/usr/local/bin/widgetdump' } ],
+            tag         => "bareos::server::${bareos::director}"
+    }
+
+Almost all of the above code must be copied more or less verbatim.  If
+you don't need a runscript, you must pass an empty array.
+
+You should try to write your define so it can be used more than once
+per client, i.e., consider using `ensure_resource('file', { ... })`
+instead of just `file` to avoid duplicate declarations.
+
+
+## Filesets
+
+TODO
