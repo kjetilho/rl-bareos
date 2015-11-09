@@ -18,9 +18,19 @@ resources associated with it.
 
 In order to get a working setup, a few common Hiera keys must be set:
 
-* bareos::secret
-* bareos::director
-* bareos::schedules
+__`bareos::secret`__: A random string which is hashed with a seed
+value for each client to create its password.
+
+__`bareos::director`__: The name of the director.  Not necessarily a
+hostname.  It is essentially the director's username when
+authenticating with a FD.  It is also used in the tag of exported
+resources.  Default: "dump-dir"
+
+__`bareos::schedules`__: A hash containing sets of schedules.  Each
+key defines a set, the value for that key is an array of schedule
+names.  The schedules themselves must be defined in the Bareos
+configuration outside Puppet.
+
 
 # Client
 
@@ -105,10 +115,8 @@ __`preset_params`__: Parameters to pass to preset class.
 
 ## Job presets
 
-A job normally declares a job_define for `bareos::server` to pick up.
-If `preset` is used, that declaration is the responsibility of the
-preset define.  Such a preset define can additionally install scripts
-or other software.
+A _preset_ define can install scripts or other software on the client
+in addition to exporting configuration for the backup server.
 
 ### mysqldumpbackup
 
@@ -158,7 +166,11 @@ main Git repo.)
 `params` is the hash passed by the user as `preset_params`.  The
 preset is free to specify its format and content.
 
-The exported job should be declared like this:
+A normal job exports a `bareos::job_define` which `bareos::server`
+picks up.  When a _preset_ is used, exporting that declaration must be
+done by its define.
+
+This should be done like this:
 
     $_jobdef = $jobdef ? { '' => 'WidgetJob', default => $jobdef }
     @@bareos::job_definition {
@@ -206,3 +218,11 @@ set to `false`.  Default: true
 __`acl_support`__: Include information about ACLs in backup.  Causes
 an extra system call per file.  Default: true
 
+### Example:
+
+    bareos::client::filesets:
+        only_srv:
+            include_paths:
+                - /srv
+            exclude_paths:
+                - /srv/cache
