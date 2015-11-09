@@ -19,8 +19,8 @@ define bareos::client::job(
   if $sched {
     $_sched = $sched
   } else {
-    validate_hash($bareos::client::schedules)
-    $set = $bareos::client::schedules[$schedule_set]
+    validate_hash($bareos::schedules)
+    $set = $bareos::schedules[$schedule_set]
     validate_array($set)
     $random_index = fqdn_rand(65537, $title) % count($set)
     $_sched = $set[$random_index]

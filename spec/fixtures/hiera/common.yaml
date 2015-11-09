@@ -4,7 +4,7 @@ bareos::director: backup.example.com-dir
 bareos::client::monitors:
   systray-mon:
     password: 'not so secret after all'
-bareos::client::schedules:
+bareos::schedules:
   normal:
     - NormalSchedule
   multiple:
