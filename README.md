@@ -10,10 +10,13 @@ Bareos
       2. [pgdumpbackup](#pgdumpbackup)
       3. [Writing your own](#writing-your-own)
    4. [Filesets](#filesets)
+   5. [Complex examples](#complex-examples)
+      1. [Pre- and post jobs](#pre-and-post-jobs)
+      2. [Service address](#service-address)
 
 # Server
 
-The bareos::server installs the software and collects exported
+The `bareos::server` class installs the software and collects exported
 resources associated with it.
 
 In order to get a working setup, a few common Hiera keys must be set:
@@ -34,8 +37,8 @@ configuration outside Puppet.
 
 # Client
 
-The bareos::client class will install the file daemon and configure it
-with passwords.  It will also export resources (Client, Job, and
+The `bareos::client` class will install the file daemon and configure
+it with passwords.  It will also export resources (Client, Job, and
 Fileset) which the director collects.
 
 ## Client parameters
@@ -112,6 +115,20 @@ section.
 
 __`preset_params`__: Parameters to pass to preset class.
 
+### Example:
+
+The following example installs a backup agent and registers a job with
+all the default settings:
+
+    bareos::client::jobs:
+       job1: []
+
+This example also runs a normal full backup, but later than normal:
+
+    bareos::client::jobs:
+       job1:
+           schedule_set: late
+
 
 ## Job presets
 
@@ -138,6 +155,14 @@ Example usage:
 
 This preset installs the script pgdumpbackup and installs a
 configuration file for it.  See [code](manifests/job/preset/pgdumpbackup.pp) for details.
+
+Example usage:
+
+    bareos::client::jobs:
+      job1:
+         preset:        bareos::job::preset::pgdumpbackup
+         preset_params:
+           cluster:     9.2/main
 
 
 ### Writing your own preset
@@ -226,3 +251,71 @@ an extra system call per file.  Default: true
                 - /srv
             exclude_paths:
                 - /srv/cache
+
+## Complex examples
+
+### Pre- and post jobs
+
+The following will install the software and register two jobs,
+"system" and "srv".  Before the "srv" job runs, the prepare script
+will run, and if it fails, backup will be aborted.  After the "srv"
+job finishes, the cleanup script will run.
+
+    bareos::client::jobs:
+        system:
+            fileset: "%{::fqdn}-system"
+        srv:
+            fileset: "%{::fqdn}-srv"
+            runscript:
+                -
+                  command:      "/usr/local/sbin/prepare"
+                  abortonerror: true
+                -
+                  command:      "/usr/local/sbin/cleanup"
+                  runswhen:     after
+    bareos::client::filesets:
+        system:
+            include_paths:
+                - /
+            exclude_paths:
+                - /srv
+        srv:
+            include_paths:
+                - /srv
+
+### Service address
+
+When doing backup of a service which can run on more than one node, it
+is essential to set `bareos::client::password` to the same value on
+each of the nodes.  However, you do not / can not declare the same job
+on more than one node, since that will cause duplicate definitions in
+PuppetDB.  You must pick one node to register the common job.
+
+In a common yaml file:
+
+    bareos::client::password: common-secret
+    bareos::client::jobs:
+        system:
+            fileset: "%{domain}-without_archive"
+
+In a yaml file only read by a single node:
+
+    bareos::client::filesets:
+        without_archive:
+            fileset_name: "%{domain}-without_archive"
+            include_paths:
+                - /
+            exclude_paths:
+                - /srv/archive
+        archive:
+            fileset_name:  "%{domain}-archive"
+            include_paths:
+                - /srv/archive
+
+    bareos::client::service_addr:
+        archive.example.com: []
+
+    bareos::client::jobs:
+        archive_service:
+            client_name:  archive.example.com
+            fileset_name: "%{domain}-archive"

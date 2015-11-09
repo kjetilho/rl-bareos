@@ -1,5 +1,6 @@
 define bareos::client::job(
   $job_name = '',
+  $client_name = $bareos::client::client_name,
   $jobdef = '',
   $runscript = [],
   $fileset = '',
@@ -14,7 +15,7 @@ define bareos::client::job(
   if $job_name {
     $_job_name = $job_name
   } else {
-    $_job_name = "${bareos::client::client_name}-${title}"
+    $_job_name = "${client_name}-${title}"
   }
   if $sched {
     $_sched = $sched
@@ -45,7 +46,7 @@ define bareos::client::job(
     
     @@bareos::job_definition {
       $_job_name:
-        client_name => $bareos::client::client_name,
+        client_name => $client_name,
         name_suffix => $bareos::client::name_suffix,
         jobdef      => $_jobdef,
         fileset     => $fileset,

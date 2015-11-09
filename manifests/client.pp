@@ -16,6 +16,7 @@ class bareos::client (
   $name_suffix    = $bareos::params::client::name_suffix,
   $address        = $::fqdn,
   $password       = $::fqdn,
+  $service_addr   = {},
   $job_retention  = '180d',
   $file_retention = '60d',
   $concurrency    = 10,
@@ -84,6 +85,9 @@ class bareos::client (
     tag            => "bareos::server::${bareos::director}",
   }
 
+  if ! empty($service_addr) {
+    create_resources('bareos::client::service_addr', $service_addr)
+  }
   if ! empty($jobs) {
     create_resources('bareos::client::job', $jobs)
   }
