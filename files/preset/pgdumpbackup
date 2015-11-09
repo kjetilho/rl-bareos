@@ -1,0 +1,311 @@
+#! /bin/bash
+
+# Simple shell script to dump and compress the databases on host db.
+# The script is broken into several steps instead of taking the whole
+# dump into one large file. This is done for easier reverting of
+# backups, and easier debugging of errors.
+#
+# This script is based on mysqldumpbackup, originally written by Ingvar.
+#
+# If overrides are needed, put them in
+#   /etc/{sysconfig,default}/pgdumpbackup
+# or specify the name of the override file if the servers handles several
+# PostgreSQL instances.
+
+usage() {
+    echo "Usage: $0 [-c] [-r] [-n] [-d] [CONFIGFILE]" >&2
+    echo "-c  remove old backups before making new backup" >&2
+    echo "-r  exit silently if postgresql is not running" >&2
+    echo "-n  don't make new backup" >&2
+    echo "-d  verbose debug output" >&2
+    exit 64
+}
+
+log() {
+    level="$1"; shift
+    case $level-$DEBUG in
+        debug-false) return ;;
+    esac
+    case $LOG_METHOD in
+        console|both)
+            echo "$*"
+            ;;
+    esac
+    case $LOG_METHOD in
+        syslog|both)
+            logger -t pgdumpbackup -p $SYSLOG_FACILITY.$level "$*"
+            ;;
+    esac
+}
+
+logdie() {
+    status=$1; shift
+    log error "$* failed (exit status $status)" >&2
+    exit $status
+}
+
+die() {
+    logdie $? "$@"
+}
+
+check_success() {
+    for status in ${PIPESTATUS[@]}; do
+        if [ $status != 0 ]; then
+            logdie $status "$1 failed (exit status $status)"
+        fi
+        shift
+    done
+}
+
+CLEAN=false
+NOBACKUP=false
+LOG_METHOD=console
+SYSLOG_FACILITY=daemon
+EXIT_SILENTLY_WHEN_NOT_RUNNING=false
+
+# Set to true for debugging output
+DEBUG=${DEBUG-false}
+
+while true; do
+    case $1 in
+        -c) CLEAN=true; shift ;;
+        -n) NOBACKUP=true; shift ;;
+        -d) DEBUG=true; shift ;;
+        -r) EXIT_SILENTLY_WHEN_NOT_RUNNING=true; shift ;;
+        -*) usage ;;
+        *)  break;;
+    esac
+done
+
+conf="${1:-pgdumpbackup}"
+
+##################
+# Default values
+#
+
+HOME="/root"
+PATH=/usr/bin:/bin:/usr/sbin
+export PATH HOME
+cd /
+
+# Defaults
+DBSERVER=""
+AUTHMETHOD="sudo -u postgres"
+PSQL="psql"
+BACKUPDIR="/var/backups/postgresql"
+PG_DUMP="pg_dump"
+PG_DUMPALL="pg_dumpall"
+INITSCRIPT="/etc/init.d/postgresql"
+
+# Service name for Red Hat Cluster, will override usage of initscript:
+SERVICENAME=""
+# Number of days to keep dump on disk
+KEEPBACKUP=5
+
+DAY=$(date +'%Y-%m-%d_%H')
+
+DUMPOPTIONS=""
+
+case $conf in
+    /*)
+        . "$conf"
+        ;;
+    *)
+        for d in /etc/sysconfig /etc/default; do
+            if [ -r "$d/$conf" ]; then
+                if . "$d/$conf"; then
+                    break
+                else
+                    # Only complain if an explicit argument was provided
+                    [ "$1" = "" ] || die "$0: $d/$conf:"
+                fi
+            fi
+        done
+        ;;
+esac
+
+case $AUTHMETHOD in
+    sudo*)
+        PSQL="$AUTHMETHOD $PSQL"
+        PG_DUMP="$AUTHMETHOD $PG_DUMP"
+        PG_DUMPALL="$AUTHMETHOD $PG_DUMPALL"
+        ;;
+    -*)
+        PSQL="$PSQL $AUTHMETHOD"
+        PG_DUMP="$PG_DUMP $AUTHMETHOD"
+        PG_DUMPALL="$PG_DUMPALL $AUTHMETHOD"
+        ;;
+    "") :
+        ;;
+    *)  die "Unknown auth method: $AUTHMETHOD"
+        ;;
+esac
+
+if [ "$DBSERVER" != "" ]
+then
+    PSQL="$PSQL -h $DBSERVER"
+    PG_DUMP="$PG_DUMP -h $DBSERVER"
+    PG_DUMPALL="$PG_DUMPALL -h $DBSERVER"
+fi
+
+
+###############################
+# Configuration done, let's go
+
+# If postgres for some reason is running on a non-default port, we'll need to use the
+# --cluster option.
+if [ -n "$CLUSTER" ]
+then
+    PSQL="$PSQL --cluster $CLUSTER"
+    PG_DUMP="$PG_DUMP --cluster $CLUSTER"
+    PG_DUMPALL="$PG_DUMPALL --cluster $CLUSTER"
+    version=$(echo "$CLUSTER" | cut -d/ -f1)
+    if [ -x /etc/init.d/postgresql-$version ]
+    then
+        INITSCRIPT=/etc/init.d/postgresql-$version
+        log debug "Using cluster $CLUSTER and $INITSCRIPT"
+    fi
+else
+    # We check versions in descending order.  This means that the init
+    # script for the oldest installed database version will be
+    # checked.  The backup will however be taken of whatever database
+    # listens on port 5432.
+
+    for i in 9.4 9.3 9.2 9.1 9.0 8.4 8.3 8.2 8.1
+    do
+        if [ -x /etc/init.d/postgresql-$i ]
+        then
+            INITSCRIPT="/etc/init.d/postgresql-$i"
+            log debug "Found $INITSCRIPT"
+        fi
+    done
+fi
+
+# Check if I'm supposed to run this.
+if [ "$SERVICENAME" ]; then
+    type clustat >/dev/null || exit 1
+    this_node=$(hostname --fqdn)
+    pgsql_owner=$(clustat -ls $SERVICENAME | awk '$1 == "Owner" {print $NF}')
+    [ "$this_node" = "$pgsql_owner" ] || exit 0
+elif ! $INITSCRIPT status > /dev/null 2>&1; then
+    if $EXIT_SILENTLY_WHEN_NOT_RUNNING; then
+        log info "PostgreSQL is not running here, bailing out."
+        exit 0
+    fi
+    exec $INITSCRIPT status
+fi
+
+if $CLEAN; then
+    case $KEEPBACKUP in
+        0)       KEEPBACKUP=1440 ;;
+        [0-9]*m) KEEPBACKUP=${KEEPBACKUP%m} ;;
+        [0-9]*h) KEEPBACKUP=$((${KEEPBACKUP%h}*60)) ;;
+        *)       KEEPBACKUP=$((KEEPBACKUP*1440)) ;;
+    esac
+    log debug "Cleaning $BACKUPDIR, keeping $((KEEPBACKUP/1440)) days"
+    case $BACKUPDIR in
+        /*/*/*)
+            :
+            ;;
+        *)
+            die "$BACKUPDIR: too few directory levels, won't clean, dump"
+            ;;
+    esac
+
+    cd "$BACKUPDIR" 2>/dev/null &&
+    find . -name . -o \( -type d -prune \
+                         -mmin +${KEEPBACKUP} -name '????-??-??_??' \
+                         -exec rm -rf {} \; -prune \)
+fi
+
+if ! $PSQL --version >/dev/null
+then
+    log error "$PSQL: Can't connect to PostgreSQL. Quitting."
+    exit 1
+fi
+
+$NOBACKUP && exit 0
+
+log debug "Dump ${CLUSTER-pg} running as $(whoami) started at $(date)" 
+log debug "Database server is ${DBSERVER:-localhost}"
+
+BDIR=$BACKUPDIR/$DAY
+mkdir -p $BDIR || die "mkdir $BDIR"
+log debug "Dumping to $BDIR"
+
+# Do a dummy run just to check if it works
+$PSQL -l >/dev/null 2>&1 || die "$PSQL -l"
+
+DBS=$($PSQL -l | awk -F\| 'NR>3 && NF>2 && ! / *template0/ {print $1}') ||
+    die "$PSQL -l | awk"
+if [ -n "$SKIP" ]
+then
+    DATABASES=""
+    for db in $DBS; do
+        case " $SKIP " in
+            *" $db "*)
+                log debug skipping $db
+                ;;
+            *)
+                DATABASES="$DATABASES $db"
+                log debug including $db
+                ;;
+        esac
+    done
+else
+    DATABASES="$DBS"
+fi
+
+show() {
+    $PSQL -t -c "show $1" | sed 's/^[ 	]*//'
+}
+
+# Copy all text files in PGDATA, including postgresql.conf, since
+# it may be excluded from the backup job.
+DATADIR=$( show data_directory )
+[ "$DATADIR" = "" ] && die "$PSQL failed"
+OWNER=$(stat -c %U "$DATADIR")
+chown ${OWNER:-postgres} "$BDIR"
+
+# Usually postgresql.conf is in PGDATA, but on Debian it's in /etc,
+# so we check if we need to name it explicitly for tar.
+CONFIG_FILE=$( show config_file )
+[ "$CONFIG_FILE" = "" ] && die "$PSQL failed"
+CONFIGDIR=$(dirname "$CONFIG_FILE")
+if [ "$CONFIGDIR" = "$DATADIR" ]
+then
+    CONFIGDIR=""
+fi
+
+# We don't assume GNU find with -maxdepth or GNU tar with -z
+cd "$DATADIR" &&
+  tar cf $BDIR/config.tar $CONFIGDIR \
+      $(find . -name . -o \( -type d -prune \) -o -print) &&
+  gzip -f -9 $BDIR/config.tar
+check_success "cd $DATADIR" "tar" "gzip"
+
+# Dump roles and tablespaces for the entire cluster
+status=0
+if $PG_DUMPALL -g > $BDIR/global-objects.sql
+then
+    log debug "Successfully dumped global objects"
+else
+    status=$?
+    log err "pg_dumpall failed with error code $?"
+fi
+
+for db in $DATABASES
+do
+    log debug "Dumping database $db"
+    if $PG_DUMP -Fc $DUMPOPTIONS -f $BDIR/$db.dump $db
+    then
+        log debug "Successfully dumped database $db"
+    else
+        status=$?
+        log err "pg_dump of $db failed with error code $?"
+    fi
+done
+
+[ $status = 0 ] && touch $BACKUPDIR/last-run
+log debug "Dump ended at `date`"
+exit $status
