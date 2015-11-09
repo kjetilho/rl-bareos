@@ -12,6 +12,7 @@ define bareos::client::fileset(
   $fileset_name = '',
   $include_paths,
   $exclude_paths = [],
+  $exclude_dir_containing = '.nobackup',
   $ignore_changes = true,
   $acl_support = true,
 )
@@ -21,16 +22,18 @@ define bareos::client::fileset(
   validate_bool($ignore_changes)
   validate_bool($acl_support)
 
-  if $fileset_name {
-    $_fileset_name = $fileset_name
-  } else {
+  if $fileset_name == '' {
     $_fileset_name = "${bareos::client::client_name}-${title}"
+  } else {
+    $_fileset_name = $fileset_name
   }
   @@bareos::fileset_definition {
     $_fileset_name:
-      include_paths => $include_paths,
-      exclude_paths => $exclude_paths,
-      acl_support   => $acl_support,
-      tag           => "bareos::server::${bareos::director}"
+      include_paths          => $include_paths,
+      exclude_paths          => $exclude_paths,
+      exclude_dir_containing => $exclude_dir_containing,
+      acl_support            => $acl_support,
+      ignore_changes         => $ignore_changes,
+      tag                    => "bareos::server::${bareos::director}"
   }
 }

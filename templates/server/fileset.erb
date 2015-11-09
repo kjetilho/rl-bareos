@@ -19,6 +19,9 @@ FileSet {
 <% @include_paths.each do |path| -%>    
     File = <%= path %>
 <% end -%>
+<% unless @exclude_dir_containing.to_s == '' -%>
+    Exclude dir containing = "<%= @exclude_dir_containing %>"
+<% end -%>
   }
 <% if not @exclude_paths.empty? -%>
   Exclude {

@@ -3,13 +3,13 @@ Bareos
 
 1. [Server](#server)
 2. [Client](#client)
-  1. [Client parameters](#client-parameters)
-  2. [Jobs](#jobs)
-  3. [Job presets](#job-presets)
-    1. [mysqldumpbackup](#mysqldumpbackup)
-    2. [pgdumpbackup](#pgdumpbackup)
-    3. [Writing your own](#writing-your-own)
-  4. [Filesets](#filesets)
+   1. [Client parameters](#client-parameters)
+   2. [Jobs](#jobs)
+   3. [Job presets](#job-presets)
+      1. [mysqldumpbackup](#mysqldumpbackup)
+      2. [pgdumpbackup](#pgdumpbackup)
+      3. [Writing your own](#writing-your-own)
+   4. [Filesets](#filesets)
 
 # Server
 
@@ -20,7 +20,7 @@ In order to get a working setup, a few common Hiera keys must be set:
 
 * bareos::secret
 * bareos::director
-* bareos::client::schedules  *REFACTOR to bareos::schedules*
+* bareos::schedules
 
 # Client
 
@@ -72,11 +72,12 @@ are added as parameters to the Director directive.
 
 Jobs are defined in the `bareos::client::jobs` hash.
 
-The name of the resource is added to the client name and used as the
-name of the job.  This will export a job_definition which the director
-will pick up.
+Each key in the hash becomes the name of the resource.  This is added
+to the client name and used as the name of the job.  A
+`bareos::job_definition` with that name will be exported for the
+director to pick up.
 
-__`job_name`__: Specify the job name explicitly.
+__`job_name`__: Specify the full job name explicitly.
 
 __`jobdef`__: The name of the job defaults.  Default: DefaultJob
 
@@ -90,10 +91,11 @@ __`sched`__: Explicit name of schedule, overrides random selection.
 (`schedule` is a reserved word in Puppet, hence the strange parameter name.)
 
 __`runscript`__: Array of script specifications to run before or after
-job.  Each script specification is a hash containing values for the
-keys `command` and optionally `runswhen`.  `command` can in turn be an
-array of strings to run.  `runswhen` is either `before` or `after`, by
-default it is `before`.
+job.  Each element is a hash containing values for `command` and
+optional other parameters.  `command` can be a single command or an
+array of strings.  `runswhen` is either `before` or `after`, by
+default it is `before`.  Other parameters are written verbatim as `Key
+= value` to bareos configuration.
 
 __`preset`__: Use specified class to export the job.  See next
 section.
@@ -111,7 +113,9 @@ or other software.
 ### mysqldumpbackup
 
 This preset installs the script mysqldumpbackup and installs a
-configuration file for it.  See [code](manifests/job/preset/mysqldumpbackup.pp) for details.
+configuration file for it.  See
+[code](manifests/job/preset/mysqldumpbackup.pp) for full list of
+parameters.
 
 Example usage:
 
@@ -178,4 +182,27 @@ instead of just `file` to avoid duplicate declarations.
 
 ## Filesets
 
-TODO
+The support for filesets is not complete, it is kept simple to focus
+on filesets with static include and exclude rules.
+
+The name of the resource is added to the client name and used as the
+name of the fileset.  This will export a fileset_definition which the
+director will pick up.
+
+__`fileset_name`__: Specify the fileset name explicitly.
+
+__`include_paths`__: Array of paths to include in backup.  Mandatory,
+no default.
+
+__`exclude_paths`__: Array of paths to exclude.
+
+__`exclude_dir_containing`__: Directories containing a file with this
+name will be skipped.  Set to "" to disable functionality.  Default:
+".nobackup".
+
+__`ignore_changes`__: If fileset changes, rerun Full backup if this is
+set to `false`.  Default: true
+
+__`acl_support`__: Include information about ACLs in backup.  Causes
+an extra system call per file.  Default: true
+
