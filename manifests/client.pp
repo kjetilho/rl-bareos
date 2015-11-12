@@ -14,6 +14,7 @@ class bareos::client (
   $implementation = $bareos::params::client::implementation,
   $client_name    = $::fqdn,
   $name_suffix    = $bareos::params::client::name_suffix,
+  $job_suffix     = $bareos::params::client::job_suffix,
   $address        = $::fqdn,
   $password       = $::fqdn,
   $service_addr   = {},

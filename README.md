@@ -121,12 +121,12 @@ The following example installs a backup agent and registers a job with
 all the default settings:
 
     bareos::client::jobs:
-       job1: []
+       system: []
 
 This example also runs a normal full backup, but later than normal:
 
     bareos::client::jobs:
-       job1:
+       system:
            schedule_set: late
 
 
@@ -145,7 +145,7 @@ parameters.
 Example usage:
 
     bareos::client::jobs:
-      job1:
+      system:
          preset:        bareos::job::preset::mysqldumpbackup
          preset_params:
            keep_backup: 5
@@ -159,7 +159,7 @@ configuration file for it.  See [code](manifests/job/preset/pgdumpbackup.pp) for
 Example usage:
 
     bareos::client::jobs:
-      job1:
+      system:
          preset:        bareos::job::preset::pgdumpbackup
          preset_params:
            cluster:     9.2/main

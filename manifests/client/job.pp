@@ -15,7 +15,7 @@ define bareos::client::job(
   if $job_name {
     $_job_name = $job_name
   } else {
-    $_job_name = "${client_name}-${title}"
+    $_job_name = "${client_name}-${title}${bareos::client::job_suffix}"
   }
   if $sched {
     $_sched = $sched
