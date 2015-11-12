@@ -4,8 +4,9 @@
 # it in common.eyaml or similar.
 class bareos  (
   $director = 'dump-dir',
+  $schedules,
   $secret
 )
 {
-  
+
 }

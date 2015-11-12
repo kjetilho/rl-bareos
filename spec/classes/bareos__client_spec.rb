@@ -28,18 +28,18 @@ describe 'bareos::client' do
 
       it { should compile.with_all_deps }
       it do
-        expect(exported_resources).to contain_bareos__job_definition("#{facts[:fqdn]}-job1")
+        expect(exported_resources).to contain_bareos__job_definition("#{facts[:fqdn]}-job1-job")
                                        .with_sched('NormalSchedule')
       end
       it do
         # This test depends on the result of fqdn_rand, so a change to
         # its parameters (including the implicit $fqdn) may cause this
         # test to fail.
-        expect(exported_resources).to contain_bareos__job_definition("#{facts[:fqdn]}-job2")
+        expect(exported_resources).to contain_bareos__job_definition("#{facts[:fqdn]}-job2-job")
                                        .with_sched('Wednesday')
       end
       it do
-        expect(exported_resources).to contain_bareos__job_definition("#{facts[:fqdn]}-job3")
+        expect(exported_resources).to contain_bareos__job_definition("#{facts[:fqdn]}-job3-job")
                                        .with_sched('SpecialSchedule')
       end
     end
@@ -80,7 +80,7 @@ describe 'bareos::client' do
       it { should compile.with_all_deps }
       it { should contain_file('/usr/local/sbin/mysqldumpbackup') }
       it do
-        expect(exported_resources).to contain_bareos__job_definition("#{facts[:fqdn]}-mysql")
+        expect(exported_resources).to contain_bareos__job_definition("#{facts[:fqdn]}-mysql-job")
                                        .with_jobdef('DefaultMySQLJob')
                                        .with_runscript(
                                          [ { 'command' =>
@@ -90,7 +90,7 @@ describe 'bareos::client' do
       it { should contain_file('/etc/default/mysqldumpbackup')
                    .with_content(/KEEPBACKUP="1"/) }
       it do
-        expect(exported_resources).to contain_bareos__job_definition("#{facts[:fqdn]}-mysql-ece")
+        expect(exported_resources).to contain_bareos__job_definition("#{facts[:fqdn]}-mysql-ece-job")
                                        .with_jobdef('DefaultMySQLJob')
                                        .with_runscript(
                                          [ { 'command' =>
@@ -100,6 +100,32 @@ describe 'bareos::client' do
       it { should contain_file('/etc/default/mysqldumpbackup-ece')
                    .with_content(/GZIP="xz"/)
       }
+    end
+    context "on #{os} with service address" do
+      let(:facts) { facts }
+      let(:params) do
+        { :service_addr => {
+            'test-service1.example.com' => {
+              'concurrency' => 5,
+            },
+            'test-service2.example.com' => {
+              'address' => '10.0.0.0',
+            },
+          }
+        }
+      end
+
+      it { should compile.with_all_deps }
+      it do
+        expect(exported_resources).to contain_bareos__client_definition("test-service1.example.com-fd")
+                                       .with_address("test-service1.example.com")
+                                       .with_concurrency(5)
+      end
+      it do
+        expect(exported_resources).to contain_bareos__client_definition("test-service2.example.com-fd")
+                                       .with_address("10.0.0.0")
+                                       .with_concurrency(10) # default in bareos::client
+      end
     end
   end
 end

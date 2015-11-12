@@ -10,6 +10,7 @@ class bareos::params::client {
   $log_dir        = "/var/log/${implementation}"
   $schedules      = { 'normal' => ['Friday', 'Saturday', 'Sunday'] }
   $name_suffix    = '-fd'
+  $job_suffix     = '-job'
 
   case $::osfamily {
     'RedHat': {

@@ -1,5 +1,6 @@
 define bareos::client::job(
   $job_name = '',
+  $client_name = $bareos::client::client_name,
   $jobdef = '',
   $runscript = [],
   $fileset = '',
@@ -14,13 +15,13 @@ define bareos::client::job(
   if $job_name {
     $_job_name = $job_name
   } else {
-    $_job_name = "${bareos::client::client_name}-${title}"
+    $_job_name = "${client_name}-${title}${bareos::client::job_suffix}"
   }
   if $sched {
     $_sched = $sched
   } else {
-    validate_hash($bareos::client::schedules)
-    $set = $bareos::client::schedules[$schedule_set]
+    validate_hash($bareos::schedules)
+    $set = $bareos::schedules[$schedule_set]
     validate_array($set)
     $random_index = fqdn_rand(65537, $title) % count($set)
     $_sched = $set[$random_index]
@@ -45,7 +46,7 @@ define bareos::client::job(
     
     @@bareos::job_definition {
       $_job_name:
-        client_name => $bareos::client::client_name,
+        client_name => $client_name,
         name_suffix => $bareos::client::name_suffix,
         jobdef      => $_jobdef,
         fileset     => $fileset,

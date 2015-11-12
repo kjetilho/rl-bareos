@@ -1,0 +1,26 @@
+<% unless @environment == "" -%>
+<%   [@environment].flatten.each do |var| -%>
+export <%= var %>
+<%   end -%>
+<% end -%>
+<% unless @backupdir == "" -%>
+BACKUPDIR="<%= @backupdir %>"
+<% end -%>
+<% unless @keep_backup == "" -%>
+KEEPBACKUP="<%= @keep_backup %>"
+<% end -%>
+<% unless @log_method == "console" -%>
+LOG_METHOD="<%= @log_method %>"
+<% end -%>
+<% unless @skip_databases == "" -%>
+SKIP="$SKIP <%= [@skip_databases].flatten.join(" ") %>"
+<% end -%>
+<% unless @server == "localhost" -%>
+DBSERVER="<%= @server %>"
+<% end -%>
+<% unless @initscript == "" -%>
+INITSCRIPT="<%= @initscript %>"
+<% end -%>
+<% unless @cluster == "" -%>
+CLUSTER="<%= @cluster %>"
+<% end -%>
