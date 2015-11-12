@@ -101,5 +101,31 @@ describe 'bareos::client' do
                    .with_content(/GZIP="xz"/)
       }
     end
+    context "on #{os} with service address" do
+      let(:facts) { facts }
+      let(:params) do
+        { :service_addr => {
+            'test-service1.example.com' => {
+              'concurrency' => 5,
+            },
+            'test-service2.example.com' => {
+              'address' => '10.0.0.0',
+            },
+          }
+        }
+      end
+
+      it { should compile.with_all_deps }
+      it do
+        expect(exported_resources).to contain_bareos__client_definition("test-service1.example.com-fd")
+                                       .with_address("test-service1.example.com")
+                                       .with_concurrency(5)
+      end
+      it do
+        expect(exported_resources).to contain_bareos__client_definition("test-service2.example.com-fd")
+                                       .with_address("10.0.0.0")
+                                       .with_concurrency(10) # default in bareos::client
+      end
+    end
   end
 end
