@@ -11,8 +11,6 @@ define bareos::fileset_definition(
   $acl_support
 )
 {
-  validate_array($include_paths)
-  validate_array($exclude_paths)
   validate_bool($ignore_changes)
   validate_bool($acl_support)
 
