@@ -1,5 +1,5 @@
 FileSet {
-  Name = "<%= @fileset_name %>"
+  Name = "<%= @title %>"
   Ignore FileSet Changes = <%= @ignore_changes ? 'yes' : 'no' %>
   Include {
     Options {
@@ -16,7 +16,7 @@ FileSet {
         FSType = reiserfs
         FSType = xfs
     }
-<% @include_paths.each do |path| -%>    
+<% [@include_paths].flatten.each do |path| -%>    
     File = <%= path %>
 <% end -%>
 <% unless @exclude_dir_containing.to_s == '' -%>
@@ -25,7 +25,7 @@ FileSet {
   }
 <% if not @exclude_paths.empty? -%>
   Exclude {
-<% @exclude_paths.each do |path| -%>    
+<% [@exclude_paths].flatten.each do |path| -%>    
     File = <%= path %>
 <% end -%>
   }
