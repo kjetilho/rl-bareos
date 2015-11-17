@@ -39,7 +39,7 @@ define bareos::client::job(
     create_resources($preset, $preset_def)
   } else {
     if ($jobdef == '') {
-      $_jobdef = 'DefaultJob'
+      $_jobdef = $bareos::default_jobdef
     } else {
       $_jobdef = $jobdef
     }
