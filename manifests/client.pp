@@ -23,7 +23,7 @@ class bareos::client (
   $concurrency    = 10,
   $service_ensure = 'running',
   $monitors       = {},
-  $jobs           = {},
+  $jobs           = {'system' => {}},
   $filesets       = {},
   # the remainder are unlikely to need changing
   $package        = $bareos::params::client::package,

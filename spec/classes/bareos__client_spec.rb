@@ -13,6 +13,16 @@ describe 'bareos::client' do
                 .with_content(/Name = "systray-mon"/)
                 .with_content(/Name = "backup.example.com-dir"/)
       end
+      it do
+        expect(exported_resources).to have_bareos__job_definition_resource_count(1)
+      end
+      it do
+        expect(exported_resources).to contain_bareos__client_definition("#{facts[:fqdn]}-fd")
+      end
+      it do
+        expect(exported_resources).to contain_bareos__job_definition("#{facts[:fqdn]}-system-job")
+                                       .with_sched('NormalSchedule')
+      end
     end
 
     context "on #{os} with jobs" do
@@ -27,6 +37,9 @@ describe 'bareos::client' do
       end
 
       it { should compile.with_all_deps }
+      it do
+        expect(exported_resources).to have_bareos__job_definition_resource_count(3)
+      end
       it do
         expect(exported_resources).to contain_bareos__job_definition("#{facts[:fqdn]}-job1-job")
                                        .with_sched('NormalSchedule')
