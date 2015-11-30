@@ -8,7 +8,6 @@ class bareos::params::client {
   $service        = "${implementation}-fd"
   $config_file    = "/etc/${implementation}/${implementation}-fd.conf"
   $log_dir        = "/var/log/${implementation}"
-  $schedules      = { 'normal' => ['Friday', 'Saturday', 'Sunday'] }
   $name_suffix    = '-fd'
   $job_suffix     = '-job'
 
