@@ -18,7 +18,14 @@ class bareos::params::client {
       $pid_dir     = '/var/run'
     }
     'Debian': {
-      $package     = "${implementation}-fd"
+      case $implementation {
+        'bacula': {
+          $package = "${implementation}-fd"
+        }
+        'bareos': {
+          $package = "${implementation}-filedaemon"
+        }
+      }
       $working_dir = "/var/lib/${implementation}"
       $pid_dir     = "/var/run/${implementation}"
     }
