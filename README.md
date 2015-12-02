@@ -61,12 +61,35 @@ __`bareos::default_jobdef`__: Name of default job definition.
 Defaults to `DefaultJob`.  The jobdef itself must be [defined outside
 this module]#(non-module).
 
+__`bareos::security_zone`__: A tag identifying which secret the
+director should use to generate the password for this client.
+
+When security zone is unset, `bareos::secret` will be used on both
+client and server.  If security zone is set, the client will still use
+the `bareos::secret` as seen in its view of Hiera, but the server will
+instead look for the alternate secret in `bareos::server::secrets`.
+
 
 Server
 ------
 
 The `bareos::server` class installs the software and collects exported
 resources associated with it.
+
+## Server parameters
+
+__`bareos::server::secrets`__: Hash containing secrets for other
+security zones.  Default: {}
+
+__`bareos::server::client_file_prefix`__: Where to put collected
+client resources.  Default: '/etc/bareos/clients.d/'
+
+__`bareos::server::job_file_prefix`__: Where to put collected job
+resources.  Default: '/etc/bareos/jobs.d/'
+
+__`bareos::server::fileset_file_prefix`__: Where to put collected
+fileset resources.  Default: '/etc/bareos/filesets.d/'
+
 
 Client
 ------

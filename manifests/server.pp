@@ -1,14 +1,19 @@
 # Class: bareos::server
 #
 # This class collects backup configuration on a server
-# TODO: install software
+#
+# It will install the basic software, but *not* configure the
+# database, etc. etc.
 #
 class bareos::server(
   $client_file_prefix = '/etc/bareos/clients.d/',
   $job_file_prefix = '/etc/bareos/jobs.d/',
   $fileset_file_prefix = '/etc/bareos/filesets.d/',
+  $secrets = {},
 )
 {
+  validate_hash($secrets)
+
   include bareos
   require bareos::server::install
 

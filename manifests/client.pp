@@ -82,6 +82,7 @@ class bareos::client (
     job_retention  => $job_retention,
     file_retention => $file_retention,
     concurrency    => $concurrency,
+    security_zone  => $bareos::security_zone,
     tag            => "bareos::server::${bareos::director}",
   }
 

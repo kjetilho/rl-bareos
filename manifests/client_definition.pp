@@ -9,6 +9,7 @@ define bareos::client_definition(
   $file_retention,
   $concurrency,
   $client_name='',
+  $security_zone='',
 )
 {
   if $client_name == '' {

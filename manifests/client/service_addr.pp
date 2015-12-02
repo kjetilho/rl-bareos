@@ -14,6 +14,7 @@ define bareos::client::service_addr(
     job_retention  => $job_retention,
     file_retention => $file_retention,
     concurrency    => $concurrency,
+    security_zone  => $bareos::security_zone,
     tag            => "bareos::server::${bareos::director}",
   }
 }
