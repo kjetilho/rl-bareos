@@ -3,7 +3,7 @@
   actual_password = Digest::SHA1.hexdigest [scope['bareos::secret'], @password].join('')
 -%>
 Client {
-  Name = "<%= @title %>"
+  Name = "<%= @_client_name %>"
   Address = <%= @address %>
   FDPort = 9102
   Catalog = MyCatalog

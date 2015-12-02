@@ -130,12 +130,14 @@ describe 'bareos::client' do
 
       it { should compile.with_all_deps }
       it do
-        expect(exported_resources).to contain_bareos__client_definition("test-service1.example.com-fd")
+        expect(exported_resources).to contain_bareos__client_definition("#{facts[:fqdn]}:test-service1.example.com-fd")
+                                       .with_client_name("test-service1.example.com-fd")
                                        .with_address("test-service1.example.com")
                                        .with_concurrency(5)
       end
       it do
-        expect(exported_resources).to contain_bareos__client_definition("test-service2.example.com-fd")
+        expect(exported_resources).to contain_bareos__client_definition("#{facts[:fqdn]}:test-service2.example.com-fd")
+                                       .with_client_name("test-service2.example.com-fd")
                                        .with_address("10.0.0.0")
                                        .with_concurrency(10) # default in bareos::client
       end
