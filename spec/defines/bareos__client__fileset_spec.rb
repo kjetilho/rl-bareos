@@ -4,14 +4,18 @@ describe 'bareos::client::fileset' do
   context "basic fileset" do
     let(:title) { 'basic' }
     let(:params) { { :include_paths => ['/custom'] } }
+    let(:facts) { RSpec.configuration.default_facts }
+    let(:pre_condition) { <<-eot
+      class bareos::client {
+        $client_name = $::fqdn
+      }
+      include bareos::client
+      eot
+    }
     it { should compile.with_all_deps }
 
-    # Unfortunately, $bareos::client::client_name is not available
-    # since we don't want to pull in bareos::client inside
-    # bareos::client::fileset, so the resource name is "wrong".
-
     it do
-      expect(exported_resources).to contain_bareos__fileset_definition('-basic')
+      expect(exported_resources).to contain_bareos__fileset_definition("#{facts[:fqdn]}-basic")
                                      .with_include_paths(['/custom'])
                                      .with_acl_support(true)
                                      .with_ignore_changes(true)

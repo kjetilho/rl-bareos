@@ -1,9 +1,16 @@
 <%
   require 'digest/sha1'
-  actual_password = Digest::SHA1.hexdigest [scope['bareos::secret'], @password].join('')
+  secret = scope['bareos::secret']
+  if @security_zone != ''
+    unless scope['bareos::server::secrets'].include? @security_zone
+      raise Puppet::Error, "secret for security zone '#{@security_zone}' unknown"
+    end
+    secret = scope['bareos::server::secrets'][@security_zone]
+  end
+  actual_password = Digest::SHA1.hexdigest [secret, @password].join('')
 -%>
 Client {
-  Name = "<%= @title %>"
+  Name = "<%= @_client_name %>"
   Address = <%= @address %>
   FDPort = 9102
   Catalog = MyCatalog

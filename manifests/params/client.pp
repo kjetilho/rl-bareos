@@ -8,7 +8,6 @@ class bareos::params::client {
   $service        = "${implementation}-fd"
   $config_file    = "/etc/${implementation}/${implementation}-fd.conf"
   $log_dir        = "/var/log/${implementation}"
-  $schedules      = { 'normal' => ['Friday', 'Saturday', 'Sunday'] }
   $name_suffix    = '-fd'
   $job_suffix     = '-job'
 
@@ -19,7 +18,14 @@ class bareos::params::client {
       $pid_dir     = '/var/run'
     }
     'Debian': {
-      $package     = "${implementation}-fd"
+      case $implementation {
+        'bacula': {
+          $package = "${implementation}-fd"
+        }
+        'bareos': {
+          $package = "${implementation}-filedaemon"
+        }
+      }
       $working_dir = "/var/lib/${implementation}"
       $pid_dir     = "/var/run/${implementation}"
     }

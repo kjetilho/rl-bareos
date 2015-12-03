@@ -50,7 +50,6 @@ class bareos::client (
   validate_re($file_retention, '^[0-9]+d$')
   validate_hash($monitors)
   validate_hash($jobs)
-  validate_hash($schedules)
   validate_absolute_path($config_file)
   validate_absolute_path($log_dir)
   validate_absolute_path($pid_dir)
@@ -83,6 +82,7 @@ class bareos::client (
     job_retention  => $job_retention,
     file_retention => $file_retention,
     concurrency    => $concurrency,
+    security_zone  => $bareos::security_zone,
     tag            => "bareos::server::${bareos::director}",
   }
 
