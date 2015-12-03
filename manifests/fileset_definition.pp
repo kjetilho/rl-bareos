@@ -17,5 +17,8 @@ define bareos::fileset_definition(
   $filename = "${bareos::server::fileset_file_prefix}${title}.conf"
   file { $filename:
     content => template('bareos/server/fileset.erb');
+    owner   => 'root',
+    group   => 'bareos',
+    mode    => '0444',
   }
 }

@@ -19,6 +19,9 @@ define bareos::client_definition(
   }
   ensure_resource('file',
     "${bareos::server::client_file_prefix}${_client_name}.conf", {
-      content => template('bareos/server/client.erb')
+      content => template('bareos/server/client.erb'),
+      owner   => 'root',
+      group   => 'bareos',
+      mode    => '0440',
   })
 }

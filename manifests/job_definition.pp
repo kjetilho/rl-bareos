@@ -15,6 +15,9 @@ define bareos::job_definition(
 
   file { $filename:
     content => template('bareos/server/job.erb');
+    owner   => 'root',
+    group   => 'bareos',
+    mode    => '0444',
   }
 
   if $fileset != '' {
