@@ -14,7 +14,7 @@ define bareos::job_definition(
   $filename = "${bareos::server::job_file_prefix}${title}.conf"
 
   file { $filename:
-    content => template('bareos/server/job.erb');
+    content => template('bareos/server/job.erb'),
     owner   => 'root',
     group   => 'bareos',
     mode    => '0444',
