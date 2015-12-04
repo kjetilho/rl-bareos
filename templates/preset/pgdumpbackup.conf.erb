@@ -1,26 +1,26 @@
-<% unless @environment == "" -%>
-<%   [@environment].flatten.each do |var| -%>
+<% if @params.include? 'environment' -%>
+<%   [@params['environment']].flatten.each do |var| -%>
 export <%= var %>
 <%   end -%>
 <% end -%>
-<% unless @backupdir == "" -%>
-BACKUPDIR="<%= @backupdir %>"
+<% if @params.include? 'backupdir' -%>
+BACKUPDIR="<%= @params['backupdir'] %>"
 <% end -%>
-<% unless @keep_backup == "" -%>
-KEEPBACKUP="<%= @keep_backup %>"
+<% if @params.include? 'keep_backup' -%>
+KEEPBACKUP="<%= @params['keep_backup'] %>"
 <% end -%>
-<% unless @log_method == "console" -%>
-LOG_METHOD="<%= @log_method %>"
+<% if @params.include? 'log_method' -%>
+LOG_METHOD="<%= @params['log_method'] %>"
 <% end -%>
-<% unless @skip_databases == "" -%>
-SKIP="$SKIP <%= [@skip_databases].flatten.join(" ") %>"
+<% if @params.include? 'skip_databases' -%>
+SKIP="$SKIP <%= [@params['skip_databases']].flatten.join(" ") %>"
 <% end -%>
-<% unless @server == "localhost" -%>
-DBSERVER="<%= @server %>"
+<% if @params.include? 'server' -%>
+DBSERVER="<%= @params['server'] %>"
 <% end -%>
-<% unless @initscript == "" -%>
-INITSCRIPT="<%= @initscript %>"
+<% if @params.include? 'initscript' -%>
+INITSCRIPT="<%= @params['initscript'] %>"
 <% end -%>
-<% unless @cluster == "" -%>
-CLUSTER="<%= @cluster %>"
+<% if @params.include? 'cluster' -%>
+CLUSTER="<%= @params['cluster'] %>"
 <% end -%>
