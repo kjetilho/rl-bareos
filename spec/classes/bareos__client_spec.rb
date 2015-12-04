@@ -114,6 +114,33 @@ describe 'bareos::client' do
                    .with_content(/GZIP="xz"/)
       }
     end
+
+    context "on #{os} with preset mysqldumpbackup failover" do
+      let(:facts) { facts }
+      let(:params) do
+        { :jobs => {
+            'failover' => {
+              'preset' => 'bareos::job::preset::mysqldumpbackup',
+              'preset_params' => { 'ignore_not_running' => true },
+            },
+          }
+        }
+      end
+
+      it { should compile.with_all_deps }
+      it { should contain_file('/usr/local/sbin/mysqldumpbackup') }
+      it { should contain_file('/etc/default/mysqldumpbackup')
+                   .with_content('') }
+      it do
+        expect(exported_resources).to contain_bareos__job_definition("#{facts[:fqdn]}-failover-job")
+                                       .with_jobdef('DefaultMySQLJob')
+                                       .with_runscript(
+                                         [ { 'command' =>
+                                             '/usr/local/sbin/mysqldumpbackup -c -r' }
+                                         ])
+      end
+    end
+
     context "on #{os} with service address" do
       let(:facts) { facts }
       let(:params) do

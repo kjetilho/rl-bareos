@@ -2,6 +2,8 @@
 #
 # +instance+: name of instance.  will be added as argument to
 #   mysqldumpbackup unless it is default.
+# +ignore_not_running+: if true, exit silently without taking backup
+#   if mysql is not running.
 #
 # The rest will be stored in configuration file
 # (/etc/default/mysqldumpbackup or /etc/default/mysqldumpbackup-$instance)
@@ -39,12 +41,17 @@ define bareos::job::preset::mysqldumpbackup(
     group  => 'root',
   })
 
+  if $params['ignore_not_running'] {
+    $options = '-c -r'
+  } else {
+    $options = '-c'
+  }
   if $params['instance'] {
     $instance = "mysqldumpbackup-${params['instance']}"
-    $command = "/usr/local/sbin/mysqldumpbackup -c ${instance}"
+    $command = "/usr/local/sbin/mysqldumpbackup ${options} ${instance}"
   } else {
     $instance = 'mysqldumpbackup'
-    $command = "/usr/local/sbin/mysqldumpbackup -c"
+    $command = "/usr/local/sbin/mysqldumpbackup ${options}"
   }
 
   if (count(keys($params)) > 0) {
