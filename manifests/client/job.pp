@@ -27,11 +27,22 @@ define bareos::client::job(
     $_sched = $set[$random_index]
   }
 
+  if has_key($bareos::client::filesets, $fileset) {
+    if has_key($bareos::client::filesets[$fileset], 'fileset_name') {
+      $_fileset = $bareos::client::filesets[$fileset]['fileset_name']
+    } else {
+      # $client_name can be different from what fileset uses
+      $_fileset = "${bareos::client::client_name}-${fileset}"
+    }
+  } else {
+    $_fileset = $fileset
+  }
+
   if ($preset != '') {
     $preset_def = {
       "${_job_name}" => {
         'jobdef'  => $jobdef,
-        'fileset' => $fileset,
+        'fileset' => $_fileset,
         'sched'   => $_sched,
         'params'  => $preset_params,
       }
@@ -49,7 +60,7 @@ define bareos::client::job(
         client_name => $client_name,
         name_suffix => $bareos::client::name_suffix,
         jobdef      => $_jobdef,
-        fileset     => $fileset,
+        fileset     => $_fileset,
         runscript   => $runscript,
         sched       => $_sched,
         tag         => "bareos::server::${bareos::director}"
