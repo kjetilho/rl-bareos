@@ -2,6 +2,8 @@
 #
 # +instance+: name of instance.  will be added as argument to
 #   pgdumpbackup unless it is default.
+# +ignore_not_running+: if true, exit silently without taking backup
+#   if postgresql is not running.
 #
 # The rest will be stored in configuration file
 # (/etc/default/pgdumpbackup or /etc/default/pgdumpbackup-$instance)
@@ -36,12 +38,18 @@ define bareos::job::preset::pgdumpbackup(
     group  => 'root',
   })
 
+  if $params['ignore_not_running'] {
+    $options = '-c -r'
+  } else {
+    $options = '-c'
+  }
+
   if $params['instance'] {
     $instance = "pgdumpbackup-${params['instance']}"
-    $command = "/usr/local/sbin/pgdumpbackup -c ${instance}"
+    $command = "/usr/local/sbin/pgdumpbackup ${options} ${instance}"
   } else {
     $instance = 'pgdumpbackup'
-    $command = "/usr/local/sbin/pgdumpbackup -c"
+    $command = "/usr/local/sbin/pgdumpbackup ${options}"
   }
 
   if (count(keys($params)) > 0) {
