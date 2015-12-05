@@ -12,11 +12,16 @@ define bareos::client::job(
 {
   validate_array($runscript)
 
-  if $job_name {
-    $_job_name = $job_name
+  if $job_name != '' {
+    $job_title = $job_name
   } else {
-    $_job_name = "${client_name}-${title}${bareos::client::job_suffix}"
+    if $client_name != $bareos::client::client_name {
+      $job_title = "${::fqdn}/${client_name}-${title}${bareos::client::job_suffix}"
+    } else {
+      $job_title = "${client_name}-${title}${bareos::client::job_suffix}"
+    }
   }
+
   if $sched {
     $_sched = $sched
   } else {
@@ -40,11 +45,11 @@ define bareos::client::job(
 
   if ($preset != '') {
     $preset_def = {
-      "${_job_name}" => {
-        'jobdef'  => $jobdef,
-        'fileset' => $_fileset,
-        'sched'   => $_sched,
-        'params'  => $preset_params,
+      "${job_title}" => {
+        'jobdef'   => $jobdef,
+        'fileset'  => $_fileset,
+        'sched'    => $_sched,
+        'params'   => $preset_params,
       }
     }
     create_resources($preset, $preset_def)
@@ -56,7 +61,7 @@ define bareos::client::job(
     }
     
     @@bareos::job_definition {
-      $_job_name:
+      $job_title:
         client_name => $client_name,
         name_suffix => $bareos::client::name_suffix,
         jobdef      => $_jobdef,

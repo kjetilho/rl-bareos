@@ -11,14 +11,23 @@ define bareos::job_definition(
   $runscript,
 )
 {
-  $filename = "${bareos::server::job_file_prefix}${title}.conf"
+  case $title {
+    /\//: {
+      $job_name = regsubst($title, '.*?\/', '')
+    }
+    default: {
+      $job_name = $title
+    }
+  }
 
-  file { $filename:
+  $filename = "${bareos::server::job_file_prefix}${job_name}.conf"
+
+  ensure_resource('file', $filename, {
     content => template('bareos/server/job.erb'),
     owner   => 'root',
     group   => 'bareos',
     mode    => '0444',
-  }
+  })
 
   if $fileset != '' {
     File[$filename] {

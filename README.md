@@ -154,8 +154,10 @@ __`job_name`__: Specify the full job name explicitly.
 
 __`jobdef`__: The name of the job defaults.  Default: `$bareos::default_jobdef`
 
-__`fileset`__: The (full) name of the fileset.  Overrides the fileset
-defined in the jobdef.
+__`fileset`__: The name of the fileset.  When set, overrides the
+fileset defined in the jobdef.  This can be the full name of the
+fileset, but also the abbreviated name used in
+`bareos::client::filesets`.
 
 __`schedule_set`__: The name of the list of schedules to pick randomly
 from.  Default: normal
@@ -316,6 +318,10 @@ an extra system call per file.  Default: true
             exclude_paths:
                 - /srv/cache
 
+If this configuration is used on node `foo.example.com`, a fileset
+called "foo.example.com-only_srv" will be exported.
+
+
 ## Complex examples
 
 ### Pre- and post jobs
@@ -327,9 +333,9 @@ job finishes, the cleanup script will run.
 
     bareos::client::jobs:
         system:
-            fileset: "%{::fqdn}-system"
+            fileset: "system"
         srv:
-            fileset: "%{::fqdn}-srv"
+            fileset: "srv"
             runscript:
                 -
                   command:      "/usr/local/sbin/prepare"
@@ -346,6 +352,23 @@ job finishes, the cleanup script will run.
         srv:
             include_paths:
                 - /srv
+
+### NFS
+
+The default fileset will not traverse into NFS file systems, so it
+needs to be specified explicitly.  Here we define a separate job for
+NFS paths.
+
+    bareos::client::filesets:
+        nfs:
+            include_paths:
+                - /srv/data
+
+   bareos::client::jobs:
+       system: {}
+       nfs:
+           fileset: "nfs"
+
 
 ### Service address
 
