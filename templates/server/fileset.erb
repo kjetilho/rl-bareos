@@ -7,14 +7,14 @@ FileSet {
         sparse = yes
         signature = MD5
         compression = GZIP
+<% if @onefs -%>
+        OneFS = yes
+<% else -%>
         OneFS = no
-        FSType = rootfs
-        FSType = ext2
-        FSType = ext3
-        FSType = ext4
-        FSType = jfs
-        FSType = reiserfs
-        FSType = xfs
+<%   @fstype.sort.each do |fs| -%>
+        FSType = <%= fs %>
+<%   end -%>
+<% end -%>
     }
 <% [@include_paths].flatten.each do |path| -%>    
     File = <%= path %>

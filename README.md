@@ -138,6 +138,10 @@ Additional list of monitors to add to bacula-fd.conf.  Typical use:
 Use eyaml to protect "password-in-plain-text".  All keys in the hash
 are added as parameters to the Director directive.
 
+__`bareos::client::fstype`__: This variable is __only__ used as a
+default for [filesets](#filesets) declared on this host.
+
+
 ## Jobs
 
 Jobs are defined in the `bareos::client::jobs` hash.
@@ -309,6 +313,14 @@ set to `false`.  Default: true
 __`acl_support`__: Include information about ACLs in backup.  Causes
 an extra system call per file.  Default: true
 
+__`onefs`__: Whether to recurse into mount points.  Default:
+false (do not recurse).
+
+__`fstype`__: If `onefs` is false (the default), this array lists the
+filesystem types which should be recursed into (and backed up).  The
+default (from `bareos::client::fstype`) contains the normal local
+filesystems, like `ext4` and `xfs`, but not `nfs` or `cifs`.
+
 ### Example:
 
     bareos::client::filesets:
@@ -361,6 +373,7 @@ NFS paths.
 
     bareos::client::filesets:
         nfs:
+            onefs: true
             include_paths:
                 - /srv/data
 

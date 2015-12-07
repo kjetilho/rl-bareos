@@ -8,11 +8,15 @@ define bareos::fileset_definition(
   $exclude_paths,
   $exclude_dir_containing,
   $ignore_changes,
-  $acl_support
+  $acl_support,
+  $onefs = false,
+  $fstype = ['ext2','ext3','ext4','jfs','reiserfs','rootfs','xfs'],
 )
 {
   validate_bool($ignore_changes)
   validate_bool($acl_support)
+  validate_bool($onefs)
+  validate_array($fstype)
 
   $filename = "${bareos::server::fileset_file_prefix}${title}.conf"
   file { $filename:

@@ -15,12 +15,16 @@ define bareos::client::fileset(
   $exclude_dir_containing = '.nobackup',
   $ignore_changes = true,
   $acl_support = true,
+  $onefs = false,
+  $fstype = $bareos::client::fstype,
 )
 {
   validate_array($include_paths)
   validate_array($exclude_paths)
   validate_bool($ignore_changes)
   validate_bool($acl_support)
+  validate_bool($onefs)
+  validate_array($fstype)
 
   if $fileset_name == '' {
     $_fileset_name = "${bareos::client::client_name}-${title}"
@@ -34,6 +38,8 @@ define bareos::client::fileset(
       exclude_dir_containing => $exclude_dir_containing,
       acl_support            => $acl_support,
       ignore_changes         => $ignore_changes,
+      onefs                  => $onefs,
+      fstype                 => $fstype,
       tag                    => "bareos::server::${bareos::director}"
   }
 }

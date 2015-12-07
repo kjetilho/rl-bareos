@@ -8,6 +8,7 @@ describe 'bareos::client::fileset' do
     let(:pre_condition) { <<-eot
       class bareos::client {
         $client_name = $::fqdn
+        $fstype = ["rootfs", "ext3", "ext4"]
       }
       include bareos::client
       eot
@@ -25,11 +26,15 @@ describe 'bareos::client::fileset' do
 
   context "fileset with custom name" do
     let(:title) { 'custom' }
-    let(:params) { { :fileset_name => 'foo-name', :include_paths => ['/'] } }
+    let(:params) { { :fileset_name => 'foo-name',
+                     :include_paths => ['/'],
+                     :fstype => ['ufs'],
+                   } }
 
     it { should compile.with_all_deps }
     it do
       expect(exported_resources).to contain_bareos__fileset_definition('foo-name')
+                                     .with_fstype(['ufs'])
     end
   end
 end
