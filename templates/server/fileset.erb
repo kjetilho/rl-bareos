@@ -11,7 +11,7 @@ FileSet {
         OneFS = yes
 <% else -%>
         OneFS = no
-<%   @fstype.sort.each do |fs| -%>
+<%   [@fstype].flatten.sort.each do |fs| -%>
         FSType = <%= fs %>
 <%   end -%>
 <% end -%>

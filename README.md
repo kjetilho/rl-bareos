@@ -52,8 +52,7 @@ resources.  Default: "dump-dir"
 __`bareos::schedules`__: A hash containing sets of schedules.  Each
 key defines a set, the value for that key is an array of schedule
 names.  A declared job will look for the set called `normal` by
-default.  The schedules themselves must be [defined outside this
-module](#non-module).
+default.  The schedules themselves must be [defined outside this module](#non-module).
 
 ## Optional configuration
 
@@ -369,7 +368,9 @@ job finishes, the cleanup script will run.
 
 The default fileset will not traverse into NFS file systems, so it
 needs to be specified explicitly.  Here we define a separate job for
-NFS paths.
+NFS paths.  We set OneFS to true, since the default fstype list does
+not include nfs.  Alternatively, if we want to recurse into other NFS
+filesystems, we could set `fstype: ["nfs"]`
 
     bareos::client::filesets:
         nfs:
