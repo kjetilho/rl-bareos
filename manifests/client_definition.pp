@@ -12,8 +12,10 @@ define bareos::client_definition(
   $security_zone='',
 )
 {
+  # use de-uniqueified title going forward, but keep client_name
+  # compatibility for a while
   if $client_name == '' {
-    $_client_name = $title
+    $_client_name = regsubst($title, '.*?\/', '')
   } else {
     $_client_name = $client_name
   }
