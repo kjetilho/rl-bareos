@@ -61,16 +61,48 @@ describe 'bareos::client' do
       let(:facts) { facts }
       let(:params) do
         { :filesets => {
-            'srv' => {'include_paths' => ['/srv'], 'acl_support' => false}
+            'just_srv' => {'include_paths' => ['/srv'], 'acl_support' => false}
+          },
+          :jobs => {
+            'srv' => {'fileset' => 'just_srv'}
           }
         }
       end
 
       it { should compile.with_all_deps }
       it do
-        expect(exported_resources).to contain_bareos__fileset_definition("#{facts[:fqdn]}-srv")
+        expect(exported_resources).to contain_bareos__fileset_definition("#{facts[:fqdn]}-just_srv")
                                        .with_include_paths(['/srv'])
                                        .with_acl_support(false)
+      end
+      it do
+        expect(exported_resources).to contain_bareos__job_definition("#{facts[:fqdn]}-srv-job")
+                                       .with_fileset("#{facts[:fqdn]}-just_srv")
+      end
+    end
+
+    context "on #{os} with client name and fileset" do
+      let(:facts) { facts }
+      let(:params) do
+        { :filesets => {
+            'just_srv' => {'include_paths' => ['/srv'], 'acl_support' => false}
+          },
+          :jobs => {
+            'srv' => {'fileset' => 'just_srv'}
+          },
+          :client_name => 'client.example.com',
+        }
+      end
+
+      it { should compile.with_all_deps }
+      it do
+        expect(exported_resources).to contain_bareos__fileset_definition("#{facts[:fqdn]}/client.example.com-just_srv")
+                                       .with_include_paths(['/srv'])
+                                       .with_acl_support(false)
+      end
+      it do
+        expect(exported_resources).to contain_bareos__job_definition("#{facts[:fqdn]}/client.example.com-srv-job")
+                                       .with_fileset("client.example.com-just_srv")
       end
     end
 
@@ -114,6 +146,59 @@ describe 'bareos::client' do
                    .with_content(/GZIP="xz"/)
       }
     end
+
+    context "on #{os} with preset mysqldumpbackup ignore_not_running" do
+      let(:facts) { facts }
+      let(:params) do
+        { :jobs => {
+            'failover' => {
+              'preset' => 'bareos::job::preset::mysqldumpbackup',
+              'preset_params' => { 'ignore_not_running' => true },
+            },
+          }
+        }
+      end
+
+      it { should compile.with_all_deps }
+      it { should contain_file('/usr/local/sbin/mysqldumpbackup') }
+      it { should contain_file('/etc/default/mysqldumpbackup')
+                   .with_content('') }
+      it do
+        expect(exported_resources).to contain_bareos__job_definition("#{facts[:fqdn]}-failover-job")
+                                       .with_jobdef('DefaultMySQLJob')
+                                       .with_runscript(
+                                         [ { 'command' =>
+                                             '/usr/local/sbin/mysqldumpbackup -c -r' }
+                                         ])
+      end
+    end
+
+    context "on #{os} with preset pgdumpbackup" do
+      let(:facts) { facts }
+      let(:params) do
+        { :jobs => {
+            'pg' => {
+              'preset' => 'bareos::job::preset::pgdumpbackup',
+              'preset_params' => { 'keep_backup' => 1 },
+            },
+          }
+        }
+      end
+
+      it { should compile.with_all_deps }
+      it { should contain_file('/usr/local/sbin/pgdumpbackup') }
+      it do
+        expect(exported_resources).to contain_bareos__job_definition("#{facts[:fqdn]}-pg-job")
+                                       .with_jobdef('DefaultPgSQLJob')
+                                       .with_runscript(
+                                         [ { 'command' =>
+                                             '/usr/local/sbin/pgdumpbackup -c' }
+                                         ])
+      end
+      it { should contain_file('/etc/default/pgdumpbackup')
+                   .with_content(/KEEPBACKUP="1"/) }
+    end
+
     context "on #{os} with service address" do
       let(:facts) { facts }
       let(:params) do

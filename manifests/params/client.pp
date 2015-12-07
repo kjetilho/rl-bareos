@@ -10,6 +10,10 @@ class bareos::params::client {
   $log_dir        = "/var/log/${implementation}"
   $name_suffix    = '-fd'
   $job_suffix     = '-job'
+  # don't worry about Linux specific names for now
+  $fstype = [
+    'rootfs', 'ext2', 'ext3', 'ext4', 'jfs', 'reiserfs', 'xfs',
+  ]
 
   case $::osfamily {
     'RedHat': {

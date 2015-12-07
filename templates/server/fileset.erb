@@ -1,5 +1,5 @@
 FileSet {
-  Name = "<%= @title %>"
+  Name = "<%= @fset_name %>"
   Ignore FileSet Changes = <%= @ignore_changes ? 'yes' : 'no' %>
   Include {
     Options {
@@ -7,14 +7,14 @@ FileSet {
         sparse = yes
         signature = MD5
         compression = GZIP
+<% if @onefs -%>
+        OneFS = yes
+<% else -%>
         OneFS = no
-        FSType = rootfs
-        FSType = ext2
-        FSType = ext3
-        FSType = ext4
-        FSType = jfs
-        FSType = reiserfs
-        FSType = xfs
+<%   [@fstype].flatten.sort.each do |fs| -%>
+        FSType = <%= fs %>
+<%   end -%>
+<% end -%>
     }
 <% [@include_paths].flatten.each do |path| -%>    
     File = <%= path %>

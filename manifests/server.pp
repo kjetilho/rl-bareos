@@ -22,7 +22,7 @@ class bareos::server(
       ensure  => directory,
       owner   => 'root',
       group   => 'bareos',
-      mode    => '0755',
+      mode    => '0644',
       purge   => true,
       recurse => true
   }

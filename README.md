@@ -52,14 +52,13 @@ resources.  Default: "dump-dir"
 __`bareos::schedules`__: A hash containing sets of schedules.  Each
 key defines a set, the value for that key is an array of schedule
 names.  A declared job will look for the set called `normal` by
-default.  The schedules themselves must be [defined outside this
-module](#non-module).
+default.  The schedules themselves must be [defined outside this module](#non-module).
 
 ## Optional configuration
 
 __`bareos::default_jobdef`__: Name of default job definition.
-Defaults to `DefaultJob`.  The jobdef itself must be [defined outside
-this module]#(non-module).
+Defaults to `DefaultJob`.  The jobdef itself must be
+[defined outside this module]#(non-module).
 
 __`bareos::security_zone`__: A tag identifying which secret the
 director should use to generate the password for this client.
@@ -138,6 +137,10 @@ Additional list of monitors to add to bacula-fd.conf.  Typical use:
 Use eyaml to protect "password-in-plain-text".  All keys in the hash
 are added as parameters to the Director directive.
 
+__`bareos::client::fstype`__: This variable is __only__ used as a
+default for [filesets](#filesets) declared on this host.
+
+
 ## Jobs
 
 Jobs are defined in the `bareos::client::jobs` hash.
@@ -154,8 +157,10 @@ __`job_name`__: Specify the full job name explicitly.
 
 __`jobdef`__: The name of the job defaults.  Default: `$bareos::default_jobdef`
 
-__`fileset`__: The (full) name of the fileset.  Overrides the fileset
-defined in the jobdef.
+__`fileset`__: The name of the fileset.  When set, overrides the
+fileset defined in the jobdef.  This can be the full name of the
+fileset, but also the abbreviated name used in
+`bareos::client::filesets`.
 
 __`schedule_set`__: The name of the list of schedules to pick randomly
 from.  Default: normal
@@ -307,6 +312,14 @@ set to `false`.  Default: true
 __`acl_support`__: Include information about ACLs in backup.  Causes
 an extra system call per file.  Default: true
 
+__`onefs`__: Whether to recurse into mount points.  Default:
+false (do not recurse).
+
+__`fstype`__: If `onefs` is false (the default), this array lists the
+filesystem types which should be recursed into (and backed up).  The
+default (from `bareos::client::fstype`) contains the normal local
+filesystems, like `ext4` and `xfs`, but not `nfs` or `cifs`.
+
 ### Example:
 
     bareos::client::filesets:
@@ -315,6 +328,10 @@ an extra system call per file.  Default: true
                 - /srv
             exclude_paths:
                 - /srv/cache
+
+If this configuration is used on node `foo.example.com`, a fileset
+called "foo.example.com-only_srv" will be exported.
+
 
 ## Complex examples
 
@@ -327,9 +344,9 @@ job finishes, the cleanup script will run.
 
     bareos::client::jobs:
         system:
-            fileset: "%{::fqdn}-system"
+            fileset: "system"
         srv:
-            fileset: "%{::fqdn}-srv"
+            fileset: "srv"
             runscript:
                 -
                   command:      "/usr/local/sbin/prepare"
@@ -346,6 +363,26 @@ job finishes, the cleanup script will run.
         srv:
             include_paths:
                 - /srv
+
+### NFS
+
+The default fileset will not traverse into NFS file systems, so it
+needs to be specified explicitly.  Here we define a separate job for
+NFS paths.  We set OneFS to true, since the default fstype list does
+not include nfs.  Alternatively, if we want to recurse into other NFS
+filesystems, we could set `fstype: ["nfs"]`
+
+    bareos::client::filesets:
+        nfs:
+            onefs: true
+            include_paths:
+                - /srv/data
+
+   bareos::client::jobs:
+       system: {}
+       nfs:
+           fileset: "nfs"
+
 
 ### Service address
 
