@@ -55,4 +55,29 @@ describe 'bareos::fileset_definition' do
     end
   end
 
+  context "duplicate declaration" do
+    let(:title) { "fqdn1/service-fset" }
+    let(:pre_condition) { <<-eot
+      class bareos::server {
+        $fileset_file_prefix = '#{prefix}'
+      }
+      include bareos::server
+      bareos::fileset_definition { "fqdn2/service-fset":
+        include_paths => ['/srv'],
+        exclude_paths => [],
+        exclude_dir_containing => '.nobackup',
+        ignore_changes => true,
+        acl_support => true,
+      }
+      eot
+    }
+    let(:params) { default_params }
+
+    it { should compile.with_all_deps }
+
+    it do
+      should contain_file("#{prefix}service-fset.conf")
+              .with_content(/Name\s+=\s+"service-fset"/)
+    end
+  end
 end

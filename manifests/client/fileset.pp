@@ -12,6 +12,7 @@
 #
 define bareos::client::fileset(
   $fileset_name = '',
+  $client_name = $bareos::client::client_name,
   $include_paths,
   $exclude_paths = [],
   $exclude_dir_containing = '.nobackup',
@@ -29,10 +30,10 @@ define bareos::client::fileset(
   validate_array($fstype)
 
   if $fileset_name == '' {
-    if $bareos::client::client_name == $::fqdn {
-      $_fileset_name = "${bareos::client::client_name}-${title}"
+    if $client_name == $::fqdn {
+      $_fileset_name = "${client_name}-${title}"
     } else {
-      $_fileset_name = "${::fqdn}/${bareos::client::client_name}-${title}"
+      $_fileset_name = "${::fqdn}/${client_name}-${title}"
     }
   } else {
     $_fileset_name = $fileset_name

@@ -36,8 +36,14 @@ define bareos::client::job(
     if has_key($bareos::client::filesets[$fileset], 'fileset_name') {
       $_fileset = $bareos::client::filesets[$fileset]['fileset_name']
     } else {
-      # $client_name can be different from what fileset uses
-      $_fileset = "${bareos::client::client_name}-${fileset}"
+      # allow shorthand names, use client_name hint from fileset
+      # definition to qualify it
+      if has_key($bareos::client::filesets[$fileset], 'client_name') {
+        $_fileset = "${bareos::client::filesets[$fileset]['client_name']}-${fileset}"
+      } else {
+        # $client_name can be different from what fileset uses
+        $_fileset = "${bareos::client::client_name}-${fileset}"
+      }
     }
   } else {
     $_fileset = $fileset

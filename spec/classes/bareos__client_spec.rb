@@ -106,6 +106,40 @@ describe 'bareos::client' do
       end
     end
 
+    context "on #{os} with system and service jobs" do
+      let(:facts) { facts }
+      let(:params) do
+        { :filesets => {
+            'root' => { 'include_paths' => ['/'] },
+            'just_srv' => { 'client_name' => 'srv-fileset', 'include_paths' => ['/srv'] },
+          },
+          :jobs => {
+            'sys' => {'fileset' => 'root'},
+            'srv' => {'client_name' => 'srv.example.com', 'fileset' => 'just_srv'}
+          },
+        }
+      end
+
+      it { should compile.with_all_deps }
+      it do
+        expect(exported_resources).to contain_bareos__fileset_definition("#{facts[:fqdn]}/srv-fileset-just_srv")
+                                       .with_include_paths(['/srv'])
+      end
+      it do
+        expect(exported_resources).to contain_bareos__job_definition("#{facts[:fqdn]}/srv.example.com-srv-job")
+                                       .with_fileset("srv-fileset-just_srv")
+      end
+
+      it do
+        expect(exported_resources).to contain_bareos__fileset_definition("#{facts[:fqdn]}-root")
+                                       .with_include_paths(['/'])
+      end
+      it do
+        expect(exported_resources).to contain_bareos__job_definition("#{facts[:fqdn]}-sys-job")
+                                       .with_fileset("#{facts[:fqdn]}-root")
+      end
+    end
+
     context "on #{os} with preset mysqldumpbackup" do
       let(:facts) { facts }
       let(:params) do
@@ -215,14 +249,12 @@ describe 'bareos::client' do
 
       it { should compile.with_all_deps }
       it do
-        expect(exported_resources).to contain_bareos__client_definition("#{facts[:fqdn]}:test-service1.example.com-fd")
-                                       .with_client_name("test-service1.example.com-fd")
+        expect(exported_resources).to contain_bareos__client_definition("#{facts[:fqdn]}/test-service1.example.com-fd")
                                        .with_address("test-service1.example.com")
                                        .with_concurrency(5)
       end
       it do
-        expect(exported_resources).to contain_bareos__client_definition("#{facts[:fqdn]}:test-service2.example.com-fd")
-                                       .with_client_name("test-service2.example.com-fd")
+        expect(exported_resources).to contain_bareos__client_definition("#{facts[:fqdn]}/test-service2.example.com-fd")
                                        .with_address("10.0.0.0")
                                        .with_concurrency(10) # default in bareos::client
       end

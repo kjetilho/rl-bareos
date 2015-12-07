@@ -297,6 +297,10 @@ director will pick up.
 
 __`fileset_name`__: Specify the fileset name explicitly.
 
+__`client_name`__: Used as the first part of a fully qualified fileset
+name.  Doesn't need to relate to any host or client names as long as
+the result is unique.  Default is bareos::client::client_name.
+
 __`include_paths`__: Array of paths to include in backup.  Mandatory,
 no default.
 
@@ -388,36 +392,46 @@ filesystems, we could set `fstype: ["nfs"]`
 
 When doing backup of a service which can run on more than one node, it
 is essential to set `bareos::client::password` to the same value on
-each of the nodes.  However, you do not / can not declare the same job
-on more than one node, since that will cause duplicate definitions in
-PuppetDB.  You must pick one node to register the common job and the
-service address.
+each of the nodes.  It is also important that the job and fileset
+definitions agree across nodes, so it is best to put the configuration
+in a single Hiera file read by the relevant nodes.
 
-In a common yaml file:
+Example:
 
     bareos::client::password: common-secret
+
     bareos::client::jobs:
         system:
-            fileset: "%{domain}-without_archive"
-
-In a yaml file only read by a single node:
+            fileset:      without_archive
+        archive_service:
+            client_name:  archive.example.com
+            fileset_name: archive
 
     bareos::client::filesets:
         without_archive:
-            fileset_name: "%{domain}-without_archive"
+            client_name:  archive.example.com
             include_paths:
                 - /
             exclude_paths:
                 - /srv/archive
         archive:
-            fileset_name:  "%{domain}-archive"
+            client_name:  archive.example.com
             include_paths:
                 - /srv/archive
 
     bareos::client::service_addr:
-        archive.example.com: []
+        archive.example.com: {}
 
-    bareos::client::jobs:
-        archive_service:
-            client_name:  archive.example.com
-            fileset_name: "%{domain}-archive"
+This will make one job "${fqdn}-system-job" for each node using this
+configuration, and one job "archive.example.com-archive_service-job".
+The latter job will run on the extra client, "archive.example.com".
+(The name must resolve in DNS, otherwise specify "address".)
+
+It will declare one fileset, "archive.example.com-without_archive",
+which all the "${fqdn}-system-job" jobs use.  If the fileset didn't
+specify "client_name", each node would declare its own copy of the
+fileset called "${fqdn}-without_archive".  This would work fine, but
+it is always good to avoid duplication.
+
+Finally, it will declare one fileset "archive.example.com-archive",
+which the "archive.example.com-archive_service-job" uses.

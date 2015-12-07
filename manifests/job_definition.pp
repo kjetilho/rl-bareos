@@ -20,10 +20,4 @@ define bareos::job_definition(
     group   => 'bareos',
     mode    => '0444',
   })
-
-  if $fileset != '' {
-    File[$filename] {
-      require => Bareos::Fileset_definition[$fileset]
-    }
-  }
 }

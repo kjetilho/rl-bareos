@@ -19,12 +19,12 @@ define bareos::fileset_definition(
   validate_array($fstype)
 
   $fset_name = regsubst($title, '.*?\/', '')
-
   $filename = "${bareos::server::fileset_file_prefix}${fset_name}.conf"
-  file { $filename:
+
+  ensure_resource('file', $filename, {
     content => template('bareos/server/fileset.erb'),
     owner   => 'root',
     group   => 'bareos',
     mode    => '0444',
-  }
+  })
 }
