@@ -18,7 +18,9 @@ define bareos::fileset_definition(
   validate_bool($onefs)
   validate_array($fstype)
 
-  $filename = "${bareos::server::fileset_file_prefix}${title}.conf"
+  $fset_name = regsubst($title, '.*?\/', '')
+
+  $filename = "${bareos::server::fileset_file_prefix}${fset_name}.conf"
   file { $filename:
     content => template('bareos/server/fileset.erb'),
     owner   => 'root',

@@ -11,15 +11,7 @@ define bareos::job_definition(
   $runscript,
 )
 {
-  case $title {
-    /\//: {
-      $job_name = regsubst($title, '.*?\/', '')
-    }
-    default: {
-      $job_name = $title
-    }
-  }
-
+  $job_name = regsubst($title, '.*?\/', '')
   $filename = "${bareos::server::job_file_prefix}${job_name}.conf"
 
   ensure_resource('file', $filename, {

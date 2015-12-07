@@ -8,6 +8,8 @@
 # +include_paths+: Array of directories to include
 # +exclude_paths+: Array of directories to exclude
 #
+# For detailed documentation, see README.md
+#
 define bareos::client::fileset(
   $fileset_name = '',
   $include_paths,
@@ -27,7 +29,11 @@ define bareos::client::fileset(
   validate_array($fstype)
 
   if $fileset_name == '' {
-    $_fileset_name = "${bareos::client::client_name}-${title}"
+    if $bareos::client::client_name == $::fqdn {
+      $_fileset_name = "${bareos::client::client_name}-${title}"
+    } else {
+      $_fileset_name = "${::fqdn}/${bareos::client::client_name}-${title}"
+    }
   } else {
     $_fileset_name = $fileset_name
   }

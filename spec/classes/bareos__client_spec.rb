@@ -81,6 +81,31 @@ describe 'bareos::client' do
       end
     end
 
+    context "on #{os} with client name and fileset" do
+      let(:facts) { facts }
+      let(:params) do
+        { :filesets => {
+            'just_srv' => {'include_paths' => ['/srv'], 'acl_support' => false}
+          },
+          :jobs => {
+            'srv' => {'fileset' => 'just_srv'}
+          },
+          :client_name => 'client.example.com',
+        }
+      end
+
+      it { should compile.with_all_deps }
+      it do
+        expect(exported_resources).to contain_bareos__fileset_definition("#{facts[:fqdn]}/client.example.com-just_srv")
+                                       .with_include_paths(['/srv'])
+                                       .with_acl_support(false)
+      end
+      it do
+        expect(exported_resources).to contain_bareos__job_definition("#{facts[:fqdn]}/client.example.com-srv-job")
+                                       .with_fileset("client.example.com-just_srv")
+      end
+    end
+
     context "on #{os} with preset mysqldumpbackup" do
       let(:facts) { facts }
       let(:params) do

@@ -57,8 +57,8 @@ default.  The schedules themselves must be [defined outside this module](#non-mo
 ## Optional configuration
 
 __`bareos::default_jobdef`__: Name of default job definition.
-Defaults to `DefaultJob`.  The jobdef itself must be [defined outside
-this module]#(non-module).
+Defaults to `DefaultJob`.  The jobdef itself must be
+[defined outside this module]#(non-module).
 
 __`bareos::security_zone`__: A tag identifying which secret the
 director should use to generate the password for this client.

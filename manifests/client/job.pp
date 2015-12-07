@@ -15,10 +15,10 @@ define bareos::client::job(
   if $job_name != '' {
     $job_title = $job_name
   } else {
-    if $client_name != $bareos::client::client_name {
-      $job_title = "${::fqdn}/${client_name}-${title}${bareos::client::job_suffix}"
-    } else {
+    if $client_name == $::fqdn {
       $job_title = "${client_name}-${title}${bareos::client::job_suffix}"
+    } else {
+      $job_title = "${::fqdn}/${client_name}-${title}${bareos::client::job_suffix}"
     }
   }
 
