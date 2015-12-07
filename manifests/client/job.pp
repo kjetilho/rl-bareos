@@ -52,10 +52,11 @@ define bareos::client::job(
   if ($preset != '') {
     $preset_def = {
       "${job_title}" => {
-        'jobdef'   => $jobdef,
-        'fileset'  => $_fileset,
-        'sched'    => $_sched,
-        'params'   => $preset_params,
+        'client_name' => $client_name,
+        'jobdef'      => $jobdef,
+        'fileset'     => $_fileset,
+        'sched'       => $_sched,
+        'params'      => $preset_params,
       }
     }
     create_resources($preset, $preset_def)

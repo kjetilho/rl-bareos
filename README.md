@@ -239,6 +239,7 @@ Example usage:
 The signature for a preset should be this:
 
     define widget::backup::preset::widgetdump(
+        $client_name,
         $jobdef,
         $fileset,
         $sched,
@@ -246,6 +247,8 @@ The signature for a preset should be this:
     )
 
 `title` for the define will be the full job name.
+
+`client_name` is the name of the client, and should be passed on.
 
 `jobdef` will be the empty string if the user didn't specify a jobdef
 explicitly.  You should respect the user's wishes, but replace the
@@ -269,7 +272,7 @@ This should be done like this:
     $_jobdef = $jobdef ? { '' => 'WidgetJob', default => $jobdef }
     @@bareos::job_definition {
         $title:
-            client_name => $bareos::client::client_name,
+            client_name => $client_name,
             name_suffix => $bareos::client::name_suffix,
             jobdef      => $_jobdef,
             fileset     => $fileset,
