@@ -45,11 +45,8 @@ describe 'bareos::client' do
                                        .with_sched('NormalSchedule')
       end
       it do
-        # This test depends on the result of fqdn_rand, so a change to
-        # its parameters (including the implicit $fqdn) may cause this
-        # test to fail.
         expect(exported_resources).to contain_bareos__job_definition("#{facts[:fqdn]}-job2-job")
-                                       .with_sched('Wednesday')
+                                       .with_sched('Monday')
       end
       it do
         expect(exported_resources).to contain_bareos__job_definition("#{facts[:fqdn]}-job3-job")

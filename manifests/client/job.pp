@@ -13,12 +13,14 @@ define bareos::client::job(
   validate_array($runscript)
 
   if $job_name != '' {
+    $_job_name = $job_name
     $job_title = $job_name
   } else {
+    $_job_name = "${client_name}-${title}${bareos::client::job_suffix}"
     if $client_name == $::fqdn {
-      $job_title = "${client_name}-${title}${bareos::client::job_suffix}"
+      $job_title = $_job_name
     } else {
-      $job_title = "${::fqdn}/${client_name}-${title}${bareos::client::job_suffix}"
+      $job_title = "${::fqdn}/${_job_name}"
     }
   }
 
@@ -28,7 +30,7 @@ define bareos::client::job(
     validate_hash($bareos::schedules)
     $set = $bareos::schedules[$schedule_set]
     validate_array($set)
-    $random_index = fqdn_rand(65537, $title) % count($set)
+    $random_index = seeded_rand(65537, $_job_name) % count($set)
     $_sched = $set[$random_index]
   }
 
