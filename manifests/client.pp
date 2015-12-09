@@ -49,6 +49,7 @@ class bareos::client (
   validate_re($implementation, '^(bareos|bacula)$')
   validate_re($job_retention, '^[0-9]+d$')
   validate_re($file_retention, '^[0-9]+d$')
+  validate_re($client_name, '^[A-Za-z0-9.-]+$')
   validate_hash($monitors)
   validate_hash($jobs)
   validate_absolute_path($config_file)

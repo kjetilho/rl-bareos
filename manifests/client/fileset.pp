@@ -30,12 +30,14 @@ define bareos::client::fileset(
   validate_array($fstype)
 
   if $fileset_name == '' {
+    validate_re($title, '^[A-Za-z0-9:_ -]+$')
     if $client_name == $::fqdn {
       $_fileset_name = "${client_name}-${title}"
     } else {
       $_fileset_name = "${::fqdn}/${client_name}-${title}"
     }
   } else {
+    validate_re($fileset_name, '^[A-Za-z0-9:_ -]+$')
     $_fileset_name = $fileset_name
   }
   @@bareos::fileset_definition {
