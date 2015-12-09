@@ -6,11 +6,13 @@ define bareos::client::job(
   $fileset = '',
   $sched = '', # "schedule" is a metaparameter, hence reserved
   $schedule_set = 'normal',
+  $order = 'N50',
   $preset = '',
   $preset_params = {},
 )
 {
   validate_array($runscript)
+  validate_re($order, '^[A-Z][0-9][0-9]$')
 
   if $job_name != '' {
     $_job_name = $job_name
@@ -23,6 +25,7 @@ define bareos::client::job(
       $job_title = "${::fqdn}/${_job_name}"
     }
   }
+  validate_re($_job_name, '^[A-Za-z0-9.:_-]+$')
 
   if $sched {
     $_sched = $sched
@@ -58,6 +61,7 @@ define bareos::client::job(
         'jobdef'      => $jobdef,
         'fileset'     => $_fileset,
         'sched'       => $_sched,
+        'order'       => $order,
         'params'      => $preset_params,
       }
     }
@@ -77,6 +81,7 @@ define bareos::client::job(
         fileset     => $_fileset,
         runscript   => $runscript,
         sched       => $_sched,
+        order       => $order,
         tag         => "bareos::server::${bareos::director}"
     }
   }

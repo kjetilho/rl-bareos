@@ -8,6 +8,7 @@ describe 'bareos::job_definition' do
     :jobdef => 'DefaultJob',
     :fileset => '',
     :sched => 'StdSched',
+    :order => 'N50',
     :runscript => [],
   }
 
@@ -27,7 +28,7 @@ describe 'bareos::job_definition' do
     it { should compile.with_all_deps }
 
     it do
-      should contain_file("#{prefix}#{title}.conf")
+      should contain_file("#{prefix}N50_#{title}.conf")
               .with_content(/Name\s+=\s+"#{title}"/)
               .with_content(/JobDefs\s+=\s+"DefaultJob"/)
               .with_content(/Schedule\s+=\s+StdSched/)
@@ -42,7 +43,7 @@ describe 'bareos::job_definition' do
     it { should compile.with_all_deps }
 
     it do
-      should contain_file("#{prefix}service.example.com-job.conf")
+      should contain_file("#{prefix}N50_service.example.com-job.conf")
               .with_content(/Name\s+=\s+"service.example.com-job"/)
               .with_content(/Client\s+=\s+"client.example.com-fd"/)
               .with_content(/Fileset\s+=\s+"service-fset"/)
@@ -59,11 +60,15 @@ describe 'bareos::job_definition' do
       include bareos::server
       eot
     }
-    let(:params) { default_params.merge({ :runscript => [ 'command' => 'precommand' ] }) }
+    let(:params) do
+      default_params.merge({ :runscript => [ 'command' => 'precommand' ],
+                             :order => 'A12'
+                           })
+    end
     it { should compile.with_all_deps }
 
     it do
-      should contain_file("#{prefix}#{title}.conf")
+      should contain_file("#{prefix}A12_#{title}.conf")
               .with_content(/Name\s+=\s+"#{title}"/)
               .with_content(/RunScript/)
               .with_content(/Command = "precommand"/)
@@ -97,7 +102,7 @@ describe 'bareos::job_definition' do
     it { should compile.with_all_deps }
 
     it do
-      should contain_file("#{prefix}#{title}.conf")
+      should contain_file("#{prefix}N50_#{title}.conf")
               .with_content(/Name\s+=\s+"#{title}"/)
               .with_content(/RunScript/)
               .with_content(/Command = "post1"/)

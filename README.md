@@ -174,6 +174,11 @@ from.  Default: normal
 __`sched`__: Explicit name of schedule, overrides random selection.
 (`schedule` is a reserved word in Puppet, hence the strange parameter name.)
 
+__`order`__: Give a hint to in what order jobs should run.  This
+should be a value consisting of one capital letter and two digits.
+Jobs with "A00" will be scheduled first, "Z99" will be scheduled last.
+The default is "N50".
+
 __`runscript`__: Array of script specifications to run before or after
 job.  Each element is a hash containing values for `command` and
 optional other parameters.  `command` can be a single command or an
@@ -249,6 +254,7 @@ The signature for a preset should be this:
         $jobdef,
         $fileset,
         $sched,
+        $order,
         $params,
     )
 
@@ -265,6 +271,8 @@ main Git repo.)
 `fileset` will normally be empty, and should just be passed on.
 
 `sched` is the chosen schedule for this job.
+
+`order` should just be passed on.
 
 `params` is the hash passed by the user as `preset_params`.  The
 preset is free to specify its format and content.
@@ -283,6 +291,7 @@ This should be done like this:
             jobdef      => $_jobdef,
             fileset     => $fileset,
             sched       => $sched,
+            order       => $order,
             runscript   => [ { 'command' => '/usr/local/bin/widgetdump' } ],
             tag         => "bareos::server::${bareos::director}"
     }

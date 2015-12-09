@@ -22,6 +22,7 @@ describe 'bareos::client' do
       it do
         expect(exported_resources).to contain_bareos__job_definition("#{facts[:fqdn]}-system-job")
                                        .with_sched('NormalSchedule')
+                                       .with_order('N50')
       end
     end
 
@@ -31,7 +32,8 @@ describe 'bareos::client' do
         { :jobs => {
             'job1' => {},
             'job2' => {'schedule_set' => 'multiple'},
-            'job3' => {'sched' => 'SpecialSchedule'}
+            'job3' => {'sched' => 'SpecialSchedule',
+                       'order' => 'Z00'}
           }
         }
       end
@@ -51,6 +53,7 @@ describe 'bareos::client' do
       it do
         expect(exported_resources).to contain_bareos__job_definition("#{facts[:fqdn]}-job3-job")
                                        .with_sched('SpecialSchedule')
+                                       .with_order('Z00')
       end
     end
 
@@ -146,6 +149,7 @@ describe 'bareos::client' do
               'preset_params' => { 'keep_backup' => 1 },
             },
             'mysql-ece' => {
+              'order' => 'A01',
               'preset' => 'bareos::job::preset::mysqldumpbackup',
               'preset_params' => { 'instance' => 'ece', 'compress_program' => 'xz' },
             },
@@ -158,6 +162,7 @@ describe 'bareos::client' do
       it do
         expect(exported_resources).to contain_bareos__job_definition("#{facts[:fqdn]}-mysql-job")
                                        .with_jobdef('DefaultMySQLJob')
+                                       .with_order('N50')
                                        .with_runscript(
                                          [ { 'command' =>
                                              '/usr/local/sbin/mysqldumpbackup -c' }
@@ -168,6 +173,7 @@ describe 'bareos::client' do
       it do
         expect(exported_resources).to contain_bareos__job_definition("#{facts[:fqdn]}-mysql-ece-job")
                                        .with_jobdef('DefaultMySQLJob')
+                                       .with_order('A01')
                                        .with_runscript(
                                          [ { 'command' =>
                                              '/usr/local/sbin/mysqldumpbackup -c mysqldumpbackup-ece' }
