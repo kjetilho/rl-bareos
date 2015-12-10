@@ -236,6 +236,66 @@ describe 'bareos::client' do
                    .with_content(/KEEPBACKUP="1"/) }
     end
 
+    context "on #{os} with preset mylvmbackup" do
+      let(:facts) { facts }
+      let(:params) do
+        { :jobs => {
+            'mylvm' => {
+              'preset' => 'bareos::job::preset::mylvmbackup',
+              'preset_params' => { 'vgname' => 'rootvg',
+                                   'lvname' => 'mysql',
+                                 },
+            },
+            'wordpress' => {
+              'preset' => 'bareos::job::preset::mylvmbackup',
+              'preset_params' => { 'instance' => 'wp',
+                                   'vgname' => 'rootvg',
+                                   'lvname' => 'mysql',
+                                   'relpath' => 'wpdata',
+                                   'keep_backup' => 5,
+                                 },
+            },
+          }
+        }
+      end
+
+      it { should compile.with_all_deps }
+      it { should contain_package('mylvmbackup') }
+      it do
+        expect(exported_resources).to contain_bareos__job_definition("#{facts[:fqdn]}-mylvm-job")
+                                       .with_jobdef('DefaultMySQLJob')
+                                       .with_runscript(
+                                         [ { 'command' =>
+                                             '/usr/bin/mylvmbackup' }
+                                         ])
+      end
+      it { should contain_file('/etc/mylvmbackup.conf')
+                   .with_content(/backupretention=3/)
+                   .with_content(/vgname=rootvg/)
+                   .with_content(/lvname=mysql/)
+                   .with_content(/relpath=$/)
+      }
+      it { should contain_file('/var/backups/mylvmbackup')
+                   .with_ensure('directory')
+                   .with_mode('0750')
+      }
+
+      it do
+        expect(exported_resources).to contain_bareos__job_definition("#{facts[:fqdn]}-wordpress-job")
+                                       .with_jobdef('DefaultMySQLJob')
+                                       .with_runscript(
+                                         [ { 'command' =>
+                                             '/usr/bin/mylvmbackup -c /etc/mylvmbackup-wp.conf' }
+                                         ])
+      end
+      it { should contain_file('/etc/mylvmbackup-wp.conf')
+                   .with_content(/backupretention=5/)
+                   .with_content(/vgname=rootvg/)
+                   .with_content(/lvname=mysql/)
+                   .with_content(/relpath=wpdata/)
+      }
+    end
+
     context "on #{os} with service address" do
       let(:facts) { facts }
       let(:params) do

@@ -9,8 +9,9 @@ Bareos
    2. [Jobs](#jobs)
    3. [Job presets](#job-presets)
       1. [mysqldumpbackup](#mysqldumpbackup)
-      2. [pgdumpbackup](#pgdumpbackup)
-      3. [Writing your own](#writing-your-own)
+      2. [mylvmbackup](#mylvmbackup)
+      3. [pgdumpbackup](#pgdumpbackup)
+      4. [Writing your own](#writing-your-own)
    4. [Filesets](#filesets)
    5. [Complex examples](#complex-examples)
       1. [Pre- and post jobs](#pre-and-post-jobs)
@@ -230,6 +231,23 @@ Example usage:
          preset_params:
            keep_backup: 5
            backupdir:   /srv/mysql/backup
+
+### mylvmbackup
+
+This preset installs the package mylvmbackup and installs a
+configuration file for it.  See
+[code](manifests/job/preset/mylvmbackup/config.pp) for full list of
+parameters.
+
+Example usage:
+
+    bareos::client::jobs:
+      system:
+         preset:        bareos::job::preset::mylvmbackup
+         preset_params:
+           keep_backup: 5
+           vgname:      sysvg
+           lvname:      mysql
 
 ### pgdumpbackup
 
