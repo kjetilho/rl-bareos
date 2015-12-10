@@ -261,12 +261,16 @@ describe 'bareos::client' do
 
       it { should compile.with_all_deps }
       it { should contain_package('mylvmbackup') }
+
+      # the test for runscript is way too intimate with implementation
+      command = 'env HOME=/root /usr/bin/mylvmbackup --quiet'
       it do
         expect(exported_resources).to contain_bareos__job_definition("#{facts[:fqdn]}-mylvm-job")
                                        .with_jobdef('DefaultMySQLJob')
                                        .with_runscript(
-                                         [ { 'command' =>
-                                             '/usr/bin/mylvmbackup' }
+                                         [ { 'command' => "#{command} --action=purge" },
+                                           { 'command' => "#{command}",
+                                             "abortjobonerror" => true },
                                          ])
       end
       it { should contain_file('/etc/mylvmbackup.conf')
@@ -284,8 +288,9 @@ describe 'bareos::client' do
         expect(exported_resources).to contain_bareos__job_definition("#{facts[:fqdn]}-wordpress-job")
                                        .with_jobdef('DefaultMySQLJob')
                                        .with_runscript(
-                                         [ { 'command' =>
-                                             '/usr/bin/mylvmbackup -c /etc/mylvmbackup-wp.conf' }
+                                         [ { 'command' => "#{command} -c /etc/mylvmbackup-wp.conf --action=purge" },
+                                           { 'command' => "#{command} -c /etc/mylvmbackup-wp.conf",
+                                             "abortjobonerror" => true },
                                          ])
       end
       it { should contain_file('/etc/mylvmbackup-wp.conf')
