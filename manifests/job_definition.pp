@@ -8,11 +8,12 @@ define bareos::job_definition(
   $jobdef,
   $fileset,
   $sched,
+  $order='N50',
   $runscript,
 )
 {
   $job_name = regsubst($title, '.*?\/', '')
-  $filename = "${bareos::server::job_file_prefix}${job_name}.conf"
+  $filename = "${bareos::server::job_file_prefix}${order}_${job_name}.conf"
 
   ensure_resource('file', $filename, {
     content => template('bareos/server/job.erb'),

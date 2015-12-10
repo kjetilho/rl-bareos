@@ -1,0 +1,54 @@
+# /etc/mylvmbackup.conf - mylvmbackup configuration file
+#
+# This file is handled by puppet, all local changes will be lost
+#
+# Please refer to the mylvmbackup(1) manual page for more information
+
+#
+# LVM-specific options
+#
+[lvm]
+vgname=<%= @vgname %>
+lvname=<%= @lvname %>
+lvsize=<%= @lvsize %>
+
+#
+# File system specific options
+#
+[fs]
+<% if @snapshot_only -%>
+mountdir=<%= @backupdir %>
+<% else -%>
+mountdir=<%= @mountdir %>
+<% end -%>
+backupdir=<%= @backupdir %>
+relpath=<%= @relpath %>
+
+[misc]
+hooksdir=/usr/local/share/mylvmbackup
+<% if @prefix != "" -%>
+prefix=<%= @prefix %>
+<% end -%>
+<% if @snapshot_only -%>
+backuptype=none
+<% end -%>
+<% if @compress_program != '' -%>
+compress=<%= @compress_program %>
+<% end -%>
+<% if @keep_backup != '' -%>
+backupretention=<%= @keep_backup %>
+<% end -%>
+
+#
+# Logging options. The Sys::Syslog module is required for syslog option
+#
+[logging]
+# 'console' (STDOUT, STDERR) or 'syslog' or 'both'.
+log_method=<%= @log_method %>
+syslog_facility=<%= @syslog_facility %>
+
+<% if @my_cnf != '' -%>
+[mysql]
+mycnf = <%= @my_cnf %>
+<% end -%>
+<%= @local_config %>

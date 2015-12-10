@@ -22,9 +22,11 @@
 # +environment+: array of extra environment variables (example: ["HOME=/root"])
 #
 define bareos::job::preset::mysqldumpbackup(
+  $client_name,
   $jobdef,
   $fileset,
   $sched,
+  $order,
   $params,
 )
 {
@@ -65,12 +67,13 @@ define bareos::job::preset::mysqldumpbackup(
 
   @@bareos::job_definition {
     $title:
-      client_name => $bareos::client::client_name,
+      client_name => $client_name,
       name_suffix => $bareos::client::name_suffix,
       jobdef      => $_jobdef,
       fileset     => $fileset,
       runscript   => [ { 'command' => $command } ],
       sched       => $sched,
+      order       => $order,
       tag         => "bareos::server::${bareos::director}"
   }
 }

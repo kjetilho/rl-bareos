@@ -6,21 +6,26 @@ define bareos::client::job(
   $fileset = '',
   $sched = '', # "schedule" is a metaparameter, hence reserved
   $schedule_set = 'normal',
+  $order = 'N50',
   $preset = '',
   $preset_params = {},
 )
 {
   validate_array($runscript)
+  validate_re($order, '^[A-Z][0-9][0-9]$')
 
   if $job_name != '' {
+    $_job_name = $job_name
     $job_title = $job_name
   } else {
+    $_job_name = "${client_name}-${title}${bareos::client::job_suffix}"
     if $client_name == $::fqdn {
-      $job_title = "${client_name}-${title}${bareos::client::job_suffix}"
+      $job_title = $_job_name
     } else {
-      $job_title = "${::fqdn}/${client_name}-${title}${bareos::client::job_suffix}"
+      $job_title = "${::fqdn}/${_job_name}"
     }
   }
+  validate_re($_job_name, '^[A-Za-z0-9.:_-]+$')
 
   if $sched {
     $_sched = $sched
@@ -28,7 +33,7 @@ define bareos::client::job(
     validate_hash($bareos::schedules)
     $set = $bareos::schedules[$schedule_set]
     validate_array($set)
-    $random_index = fqdn_rand(65537, $title) % count($set)
+    $random_index = seeded_rand(65537, $_job_name) % count($set)
     $_sched = $set[$random_index]
   }
 
@@ -52,10 +57,12 @@ define bareos::client::job(
   if ($preset != '') {
     $preset_def = {
       "${job_title}" => {
-        'jobdef'   => $jobdef,
-        'fileset'  => $_fileset,
-        'sched'    => $_sched,
-        'params'   => $preset_params,
+        'client_name' => $client_name,
+        'jobdef'      => $jobdef,
+        'fileset'     => $_fileset,
+        'sched'       => $_sched,
+        'order'       => $order,
+        'params'      => $preset_params,
       }
     }
     create_resources($preset, $preset_def)
@@ -74,6 +81,7 @@ define bareos::client::job(
         fileset     => $_fileset,
         runscript   => $runscript,
         sched       => $_sched,
+        order       => $order,
         tag         => "bareos::server::${bareos::director}"
     }
   }

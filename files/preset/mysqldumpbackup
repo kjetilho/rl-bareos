@@ -164,18 +164,6 @@ DUMPOPTIONS="$DUMPOPTIONS --quick --create-options --disable-keys --set-charset 
 # These options are added when binary log is enabled
 DUMPOPTIONS_BINLOG="--flush-logs --master-data=2"
 
-# Debian stores root's mysql-password in this file
-debian_cnf=/etc/mysql/debian.cnf
-if [ -s $debian_cnf -a -r $debian_cnf ]; then
-    MYSQL="$MYSQL --defaults-file=$debian_cnf"
-    # Unfortunately, setting defaults-file like this means the normal
-    # settings are ignored, so we must set what we need explicitly here.
-    MYSQLDUMP="$MYSQLDUMP --defaults-file=$debian_cnf --max_allowed_packet=512M"
-    MYSQLADMIN="$MYSQLADMIN --defaults-file=$debian_cnf"
-    DBUSER=$(awk '$1 == "user" { print $3; exit }' $debian_cnf)
-fi
-DBUSER=${DBUSER:-"root"}
-
 case $conf in
     /*)
         . "$conf"
@@ -193,6 +181,21 @@ case $conf in
         done
         ;;
 esac
+
+if [ "$DBSERVER" = "" -o "$DBSERVER" = "localhost" ]
+then
+    # Debian stores root's mysql-password in this file
+    debian_cnf=/etc/mysql/debian.cnf
+    if [ -s $debian_cnf -a -r $debian_cnf ]; then
+        MYSQL="$MYSQL --defaults-file=$debian_cnf"
+        # Unfortunately, setting defaults-file like this means the normal
+        # settings are ignored, so we must set what we need explicitly here.
+        MYSQLDUMP="$MYSQLDUMP --defaults-file=$debian_cnf --max_allowed_packet=512M"
+        MYSQLADMIN="$MYSQLADMIN --defaults-file=$debian_cnf"
+        DBUSER=$(awk '$1 == "user" { print $3; exit }' $debian_cnf)
+    fi
+fi
+DBUSER=${DBUSER:-"root"}
 
 if [ -s "$MYCNF" -a -r "$MYCNF" ]; then
     MYSQL="$MYSQL --defaults-extra-file=$MYCNF"
@@ -225,10 +228,25 @@ fi
 
 # Check if I'm supposed to run this.
 if [ "$SERVICENAME" ]; then
-    type clustat >/dev/null || exit 1
-    this_node=$(hostname --fqdn)
-    mysql_owner=$(clustat -ls $SERVICENAME | awk '$1 == "Owner" {print $NF}')
-    [ "$this_node" = "$mysql_owner" ] || exit 0
+    if type clustat >/dev/null 2>&1
+    then
+        this_node=$(hostname --fqdn)
+        mysql_owner=$(clustat -ls $SERVICENAME | awk '$1 == "Owner" {print $NF}')
+        [ "$this_node" = "$mysql_owner" ] || exit 0
+    elif type service >/dev/null
+    then
+        if ! service "$SERVICENAME" status >/dev/null 2>&1
+        then
+            if $EXIT_SILENTLY_WHEN_NOT_RUNNING; then
+                echo "Mysql is not running here, bailing out."
+                exit 0
+            fi
+            exec service "$SERVICENAME" status
+        fi
+    else
+        echo "Servicename ($SERVICENAME) is set, but neither service(8) nor clustat(8) is available" >&2
+        exit 1
+    fi
 elif ! $INITSCRIPT status > /dev/null 2>&1; then
     if $EXIT_SILENTLY_WHEN_NOT_RUNNING; then
         echo "Mysql is not running here, bailing out."
