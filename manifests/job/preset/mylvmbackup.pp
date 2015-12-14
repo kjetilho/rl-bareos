@@ -15,6 +15,7 @@ define bareos::job::preset::mylvmbackup(
   $fileset,
   $sched,
   $order,
+  $runscript,
   $params,
 )
 {
@@ -44,9 +45,11 @@ define bareos::job::preset::mylvmbackup(
       name_suffix => $bareos::client::name_suffix,
       jobdef      => $_jobdef,
       fileset     => $fileset,
-      runscript   => [ { 'command' => "${command} --action=purge" },
-                       { 'command' => "${command}", "abortjobonerror" => true },
-                     ],
+      runscript   => flatten([ $runscript,
+                               [ { 'command' => "${command} --action=purge" },
+                                 { 'command' => "${command}", "abortjobonerror" => true },
+                                 ]
+                               ]),
       sched       => $sched,
       order       => $order,
       tag         => "bareos::server::${bareos::director}"

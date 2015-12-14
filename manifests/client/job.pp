@@ -62,6 +62,7 @@ define bareos::client::job(
         'fileset'     => $_fileset,
         'sched'       => $_sched,
         'order'       => $order,
+        'runscript'   => $runscript,
         'params'      => $preset_params,
       }
     }

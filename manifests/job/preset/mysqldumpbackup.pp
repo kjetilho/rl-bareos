@@ -27,6 +27,7 @@ define bareos::job::preset::mysqldumpbackup(
   $fileset,
   $sched,
   $order,
+  $runscript,
   $params,
 )
 {
@@ -64,14 +65,13 @@ define bareos::job::preset::mysqldumpbackup(
       group   => 'root',
     })
   }
-
   @@bareos::job_definition {
     $title:
       client_name => $client_name,
       name_suffix => $bareos::client::name_suffix,
       jobdef      => $_jobdef,
       fileset     => $fileset,
-      runscript   => [ { 'command' => $command } ],
+      runscript   => flatten([$runscript, [{ 'command' => $command }] ]),
       sched       => $sched,
       order       => $order,
       tag         => "bareos::server::${bareos::director}"

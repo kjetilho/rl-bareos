@@ -24,6 +24,7 @@ define bareos::job::preset::pgdumpbackup(
   $fileset,
   $sched,
   $order,
+  $runscript,
   $params,
 )
 {
@@ -69,7 +70,7 @@ define bareos::job::preset::pgdumpbackup(
       name_suffix => $bareos::client::name_suffix,
       jobdef      => $_jobdef,
       fileset     => $fileset,
-      runscript   => [ { 'command' => $command } ],
+      runscript   => flatten([$runscript, [{ 'command' => $command }] ]),
       sched       => $sched,
       order       => $order,
       tag         => "bareos::server::${bareos::director}"

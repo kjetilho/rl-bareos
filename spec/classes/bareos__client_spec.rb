@@ -153,6 +153,11 @@ describe 'bareos::client' do
               'preset' => 'bareos::job::preset::mysqldumpbackup',
               'preset_params' => { 'instance' => 'ece', 'compress_program' => 'xz' },
             },
+            'combo' => {
+              'runscript' => [ { 'command' => '/usr/bin/combo' } ],
+              'preset' => 'bareos::job::preset::mysqldumpbackup',
+              'preset_params' => { 'instance' => 'combo' },
+            }
           }
         }
       end
@@ -181,6 +186,21 @@ describe 'bareos::client' do
       end
       it { should contain_file('/etc/default/mysqldumpbackup-ece')
                    .with_content(/GZIP="xz"/)
+      }
+
+      it do
+        expect(exported_resources).to contain_bareos__job_definition("#{facts[:fqdn]}-combo-job")
+                                       .with_jobdef('DefaultMySQLJob')
+                                       .with_order('N50')
+                                       .with_runscript(
+                                         [ { 'command' =>
+                                             '/usr/bin/combo' },
+                                           { 'command' =>
+                                             '/usr/local/sbin/mysqldumpbackup -c mysqldumpbackup-combo' }
+                                         ])
+      end
+      it { should contain_file('/etc/default/mysqldumpbackup-combo')
+                   .with_content('')
       }
     end
 
