@@ -242,7 +242,7 @@ Example usage:
          preset:        bareos::job::preset::mysqldumpbackup
          preset_params:
            keep_backup: 5
-           backupdir:   /srv/mysql/backup
+           backup_dir:  /srv/mysql/backup
 
 ### mylvmbackup
 
