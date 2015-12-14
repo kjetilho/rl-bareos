@@ -2,10 +2,10 @@
 #
 # +instance+: name of configuration instance
 #
-# The rest will be stored in configuration file
+# The other preset parameters are stored in a configuration file
 # (/etc/mylvmbackup.conf or /etc/mylvmbackup-$instance.conf)
 #
-# We wrap this in a define bareos::job::preset::mylvmbackup::config to
+# This is managed by bareos::job::preset::mylvmbackup::config to
 # do validation and defaults of parameters.  Available parameters are
 # documented there.
 #
@@ -15,6 +15,7 @@ define bareos::job::preset::mylvmbackup(
   $fileset,
   $sched,
   $order,
+  $runscript,
   $params,
 )
 {
@@ -24,13 +25,14 @@ define bareos::job::preset::mylvmbackup(
     $_jobdef = $jobdef
   }
 
+  $base_command = 'env HOME=/root /usr/bin/mylvmbackup --quiet'
   if $params['instance'] {
     $conffile = "/etc/mylvmbackup-${params['instance']}.conf"
-    $command = "/usr/bin/mylvmbackup -c ${conffile}"
+    $command = "${base_command} -c ${conffile}"
     $conf_params = delete($params, 'instance')
   } else {
     $conffile = '/etc/mylvmbackup.conf'
-    $command = '/usr/bin/mylvmbackup'
+    $command = $base_command
     $conf_params = $params
   }
 
@@ -43,7 +45,11 @@ define bareos::job::preset::mylvmbackup(
       name_suffix => $bareos::client::name_suffix,
       jobdef      => $_jobdef,
       fileset     => $fileset,
-      runscript   => [ { 'command' => $command } ],
+      runscript   => flatten([ $runscript,
+                               [ { 'command' => "${command} --action=purge" },
+                                 { 'command' => "${command}", "abortjobonerror" => true },
+                                 ]
+                               ]),
       sched       => $sched,
       order       => $order,
       tag         => "bareos::server::${bareos::director}"

@@ -5,18 +5,12 @@
 # +ignore_not_running+: if true, exit silently without taking backup
 #   if postgresql is not running.
 #
-# The rest will be stored in configuration file
+# The other preset parameters are stored in a configuration file
 # (/etc/default/pgdumpbackup or /etc/default/pgdumpbackup-$instance)
 #
-# +keep_backup+: how many days to keep backup
-# +backupdir+: where to store backups (file resource must be managed separately)
-# +server+: server name to connect to (default is local socket)
-# +initscript+: to check if service is running
-# +cluster+: what cluster to dump (default "", which means connect to port 5432)
-# +skip_databases+: array of databases to skip
-# +log_method+: where to log.  default is "console" (ie., stderr)
-# +syslog_facility+: where to log.  default is 'daemon'
-# +environment+: array of extra environment variables (example: ["HOME=/root"])
+# This is managed by bareos::job::preset::pgdumpbackup::config to
+# do validation and defaults of parameters.  Available parameters are
+# documented there.
 #
 define bareos::job::preset::pgdumpbackup(
   $client_name,
@@ -24,6 +18,7 @@ define bareos::job::preset::pgdumpbackup(
   $fileset,
   $sched,
   $order,
+  $runscript,
   $params,
 )
 {
@@ -54,14 +49,9 @@ define bareos::job::preset::pgdumpbackup(
     $command = "/usr/local/sbin/pgdumpbackup ${options}"
   }
 
-  if (count(keys($params)) > 0) {
-    ensure_resource('file', "/etc/default/${instance}", {
-      content => template('bareos/preset/pgdumpbackup.conf.erb'),
-      mode    => '0400',
-      owner   => 'root',
-      group   => 'root',
-    })
-  }
+  ensure_resource('bareos::job::preset::pgdumpbackup::config',
+                  $instance,
+                  delete($params, ['instance', 'ignore_not_running']))
 
   @@bareos::job_definition {
     $title:
@@ -69,7 +59,7 @@ define bareos::job::preset::pgdumpbackup(
       name_suffix => $bareos::client::name_suffix,
       jobdef      => $_jobdef,
       fileset     => $fileset,
-      runscript   => [ { 'command' => $command } ],
+      runscript   => flatten([$runscript, [{ 'command' => $command }] ]),
       sched       => $sched,
       order       => $order,
       tag         => "bareos::server::${bareos::director}"

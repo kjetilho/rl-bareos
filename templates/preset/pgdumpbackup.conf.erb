@@ -1,26 +1,21 @@
-<% if @params.include? 'environment' -%>
-<%   [@params['environment']].flatten.each do |var| -%>
+<% unless @environ.empty? -%>
+<%   @environ.each do |var| -%>
 export <%= var %>
 <%   end -%>
 <% end -%>
-<% if @params.include? 'backupdir' -%>
-BACKUPDIR="<%= @params['backupdir'] %>"
+BACKUPDIR="<%= @backup_dir %>"
+KEEPBACKUP="<%= @keep_backup %>"
+LOG_METHOD="<%= @log_method %>"
+SYSLOG_FACILITY="<%= @syslog_facility %>"
+<% unless @skip_databases.empty? -%>
+SKIP="$SKIP <%= @skip_databases.join(" ") %>"
 <% end -%>
-<% if @params.include? 'keep_backup' -%>
-KEEPBACKUP="<%= @params['keep_backup'] %>"
+<% if @server != '' -%>
+DBSERVER="<%= @server %>"
 <% end -%>
-<% if @params.include? 'log_method' -%>
-LOG_METHOD="<%= @params['log_method'] %>"
+<% if @initscript != '' -%>
+INITSCRIPT="<%= @initscript %>"
 <% end -%>
-<% if @params.include? 'skip_databases' -%>
-SKIP="$SKIP <%= [@params['skip_databases']].flatten.join(" ") %>"
-<% end -%>
-<% if @params.include? 'server' -%>
-DBSERVER="<%= @params['server'] %>"
-<% end -%>
-<% if @params.include? 'initscript' -%>
-INITSCRIPT="<%= @params['initscript'] %>"
-<% end -%>
-<% if @params.include? 'cluster' -%>
-CLUSTER="<%= @params['cluster'] %>"
+<% if @cluster != '' -%>
+CLUSTER="<%= @cluster %>"
 <% end -%>

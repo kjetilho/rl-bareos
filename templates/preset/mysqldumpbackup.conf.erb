@@ -1,35 +1,30 @@
-<% if @params.include? 'environment' -%>
-<%   [@params['environment']].flatten.each do |var| -%>
+<% unless @environ.empty? -%>
+<%   @environ.each do |var| -%>
 export <%= var %>
 <%   end -%>
 <% end -%>
-<% if @params.include? 'backupdir' -%>
-BACKUPDIR="<%= @params['backupdir'] %>"
+BACKUPDIR="<%= @_backup_dir %>"
+<% if @compress_program != '' -%>
+GZIP="<%= @compress_program %>"
 <% end -%>
-<% if @params.include? 'compress_program' -%>
-GZIP="<%= @params['compress_program'] %>"
+KEEPBACKUP="<%= @keep_backup %>"
+<% if @my_cnf != '' -%>
+MYCNF="<%= @my_cnf %>"
 <% end -%>
-<% if @params.include? 'keep_backup' -%>
-KEEPBACKUP="<%= @params['keep_backup'] %>"
+LOG_METHOD="<%= @log_method %>"
+SYSLOG_FACILITY="<%= @syslog_facility %>"
+<% unless @skip_databases.empty? -%>
+SKIP="$SKIP <%= @skip_databases.join(" ") %>"
 <% end -%>
-<% if @params.include? 'my_cnf' -%>
-MYCNF="<%= @params['my_cnf'] %>"
+<% if @server != '' -%>
+DBSERVER="<%= @server %>"
 <% end -%>
-<% if @params.include? 'log_method' -%>
-LOG_METHOD="<%= @params['log_method'] %>"
+<% if @initscript != '' -%>
+INITSCRIPT="<%= @initscript %>"
 <% end -%>
-<% if @params.include? 'skip_databases' -%>
-SKIP="$SKIP <%= [@params['skip_databases']].flatten.join(" ") %>"
+<% if @servicename != '' -%>
+SERVICENAME="<%= @servicename %>"
 <% end -%>
-<% if @params.include? 'server' -%>
-DBSERVER="<%= @params['server'] %>"
-<% end -%>
-<% if @params.include? 'initscript' -%>
-INITSCRIPT="<%= @params['initscript'] %>"
-<% end -%>
-<% if @params.include? 'servicename' -%>
-SERVICENAME="<%= @params['servicename'] %>"
-<% end -%>
-<% if @params.include? 'dumpoptions' -%>
-DUMPOPTIONS="$DUMPOPTIONS <%= @params['dumpoptions'] %>"
+<% if @dumpoptions != '' -%>
+DUMPOPTIONS="$DUMPOPTIONS <%= @dumpoptions %>"
 <% end -%>

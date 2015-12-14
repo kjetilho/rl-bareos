@@ -153,11 +153,28 @@ describe 'bareos::client' do
               'preset' => 'bareos::job::preset::mysqldumpbackup',
               'preset_params' => { 'instance' => 'ece', 'compress_program' => 'xz' },
             },
+            'combo' => {
+              'runscript' => [ { 'command' => '/usr/bin/combo' } ],
+              'preset' => 'bareos::job::preset::mysqldumpbackup',
+              'preset_params' => { 'instance' => 'combo',
+                                   'backup_dir' => '/var/backups/combo' },
+            }
           }
         }
       end
 
+
       it { should compile.with_all_deps }
+
+      it { should contain_file('/var/backups')
+                   .with_ensure('directory')
+                   .with_mode('0755')
+      }
+      it { should contain_file('/var/backups/mysql')
+                   .with_ensure('directory')
+                   .with_mode('0750')
+      }
+
       it { should contain_file('/usr/local/sbin/mysqldumpbackup') }
       it do
         expect(exported_resources).to contain_bareos__job_definition("#{facts[:fqdn]}-mysql-job")
@@ -182,6 +199,25 @@ describe 'bareos::client' do
       it { should contain_file('/etc/default/mysqldumpbackup-ece')
                    .with_content(/GZIP="xz"/)
       }
+
+      it do
+        expect(exported_resources).to contain_bareos__job_definition("#{facts[:fqdn]}-combo-job")
+                                       .with_jobdef('DefaultMySQLJob')
+                                       .with_order('N50')
+                                       .with_runscript(
+                                         [ { 'command' =>
+                                             '/usr/bin/combo' },
+                                           { 'command' =>
+                                             '/usr/local/sbin/mysqldumpbackup -c mysqldumpbackup-combo' }
+                                         ])
+      end
+      it { should contain_file('/etc/default/mysqldumpbackup-combo')
+                   .with_content(/KEEPBACKUP="3"/)
+      }
+      it { should contain_file('/var/backups/combo')
+                   .with_ensure('directory')
+                   .with_mode('0750')
+      }
     end
 
     context "on #{os} with preset mysqldumpbackup ignore_not_running" do
@@ -198,8 +234,8 @@ describe 'bareos::client' do
 
       it { should compile.with_all_deps }
       it { should contain_file('/usr/local/sbin/mysqldumpbackup') }
-      it { should contain_file('/etc/default/mysqldumpbackup')
-                   .with_content('') }
+      it { should contain_file('/etc/default/mysqldumpbackup') }
+
       it do
         expect(exported_resources).to contain_bareos__job_definition("#{facts[:fqdn]}-failover-job")
                                        .with_jobdef('DefaultMySQLJob')
@@ -261,12 +297,16 @@ describe 'bareos::client' do
 
       it { should compile.with_all_deps }
       it { should contain_package('mylvmbackup') }
+
+      # the test for runscript is way too intimate with implementation
+      command = 'env HOME=/root /usr/bin/mylvmbackup --quiet'
       it do
         expect(exported_resources).to contain_bareos__job_definition("#{facts[:fqdn]}-mylvm-job")
                                        .with_jobdef('DefaultMySQLJob')
                                        .with_runscript(
-                                         [ { 'command' =>
-                                             '/usr/bin/mylvmbackup' }
+                                         [ { 'command' => "#{command} --action=purge" },
+                                           { 'command' => "#{command}",
+                                             "abortjobonerror" => true },
                                          ])
       end
       it { should contain_file('/etc/mylvmbackup.conf')
@@ -284,8 +324,9 @@ describe 'bareos::client' do
         expect(exported_resources).to contain_bareos__job_definition("#{facts[:fqdn]}-wordpress-job")
                                        .with_jobdef('DefaultMySQLJob')
                                        .with_runscript(
-                                         [ { 'command' =>
-                                             '/usr/bin/mylvmbackup -c /etc/mylvmbackup-wp.conf' }
+                                         [ { 'command' => "#{command} -c /etc/mylvmbackup-wp.conf --action=purge" },
+                                           { 'command' => "#{command} -c /etc/mylvmbackup-wp.conf",
+                                             "abortjobonerror" => true },
                                          ])
       end
       it { should contain_file('/etc/mylvmbackup-wp.conf')

@@ -147,6 +147,18 @@ are added as parameters to the Director directive.
 __`bareos::client::fstype`__: This variable is __only__ used as a
 default for [filesets](#filesets) declared on this host.
 
+__`bareos::client::backup_dir`__: The default parent directory where
+the preset jobs will dump data.  Default: "/var/backups"
+
+__`bareos::client::backup_dir_owner`__: Owner of above directory
+Default: "root"
+
+__`bareos::client::backup_dir_group`__: Group of above directory
+Default: "root"
+
+__`bareos::client::backup_dir_mode`__: Mode of above directory
+Default: "0755"
+
 
 ## Jobs
 
@@ -230,7 +242,7 @@ Example usage:
          preset:        bareos::job::preset::mysqldumpbackup
          preset_params:
            keep_backup: 5
-           backupdir:   /srv/mysql/backup
+           backup_dir:  /srv/mysql/backup
 
 ### mylvmbackup
 
@@ -273,6 +285,7 @@ The signature for a preset should be this:
         $fileset,
         $sched,
         $order,
+        $runscript,
         $params,
     )
 
@@ -295,6 +308,8 @@ main Git repo.)
 `params` is the hash passed by the user as `preset_params`.  The
 preset is free to specify its format and content.
 
+`runscript` is an array of additional pre- or post commands.
+
 A normal job exports a `bareos::job_define` which `bareos::server`
 picks up.  When a _preset_ is used, exporting that declaration must be
 done by its define.
@@ -310,12 +325,16 @@ This should be done like this:
             fileset     => $fileset,
             sched       => $sched,
             order       => $order,
-            runscript   => [ { 'command' => '/usr/local/bin/widgetdump' } ],
+            runscript   => flatten([ $runscript,
+                                     [{ 'command' => '/usr/local/bin/widgetdump' }]
+                                   ]),
             tag         => "bareos::server::${bareos::director}"
     }
 
-Almost all of the above code must be copied more or less verbatim.  If
-you don't need a runscript, you must pass an empty array.
+Almost all of the above code must be copied more or less verbatim.
+`flatten()` is used to concatenate arrays, which is otherwise only
+available when the future parser is enabled.  If you don't need a
+runscript, you just pass `$runscript` on.
 
 You should try to write your define so it can be used more than once
 per client, i.e., consider using `ensure_resource('file', { ... })`

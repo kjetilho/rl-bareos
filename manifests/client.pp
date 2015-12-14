@@ -26,6 +26,10 @@ class bareos::client (
   $jobs           = {'system' => {}},
   $filesets       = {},
   $fstype         = $bareos::params::client::fstype,
+  $backup_dir     = $bareos::params::client::backup_dir,
+  $backup_dir_owner = $bareos::params::client::backup_dir_owner,
+  $backup_dir_group = $bareos::params::client::backup_dir_group,
+  $backup_dir_mode  = $bareos::params::client::backup_dir_mode,
   # the remainder are unlikely to need changing
   $package        = $bareos::params::client::package,
   $config_file    = $bareos::params::client::config_file,
