@@ -156,13 +156,25 @@ describe 'bareos::client' do
             'combo' => {
               'runscript' => [ { 'command' => '/usr/bin/combo' } ],
               'preset' => 'bareos::job::preset::mysqldumpbackup',
-              'preset_params' => { 'instance' => 'combo' },
+              'preset_params' => { 'instance' => 'combo',
+                                   'backup_dir' => '/var/backups/combo' },
             }
           }
         }
       end
 
+
       it { should compile.with_all_deps }
+
+      it { should contain_file('/var/backups')
+                   .with_ensure('directory')
+                   .with_mode('0755')
+      }
+      it { should contain_file('/var/backups/mysql')
+                   .with_ensure('directory')
+                   .with_mode('0750')
+      }
+
       it { should contain_file('/usr/local/sbin/mysqldumpbackup') }
       it do
         expect(exported_resources).to contain_bareos__job_definition("#{facts[:fqdn]}-mysql-job")
@@ -200,7 +212,11 @@ describe 'bareos::client' do
                                          ])
       end
       it { should contain_file('/etc/default/mysqldumpbackup-combo')
-                   .with_content('')
+                   .with_content(/KEEPBACKUP="3"/)
+      }
+      it { should contain_file('/var/backups/combo')
+                   .with_ensure('directory')
+                   .with_mode('0750')
       }
     end
 
@@ -218,8 +234,8 @@ describe 'bareos::client' do
 
       it { should compile.with_all_deps }
       it { should contain_file('/usr/local/sbin/mysqldumpbackup') }
-      it { should contain_file('/etc/default/mysqldumpbackup')
-                   .with_content('') }
+      it { should contain_file('/etc/default/mysqldumpbackup') }
+
       it do
         expect(exported_resources).to contain_bareos__job_definition("#{facts[:fqdn]}-failover-job")
                                        .with_jobdef('DefaultMySQLJob')

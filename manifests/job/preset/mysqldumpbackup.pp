@@ -5,21 +5,12 @@
 # +ignore_not_running+: if true, exit silently without taking backup
 #   if mysql is not running.
 #
-# The rest will be stored in configuration file
+# The other preset parameters are stored in a configuration file
 # (/etc/default/mysqldumpbackup or /etc/default/mysqldumpbackup-$instance)
 #
-# +keep_backup+: how many days to keep backup
-# +backupdir+: where to store backups (file resource must be managed separately)
-# +server+: server name to connect to (default is local socket)
-# +initscript+: to check if service is running
-# +servicename+: to check if service is running
-# +my_cnf+: path to my.cnf
-# +skip_databases+: array of databases to skip
-# +dumpoptions+: extra options to mysqldump
-# +compress_program+: default is gzip
-# +log_method+: where to log.  default is "console" (ie., stderr)
-# +syslog_facility+: where to log.  default is 'daemon'
-# +environment+: array of extra environment variables (example: ["HOME=/root"])
+# This is managed by bareos::job::preset::mysqldumpbackup::config to
+# do validation and defaults of parameters.  Available parameters are
+# documented there.
 #
 define bareos::job::preset::mysqldumpbackup(
   $client_name,
@@ -57,14 +48,10 @@ define bareos::job::preset::mysqldumpbackup(
     $command = "/usr/local/sbin/mysqldumpbackup ${options}"
   }
 
-  if (count(keys($params)) > 0) {
-    ensure_resource('file', "/etc/default/${instance}", {
-      content => template('bareos/preset/mysqldumpbackup.conf.erb'),
-      mode    => '0400',
-      owner   => 'root',
-      group   => 'root',
-    })
-  }
+  ensure_resource('bareos::job::preset::mysqldumpbackup::config',
+                  $instance,
+                  delete($params, ['instance', 'ignore_not_running']))
+
   @@bareos::job_definition {
     $title:
       client_name => $client_name,

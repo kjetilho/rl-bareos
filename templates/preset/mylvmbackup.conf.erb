@@ -17,11 +17,11 @@ lvsize=<%= @lvsize %>
 #
 [fs]
 <% if @snapshot_only -%>
-mountdir=<%= @backupdir %>
+mountdir=<%= @backup_dir %>
 <% else -%>
 mountdir=<%= @mountdir %>
 <% end -%>
-backupdir=<%= @backupdir %>
+backupdir=<%= @backup_dir %>
 relpath=<%= @relpath %>
 
 [misc]

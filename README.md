@@ -147,6 +147,18 @@ are added as parameters to the Director directive.
 __`bareos::client::fstype`__: This variable is __only__ used as a
 default for [filesets](#filesets) declared on this host.
 
+__`bareos::client::backup_dir`__: The default parent directory where
+the preset jobs will dump data.  Default: "/var/backups"
+
+__`bareos::client::backup_dir_owner`__: Owner of above directory
+Default: "root"
+
+__`bareos::client::backup_dir_group`__: Group of above directory
+Default: "root"
+
+__`bareos::client::backup_dir_mode`__: Mode of above directory
+Default: "0755"
+
 
 ## Jobs
 

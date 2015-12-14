@@ -14,6 +14,10 @@ class bareos::params::client {
   $fstype = [
     'rootfs', 'ext2', 'ext3', 'ext4', 'jfs', 'reiserfs', 'xfs',
   ]
+  $backup_dir = '/var/backups'
+  $backup_dir_owner = 'root'
+  $backup_dir_group = 'root'
+  $backup_dir_mode = '0755'
 
   case $::osfamily {
     'RedHat': {

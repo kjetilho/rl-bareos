@@ -2,10 +2,10 @@
 #
 # +instance+: name of configuration instance
 #
-# The rest will be stored in configuration file
+# The other preset parameters are stored in a configuration file
 # (/etc/mylvmbackup.conf or /etc/mylvmbackup-$instance.conf)
 #
-# We wrap this in a define bareos::job::preset::mylvmbackup::config to
+# This is managed by bareos::job::preset::mylvmbackup::config to
 # do validation and defaults of parameters.  Available parameters are
 # documented there.
 #
