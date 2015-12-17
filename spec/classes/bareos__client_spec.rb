@@ -228,7 +228,8 @@ describe 'bareos::client' do
               'preset' => 'bareos::job::preset::mysqldumpbackup',
               'preset_params' => { 'ignore_not_running' => true },
             },
-          }
+          },
+          :manage_backup_dir => false
         }
       end
 
@@ -244,6 +245,12 @@ describe 'bareos::client' do
                                              '/usr/local/sbin/mysqldumpbackup -c -r' }
                                          ])
       end
+      it { should_not contain_file('/var/backups') }
+      it { should contain_file('/var/backups/mysql')
+                   .with_owner('root')
+                   .with_group('root')
+                   .with_mode('0750')
+      }
     end
 
     context "on #{os} with preset pgdumpbackup" do

@@ -150,6 +150,9 @@ default for [filesets](#filesets) declared on this host.
 __`bareos::client::backup_dir`__: The default parent directory where
 the preset jobs will dump data.  Default: "/var/backups"
 
+__`bareos::client::manage_backup_dir`__: Create and manage the default
+parent directory.  Default: true
+
 __`bareos::client::backup_dir_owner`__: Owner of above directory
 Default: "root"
 
