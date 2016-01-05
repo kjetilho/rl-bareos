@@ -4,8 +4,8 @@
 #
 # +keep_backup+: how many days to keep backup
 # +backup_dir+: where to store backups
-# +backup_dir_owner+: what permissions to use on backup_dir.  Default: 'root'
-# +backup_dir_group+: what permissions to use on backup_dir.  Default: 'root'
+# +backup_dir_owner+: what user should own backup_dir.  Default: 'postgres'
+# +backup_dir_group+: what group should own backup_dir.  Default: 'root'
 # +backup_dir_mode+: what permissions to use on backup_dir.  Default: '0750'
 # +server+: server name to connect to (default is local socket)
 # +initscript+: to check if service is running
@@ -18,7 +18,7 @@
 define bareos::job::preset::pgdumpbackup::config(
   $keep_backup=3,
   $backup_dir="${bareos::client::backup_dir}/postgresql",
-  $backup_dir_owner=$bareos::client::backup_dir_owner,
+  $backup_dir_owner='postgres',
   $backup_dir_group=$bareos::client::backup_dir_group,
   $backup_dir_mode='0750',
   $server='',
