@@ -14,6 +14,11 @@ describe 'bareos::client' do
                 .with_content(/Name = "backup.example.com-dir"/)
       end
       it do
+        should contain_service('bacula-fd')
+                .with_enable(true)
+                .with_ensure('running')
+      end
+      it do
         expect(exported_resources).to have_bareos__job_definition_resource_count(1)
       end
       it do

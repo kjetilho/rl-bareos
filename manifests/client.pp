@@ -21,7 +21,6 @@ class bareos::client (
   $job_retention  = '180d',
   $file_retention = '60d',
   $concurrency    = 10,
-  $service_ensure = 'running',
   $monitors       = {},
   $jobs           = {'system' => {}},
   $filesets       = {},
@@ -35,6 +34,8 @@ class bareos::client (
   $package        = $bareos::params::client::package,
   $config_file    = $bareos::params::client::config_file,
   $service        = $bareos::params::client::service,
+  $service_ensure = 'running',
+  $service_enable = true,
   $log_dir        = $bareos::params::client::log_dir,
   $pid_dir        = $bareos::params::client::pid_dir,
   $working_dir    = $bareos::params::client::working_dir,
@@ -64,7 +65,10 @@ class bareos::client (
 
   ensure_packages($package)
 
-  service { $service: }
+  service {
+    $service:
+      enable => $service_enable
+  }
 
   # Allow value of undef or '' to not manage the "ensure" parameter
   if $service_ensure {
