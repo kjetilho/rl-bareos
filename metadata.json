@@ -29,8 +29,8 @@
     ],
     "dependencies": [
         {
-            "name": "stdlib",
-            "version_requirement": ">= 4.10"
+            "name": "puppetlabs/stdlib",
+            "version_requirement": ">= 4.10.0"
         }
     ],
     "tags": ["backup", "bacula", "bareos"],
