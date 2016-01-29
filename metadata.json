@@ -1,12 +1,12 @@
 {
     "name": "rl-bareos",
-    "version": "develop",
-    "author": "rl",
-    "summary": "Redpill Linpro bareos",
-    "license": "Restricted",
-    "source": "https://git.i.bitbit.net/puppet-mod/rl-bareos.git",
-    "project_page": "https://git.i.bitbit.net/puppet-mod/rl-bareos",
-    "issues_url": "https://git.i.bitbit.net/puppet-mod/rl-bareos/issues",
+    "version": "1.0.11",
+    "author": "Kjetil Torgrim Homme <kjetil.homme@redpill-linpro.com>",
+    "summary": "Manage Bareos clients and jobs",
+    "license": "GPL-3.0+",
+    "source": "https://github.com/kjetilho/rl-bareos.git",
+    "project_page": "https://forge.puppetlabs.com/rl/bareos",
+    "issues_url": "https://github.com/kjetilho/rl-bareos/issues",
     "operatingsystem_support": [
         {
             "operatingsystem": "CentOS",
@@ -27,20 +27,12 @@
             ]
         }
     ],
-    "requirements": [
-        {
-            "name": "apt",
-            "version_requirement": ">= 0"
-        },
-        {
-            "name": "nrpe",
-            "version_requirement": ">= 0"
-        },
+    "dependencies": [
         {
             "name": "stdlib",
-            "version_requirement": ">= 2"
+            "version_requirement": ">= 4.10"
         }
     ],
-    "description": "Redpill Linpro bareos",
-    "dependencies": []
+    "tags": ["backup", "bacula", "bareos"],
+    "data_provider": "hiera"
 }
