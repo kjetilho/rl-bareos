@@ -85,6 +85,9 @@ class bareos::client (
 
   file { $log_dir:
     ensure => directory,
+    owner  => 'bareos',
+    group  => 'bareos',
+    mode   => 0755;
   }
 
   @@bareos::client_definition { "${client_name}${name_suffix}":
