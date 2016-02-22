@@ -157,6 +157,9 @@ Default: "root"
 __`bareos::client::backup_dir_mode`__: Mode of above directory
 Default: "0755"
 
+In addition, you can manage the service, the location of the log file,
+the pid file and the working directory, but this should not be
+necessary to do.
 
 ## Jobs
 

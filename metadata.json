@@ -25,6 +25,13 @@
             "operatingsystemrelease": [
                 "14.04"
             ]
+        },
+        {
+            "operatingsystem": "windows",
+            "operatingsystemrelease": [
+                "2012 R2",
+                "NOTE: facterdb and/or rspec-puppet-fact does not support Windows yet"
+            ]
         }
     ],
     "dependencies": [
