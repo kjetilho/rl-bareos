@@ -7,9 +7,13 @@ class bareos::params::client {
   case $::osfamily {
     'windows': {
       $_impl = 'bareos'
+      $root_user = 'Administrator'
+      $root_group = 'Administrators'
     }
     default: {
       $_impl = 'bacula'
+      $root_user = 'root'
+      $root_group = 'root'
     }
   }
   $implementation = hiera('bareos::client::implementation', $_impl)
