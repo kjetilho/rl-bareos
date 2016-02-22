@@ -85,8 +85,8 @@ class bareos::client (
 
   file { $log_dir:
     ensure => directory,
-    owner  => 'bareos',
-    group  => 'bareos',
+    owner  => $bareos::client::implementation,
+    group  => $bareos::client::implementation,
     mode   => 0755;
   }
 

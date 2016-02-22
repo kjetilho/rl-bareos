@@ -110,7 +110,8 @@ __`bareos::client::concurrency`__:
 How many jobs can run at the same time on this client.  Default: 10
 
 __`bareos::client::implementation`__:
-Either `bacula` or `bareos`.  Default: "bacula"
+Either `bacula` or `bareos`.  This needs to be set via Hiera to affect
+defaults which are based on this value.  Default: "bacula"
 
 __`bareos::client::client_name`__:
 The name of the client, without the "-fd" suffix.  Default: FQDN
