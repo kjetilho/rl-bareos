@@ -25,12 +25,19 @@
             "operatingsystemrelease": [
                 "14.04"
             ]
+        },
+        {
+            "operatingsystem": "windows",
+            "operatingsystemrelease": [
+                "2012 R2",
+                "NOTE: facterdb and/or rspec-puppet-fact does not support Windows yet"
+            ]
         }
     ],
     "dependencies": [
         {
-            "name": "stdlib",
-            "version_requirement": ">= 4.10"
+            "name": "puppetlabs/stdlib",
+            "version_requirement": ">= 4.10.0"
         }
     ],
     "tags": ["backup", "bacula", "bareos"],

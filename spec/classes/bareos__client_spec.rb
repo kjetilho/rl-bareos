@@ -18,6 +18,46 @@ describe 'bareos::client' do
                 .with_enable(true)
                 .with_ensure('running')
       end
+      it { should contain_file('/var/log/bacula')
+                   .with_ensure('directory')
+                   .with_owner('bacula')
+                   .with_group('bacula')
+      }
+      it do
+        expect(exported_resources).to have_bareos__job_definition_resource_count(1)
+      end
+      it do
+        expect(exported_resources).to contain_bareos__client_definition("#{facts[:fqdn]}-fd")
+      end
+      it do
+        expect(exported_resources).to contain_bareos__job_definition("#{facts[:fqdn]}-system-job")
+                                       .with_sched('NormalSchedule')
+                                       .with_order('N50')
+      end
+    end
+
+    context "on #{os} with bareos" do
+      # Can't just use params, since other defaults build on Hiera
+      # value, not passed value (chicken and egg)
+      let(:facts) { facts.merge( { :specialcase => 'implementation' } ) }
+      it { should compile.with_all_deps }
+      it do
+        # These test against data from hiera, see
+        # spec/fixtures/hiera/common.yaml
+        should contain_file('/etc/bareos/bareos-fd.conf')
+                .with_content(/Name = "systray-mon"/)
+                .with_content(/Name = "backup.example.com-dir"/)
+      end
+      it do
+        should contain_service('bareos-fd')
+                .with_enable(true)
+                .with_ensure('running')
+      end
+      it { should contain_file('/var/log/bareos')
+                   .with_ensure('directory')
+                   .with_owner('bareos')
+                   .with_group('bareos')
+      }
       it do
         expect(exported_resources).to have_bareos__job_definition_resource_count(1)
       end
@@ -179,7 +219,6 @@ describe 'bareos::client' do
                    .with_ensure('directory')
                    .with_mode('0750')
       }
-
       it { should contain_file('/usr/local/sbin/mysqldumpbackup') }
       it do
         expect(exported_resources).to contain_bareos__job_definition("#{facts[:fqdn]}-mysql-job")
@@ -374,6 +413,43 @@ describe 'bareos::client' do
                                        .with_address("10.0.0.0")
                                        .with_concurrency(10) # default in bareos::client
       end
+    end
+  end
+
+  # facterdb and/or rspec-puppet-facts do not support Windows, so this
+  # is done outside loop.
+  context "on Windows 2012" do
+    let(:facts) do
+      {
+        :fqdn => 'node.example.com',
+        :kernel => 'windows',
+        :osfamily => 'windows',
+        :operatingsystem => 'windows',
+        :operatingsystemrelease => '2012 R2'
+      }
+    end
+
+    it { should compile.with_all_deps }
+    it do
+      should contain_file('//localhost/c$/ProgramData/Bareos/bareos-fd.conf')
+              .with_content(/Name = "backup.example.com-dir"/)
+    end
+    it do
+      should contain_service('Bareos-fd')
+              .with_enable(true)
+              .with_ensure('running')
+    end
+    it { should_not contain_file('/var/log/bacula') }
+    it do
+      expect(exported_resources).to have_bareos__job_definition_resource_count(1)
+    end
+    it do
+      expect(exported_resources).to contain_bareos__client_definition("#{facts[:fqdn]}-fd")
+    end
+    it do
+      expect(exported_resources).to contain_bareos__job_definition("#{facts[:fqdn]}-system-job")
+                                     .with_sched('NormalSchedule')
+                                     .with_order('N50')
     end
   end
 end

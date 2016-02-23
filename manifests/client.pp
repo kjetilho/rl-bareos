@@ -31,6 +31,8 @@ class bareos::client (
   $backup_dir_group  = $bareos::params::client::backup_dir_group,
   $backup_dir_mode   = $bareos::params::client::backup_dir_mode,
   # the remainder are unlikely to need changing
+  $root_user      = $bareos::params::client::root_user,
+  $root_group     = $bareos::params::client::root_group,
   $package        = $bareos::params::client::package,
   $config_file    = $bareos::params::client::config_file,
   $service        = $bareos::params::client::service,
@@ -45,8 +47,8 @@ class bareos::client (
   include bareos
 
   File {
-    owner   => 'root',
-    group   => 'root',
+    owner   => $root_user,
+    group   => $root_group,
     mode    => '0400',
     require => Package[$package],
     before  => Service[$service],
@@ -59,9 +61,11 @@ class bareos::client (
   validate_hash($monitors)
   validate_hash($jobs)
   validate_absolute_path($config_file)
-  validate_absolute_path($log_dir)
-  validate_absolute_path($pid_dir)
-  validate_absolute_path($working_dir)
+  if $::osfamily != 'windows' {
+    validate_absolute_path($log_dir)
+    validate_absolute_path($pid_dir)
+    validate_absolute_path($working_dir)
+  }
 
   ensure_packages($package)
 
@@ -83,8 +87,13 @@ class bareos::client (
     notify  => Service[$service]
   }
 
-  file { $log_dir:
-    ensure => directory,
+  if $log_dir {
+    file { $log_dir:
+      ensure => directory,
+      owner  => $bareos::client::implementation,
+      group  => $bareos::client::implementation,
+      mode   => 0755;
+    }
   }
 
   @@bareos::client_definition { "${client_name}${name_suffix}":

@@ -4,10 +4,35 @@
 # used by the backup server.
 #
 class bareos::params::client {
-  $implementation = hiera('bareos::client::implementation', 'bacula')
-  $service        = "${implementation}-fd"
-  $config_file    = "/etc/${implementation}/${implementation}-fd.conf"
-  $log_dir        = "/var/log/${implementation}"
+  case $::osfamily {
+    'windows': {
+      $_impl = 'bareos'
+      $root_user = 'Administrator'
+      $root_group = 'Administrators'
+    }
+    default: {
+      $_impl = 'bacula'
+      $root_user = 'root'
+      $root_group = 'root'
+    }
+  }
+  $implementation = hiera('bareos::client::implementation', $_impl)
+
+  case $::osfamily {
+    'windows': {
+      $service = 'Bareos-fd'
+      $log_dir = false
+      # Notice the use of UNC to get an "absolute path", this enables
+      # us to run regression tests for Windows code on a Unix system.
+      $config_file = "//localhost/c$/ProgramData/Bareos/${implementation}-fd.conf"
+    }
+    default: {
+      $service = "${implementation}-fd"
+      $log_dir = "/var/log/${implementation}"
+      $config_file = "/etc/${implementation}/${implementation}-fd.conf"
+    }
+  }
+
   $name_suffix    = '-fd'
   $job_suffix     = '-job'
   # don't worry about Linux specific names for now
@@ -36,6 +61,9 @@ class bareos::params::client {
       }
       $working_dir = "/var/lib/${implementation}"
       $pid_dir     = "/var/run/${implementation}"
+    }
+    'windows': {
+      $package     = "Bareos 13.2.2-2.1"
     }
     default: {
       $package     = undef
