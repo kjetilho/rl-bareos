@@ -36,42 +36,6 @@ describe 'bareos::client' do
       end
     end
 
-    # facterdb and/or rspec-puppet-facts do not support Windows
-    context "on Windows 2012" do
-      let(:facts) do
-        facts.merge(
-          {
-            :osfamily => 'windows',
-            :operatingsystem => 'windows',
-            :operatingsystemrelease => '2012 R2'
-          }
-        )
-      end
-
-      it { should compile.with_all_deps }
-      it do
-        should contain_file('//localhost/c$/ProgramData/Bareos/bareos-fd.conf')
-                .with_content(/Name = "backup.example.com-dir"/)
-      end
-      it do
-        should contain_service('Bareos-fd')
-                .with_enable(true)
-                .with_ensure('running')
-      end
-      it { should_not contain_file('/var/log/bacula') }
-      it do
-        expect(exported_resources).to have_bareos__job_definition_resource_count(1)
-      end
-      it do
-        expect(exported_resources).to contain_bareos__client_definition("#{facts[:fqdn]}-fd")
-      end
-      it do
-        expect(exported_resources).to contain_bareos__job_definition("#{facts[:fqdn]}-system-job")
-                                       .with_sched('NormalSchedule')
-                                       .with_order('N50')
-      end
-    end
-
     context "on #{os} with bareos" do
       # Can't just use params, since other defaults build on Hiera
       # value, not passed value (chicken and egg)
@@ -449,6 +413,43 @@ describe 'bareos::client' do
                                        .with_address("10.0.0.0")
                                        .with_concurrency(10) # default in bareos::client
       end
+    end
+  end
+
+  # facterdb and/or rspec-puppet-facts do not support Windows, so this
+  # is done outside loop.
+  context "on Windows 2012" do
+    let(:facts) do
+      {
+        :fqdn => 'node.example.com',
+        :kernel => 'windows',
+        :osfamily => 'windows',
+        :operatingsystem => 'windows',
+        :operatingsystemrelease => '2012 R2'
+      }
+    end
+
+    it { should compile.with_all_deps }
+    it do
+      should contain_file('//localhost/c$/ProgramData/Bareos/bareos-fd.conf')
+              .with_content(/Name = "backup.example.com-dir"/)
+    end
+    it do
+      should contain_service('Bareos-fd')
+              .with_enable(true)
+              .with_ensure('running')
+    end
+    it { should_not contain_file('/var/log/bacula') }
+    it do
+      expect(exported_resources).to have_bareos__job_definition_resource_count(1)
+    end
+    it do
+      expect(exported_resources).to contain_bareos__client_definition("#{facts[:fqdn]}-fd")
+    end
+    it do
+      expect(exported_resources).to contain_bareos__job_definition("#{facts[:fqdn]}-system-job")
+                                     .with_sched('NormalSchedule')
+                                     .with_order('N50')
     end
   end
 end
