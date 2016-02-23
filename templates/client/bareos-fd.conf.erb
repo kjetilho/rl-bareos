@@ -22,8 +22,8 @@ Director {
 
 FileDaemon {
   Name                     = <%= @client_name %><%= @name_suffix %>
-  FDAddresses              = {ipv6 = {port = 9102}}
 <% if @osfamily != 'windows' -%>
+  FDAddresses              = {ipv6 = {port = 9102}}
   WorkingDirectory         = <%= @working_dir %>
   Pid Directory            = <%= @pid_dir %>
 <% end -%>
