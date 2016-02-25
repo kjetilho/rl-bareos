@@ -186,10 +186,10 @@ if [ "$DBSERVER" = "" -o "$DBSERVER" = "localhost" ]
 then
     # Debian stores root's mysql-password in this file
     debian_cnf=/etc/mysql/debian.cnf
-    if [ -s $debian_cnf -a -r $debian_cnf ]; then
+    if [ -s $debian_cnf -a -r $debian_cnf -a "$MYCNF" = "" ]; then
         MYSQL="$MYSQL --defaults-file=$debian_cnf"
-        # Unfortunately, setting defaults-file like this means the normal
-        # settings are ignored, so we must set what we need explicitly here.
+        # Unfortunately, setting defaults-file causes other settings
+        # files to be ignored, so we must set what we need explicitly.
         MYSQLDUMP="$MYSQLDUMP --defaults-file=$debian_cnf --max_allowed_packet=512M"
         MYSQLADMIN="$MYSQLADMIN --defaults-file=$debian_cnf"
         DBUSER=$(awk '$1 == "user" { print $3; exit }' $debian_cnf)
