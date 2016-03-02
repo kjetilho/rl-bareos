@@ -9,11 +9,15 @@ class bareos::params::client {
       $_impl = 'bareos'
       $root_user = 'Administrator'
       $root_group = 'Administrators'
+      $fstype = [ 'ntfs' ]
+      $exclude_paths = [ 'C:/Windows/Temp' ]
     }
     default: {
       $_impl = 'bacula'
       $root_user = 'root'
       $root_group = 'root'
+      $fstype = [ 'btrfs', 'ext2', 'ext3', 'ext4', 'jfs', 'reiserfs', 'rootfs', 'xfs' ]
+      $exclude_paths = [ '/mnt', '/var/cache' ]
     }
   }
   $implementation = hiera('bareos::client::implementation', $_impl)
@@ -33,16 +37,13 @@ class bareos::params::client {
     }
   }
 
-  $name_suffix    = '-fd'
-  $job_suffix     = '-job'
-  # don't worry about Linux specific names for now
-  $fstype = [
-    'rootfs', 'ext2', 'ext3', 'ext4', 'jfs', 'reiserfs', 'xfs',
-  ]
-  $backup_dir = '/var/backups'
+  $name_suffix = '-fd'
+  $job_suffix  = '-job'
+
+  $backup_dir       = '/var/backups'
   $backup_dir_owner = 'root'
   $backup_dir_group = 'root'
-  $backup_dir_mode = '0755'
+  $backup_dir_mode  = '0755'
 
   case $::osfamily {
     'RedHat': {

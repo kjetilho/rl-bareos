@@ -34,6 +34,51 @@ describe 'bareos::fileset_definition' do
     end
   end
 
+  context "filtered excludes" do
+    let(:title) { "#{facts[:fqdn]}-normal" }
+    let(:params) do
+      default_params.merge(
+        {
+          :exclude_paths => ['/mnt', '/srv/tmp']
+        })
+    end
+
+    it { should compile.with_all_deps }
+
+    it do
+      should contain_file("#{prefix}#{title}.conf")
+              .with_content(/Name\s+=\s+"#{title}"/)
+              .with_content(/OneFS\s+=\s+no/)
+              .with_content(/FSType\s+=\s+ext4/)
+              .with_content(%r{File\s+=\s+/srv$})
+              .with_content(%r{File\s+=\s+/srv/tmp$})
+              .without_content(%r{File\s+=\s+/mnt$})
+    end
+  end
+
+  context "unfiltered excludes" do
+    let(:title) { "#{facts[:fqdn]}-normal" }
+    let(:params) do
+      default_params.merge(
+        {
+          :include_paths => ['/'],
+          :exclude_paths => ['/mnt', '/srv/tmp']
+        })
+    end
+
+    it { should compile.with_all_deps }
+
+    it do
+      should contain_file("#{prefix}#{title}.conf")
+              .with_content(/Name\s+=\s+"#{title}"/)
+              .with_content(/OneFS\s+=\s+no/)
+              .with_content(/FSType\s+=\s+ext4/)
+              .with_content(%r{File\s+=\s+/$})
+              .with_content(%r{File\s+=\s+/mnt$})
+              .with_content(%r{File\s+=\s+/srv/tmp$})
+    end
+  end
+
   context "one fs" do
     let(:title) { "#{facts[:fqdn]}-one" }
     let(:pre_condition) { <<-eot
