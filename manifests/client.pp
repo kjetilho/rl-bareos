@@ -92,7 +92,7 @@ class bareos::client (
       ensure => directory,
       owner  => $bareos::client::implementation,
       group  => $bareos::client::implementation,
-      mode   => 0755;
+      mode   => '0755';
     }
   }
 

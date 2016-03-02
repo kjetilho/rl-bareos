@@ -52,18 +52,18 @@ class bareos::params::client {
     }
     'Debian': {
       case $implementation {
-        'bacula': {
-          $package = "${implementation}-fd"
-        }
         'bareos': {
           $package = "${implementation}-filedaemon"
+        }
+        default: {
+          $package = "${implementation}-fd"
         }
       }
       $working_dir = "/var/lib/${implementation}"
       $pid_dir     = "/var/run/${implementation}"
     }
     'windows': {
-      $package     = "Bareos 13.2.2-2.1"
+      $package     = 'Bareos 13.2.2-2.1'
     }
     default: {
       $package     = undef
