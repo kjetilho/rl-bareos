@@ -142,6 +142,9 @@ are added as parameters to the Director directive.
 __`bareos::client::fstype`__: This variable is __only__ used as a
 default for [filesets](#filesets) declared on this host.
 
+__`bareos::client::exclude_paths`__: This variable is __only__ used as
+a default for [filesets](#filesets) declared on this host.
+
 __`bareos::client::backup_dir`__: The default parent directory where
 the preset jobs will dump data.  Default: "/var/backups"
 
@@ -361,7 +364,10 @@ the result is unique.  Default is bareos::client::client_name.
 __`include_paths`__: Array of paths to include in backup.  Mandatory,
 no default.
 
-__`exclude_paths`__: Array of paths to exclude.
+__`exclude_paths`__: Array of paths to exclude.  If unset, use the
+client's default (bareos::client::exclude_paths).  If one of the
+values is "defaults", the default exclude list will be added to the
+array.
 
 __`exclude_dir_containing`__: Directories containing a file with this
 name will be skipped.  Set to "" to disable functionality.  Default:

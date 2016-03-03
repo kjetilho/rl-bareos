@@ -23,9 +23,21 @@ FileSet {
     Exclude dir containing = "<%= @exclude_dir_containing %>"
 <% end -%>
   }
-<% if not @exclude_paths.empty? -%>
+<% if not @exclude_paths.empty?
+     excl = [@exclude_paths].flatten
+
+     # If one of the include paths is "/", use full exclude list.
+     # Otherwise filter out excludes which do not prefix match any of
+     # the include paths.
+
+     unless @include_paths.include? '/'
+       excl = excl.reject do |p|
+         @include_paths.select { |i| p =~ %r{^#{i}/} }.empty?
+       end
+     end
+-%>
   Exclude {
-<% [@exclude_paths].flatten.each do |path| -%>    
+<% excl.each do |path| -%>
     File = <%= path %>
 <% end -%>
   }

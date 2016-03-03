@@ -6,7 +6,7 @@ Job {
 <% end -%>
   Accurate = yes
   Maximum Concurrent Jobs = 1
-  Schedule = <%= @sched %>
+  Schedule = "<%= @sched %>"
   Client = "<%= @client_name %><%= @name_suffix %>"
 <% [@runscript].flatten.each do |params|
      p = params.dup

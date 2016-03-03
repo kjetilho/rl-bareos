@@ -47,7 +47,7 @@ define bareos::job::preset::mylvmbackup(
       fileset     => $fileset,
       runscript   => flatten([ $runscript,
                                [ { 'command' => "${command} --action=purge" },
-                                 { 'command' => "${command}", "abortjobonerror" => true },
+                                 { 'command' => $command, 'abortjobonerror' => true },
                                  ]
                                ]),
       sched       => $sched,

@@ -41,8 +41,8 @@ define bareos::job::preset::mysqldumpbackup::config(
   validate_array($skip_databases)
 
   # temporary code for backwards compatibility
-  if ($backupdir != "") {
-    $_backup_dir = $backupdir  
+  if ($backupdir != '') {
+    $_backup_dir = $backupdir
   } else {
     $_backup_dir = $backup_dir
   }

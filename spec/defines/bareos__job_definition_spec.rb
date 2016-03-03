@@ -31,7 +31,7 @@ describe 'bareos::job_definition' do
       should contain_file("#{prefix}N50_#{title}.conf")
               .with_content(/Name\s+=\s+"#{title}"/)
               .with_content(/JobDefs\s+=\s+"DefaultJob"/)
-              .with_content(/Schedule\s+=\s+StdSched/)
+              .with_content(/Schedule\s+=\s+"StdSched"/)
               .without_content(/Fileset/)
               .without_content(/RunScript/)
     end

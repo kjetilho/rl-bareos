@@ -5,5 +5,8 @@ class bareos::params::server {
                    'bareos-storage-tape',
                    'bareos-storage']
     }
+    default: {
+      fail("${::operatingsystem} is not supported yet")
+    }
   }
 }
