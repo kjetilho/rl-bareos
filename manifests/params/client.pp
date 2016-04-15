@@ -52,16 +52,17 @@ class bareos::params::client {
       $pid_dir     = '/var/run'
     }
     'Debian': {
+      $working_dir = "/var/lib/${implementation}"
       case $implementation {
         'bareos': {
           $package = "${implementation}-filedaemon"
+          $pid_dir = $working_dir
         }
         default: {
           $package = "${implementation}-fd"
+          $pid_dir = "/var/run/${implementation}"
         }
       }
-      $working_dir = "/var/lib/${implementation}"
-      $pid_dir     = "/var/run/${implementation}"
     }
     'windows': {
       $package     = 'Bareos 13.2.2-2.1'
