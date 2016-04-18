@@ -14,6 +14,8 @@
 # +backup_dir_mode+: what permissions to use on backup_dir.  Default: '0750'
 # +my_cnf+: location of my.cnf.  Default (in mylvmbackup): '/etc/my.cnf'
 # +prefix+: prefix to use in name of backup files.  Default (in mylvmbackup): 'backup'
+# +datefmt+: the format for the timestamp used in the tarball filename.
+#     Set to empty string to get mylvmbackup's default.  Default: '%Y-%m-%d_%H'
 # +compress_program+: program to use for compression.  Default (in mylvmbackup): 'gzip'
 # +log_method+: where to log.  Default: 'console' (stdout/stderr)
 # +syslog_facility+: Default: 'daemon'
@@ -33,6 +35,7 @@ define bareos::job::preset::mylvmbackup::config(
   $snapshot_only=false, # TODO
   $my_cnf='',
   $prefix='',
+  $datefmt='%Y-%m-%d_%H',
   $compress_program='',
   $log_method='console',
   $syslog_facility='daemon',
