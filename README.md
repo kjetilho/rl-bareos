@@ -351,8 +351,13 @@ instead of just `file` to avoid duplicate declarations.
 The support for filesets is not complete, it is kept simple to focus
 on filesets with static include and exclude rules.
 
-The name of the resource is added to the client name and used as the
-name of the fileset.  This will export a fileset_definition which the
+Since the normal filesets *should* contain `Exclude dir containing`
+`.nobackup`, an alternative to making a custom fileset may be to
+manage strategically placed `.nobackup` files using Puppet.
+
+The name (title) of the `bareos::client::fileset` instance is added to
+the client name and used as the name of the fileset in the Bareos
+configuration.  The define exports a `fileset_definition` which the
 director will pick up.
 
 __`fileset_name`__: Specify the fileset name explicitly.

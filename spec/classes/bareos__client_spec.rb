@@ -414,6 +414,23 @@ describe 'bareos::client' do
                                        .with_concurrency(10) # default in bareos::client
       end
     end
+
+    context "on #{os} with self as service address" do
+      let(:facts) { facts }
+      let(:params) do
+        { :service_addr => {
+            'test-service1.example.com' => {
+              'concurrency' => 5,
+            },
+            facts[:fqdn] => {
+              'address' => '10.0.0.0',
+            },
+          }
+        }
+      end
+      it { is_expected.to compile.and_raise_error(/own name.*service address/) }
+    end
+
   end
 
   # facterdb and/or rspec-puppet-facts do not support Windows, so this

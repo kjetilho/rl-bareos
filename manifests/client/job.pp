@@ -27,7 +27,7 @@ define bareos::client::job(
   }
   validate_re($_job_name, '^[A-Za-z0-9.:_-]+$')
 
-  if $sched {
+  if $sched != '' {
     $_sched = $sched
   } else {
     validate_hash($bareos::schedules)

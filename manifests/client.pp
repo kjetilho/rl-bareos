@@ -108,6 +108,9 @@ class bareos::client (
   }
 
   if ! empty($service_addr) {
+    if (has_key($service_addr, $client_name)) {
+      fail("Using client's own name (${client_name}) as a service address does not make sense")
+    }
     create_resources('bareos::client::service_addr', $service_addr)
   }
   if ! empty($jobs) {

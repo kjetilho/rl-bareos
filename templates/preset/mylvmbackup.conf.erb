@@ -38,6 +38,9 @@ compress=<%= @compress_program %>
 <% if @keep_backup != '' -%>
 backupretention=<%= @keep_backup %>
 <% end -%>
+<% if @datefmt != '' -%>
+datefmt=<%= @datefmt %>
+<% end -%>
 
 #
 # Logging options. The Sys::Syslog module is required for syslog option

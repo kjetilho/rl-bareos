@@ -25,7 +25,9 @@ FileDaemon {
 <% if @osfamily != 'windows' -%>
   FDAddresses              = {ipv6 = {port = 9102}}
   WorkingDirectory         = <%= @working_dir %>
+<%   if @pid_dir -%>
   Pid Directory            = <%= @pid_dir %>
+<%   end -%>
 <% end -%>
   Maximum Concurrent Jobs  = 20
   Heartbeat Interval       = 1 min
