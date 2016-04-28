@@ -6,10 +6,12 @@
 define bareos::fileset_definition(
   $include_paths,
   $exclude_paths,
+  $exclude_patterns = [],
   $exclude_dir_containing,
   $ignore_changes,
   $acl_support,
   $onefs = false,
+  $compression = 'GZIP',
   $fstype = ['ext2','ext3','ext4','jfs','reiserfs','rootfs','xfs'],
 )
 {

@@ -139,10 +139,16 @@ Additional list of monitors to add to bacula-fd.conf.  Typical use:
 Use eyaml to protect "password-in-plain-text".  All keys in the hash
 are added as parameters to the Director directive.
 
+__`bareos::client::compression`__: This variable is __only__ used as a
+default for [filesets](#filesets) declared on this host.
+
 __`bareos::client::fstype`__: This variable is __only__ used as a
 default for [filesets](#filesets) declared on this host.
 
 __`bareos::client::exclude_paths`__: This variable is __only__ used as
+a default for [filesets](#filesets) declared on this host.
+
+__`bareos::client::exclude_patterns`__: This variable is __only__ used as
 a default for [filesets](#filesets) declared on this host.
 
 __`bareos::client::backup_dir`__: The default parent directory where
@@ -374,6 +380,12 @@ client's default (bareos::client::exclude_paths).  If one of the
 values is "defaults", the default exclude list will be added to the
 array.
 
+__`exclude_patterns`__: Hash of different kinds of patterns to
+exclude.  If unset, use the client's default
+(bareos::client::exclude_patterns).  The possible keys are `wild_dir`,
+`wild_path`, `regex_dir` and `regex_file`.  Each key in the hash can
+have a list of patterns as its value.
+
 __`exclude_dir_containing`__: Directories containing a file with this
 name will be skipped.  Set to "" to disable functionality.  Default:
 ".nobackup".
@@ -383,6 +395,9 @@ set to `false`.  Default: true
 
 __`acl_support`__: Include information about ACLs in backup.  Causes
 an extra system call per file.  Default: true
+
+__`compression`__: What compression algorithm to use.  To disable
+compression, set to `false`.  Default: "GZIP"
 
 __`onefs`__: Whether to recurse into mount points.  Default:
 false (do not recurse).

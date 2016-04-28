@@ -4,9 +4,11 @@ FileSet {
   Include {
     Options {
         aclsupport = <%= @acl_support ? 'yes' : 'no' %>
-        sparse = yes
-        signature = MD5
-        compression = GZIP
+        Sparse = yes
+        Signature = MD5
+<% if @compression -%>
+        Compression = <%= @compression %>
+<% end -%>
 <% if @onefs -%>
         OneFS = yes
 <% else -%>
@@ -16,7 +18,22 @@ FileSet {
 <%   end -%>
 <% end -%>
     }
-<% [@include_paths].flatten.each do |path| -%>    
+<% if not @exclude_patterns.empty? -%>
+    Options {
+<%   %w{wild_file wild_dir regex_file regex_dir}.each do |k|
+       directive = k.split('_').map { |c| c.capitalize }.join('')
+       if @exclude_patterns.include? k
+         [@exclude_patterns[k]].flatten.each do |val| -%>
+      <%= directive %> = <%= val.inspect %>
+<%       end
+       end
+     end -%>
+      Exclude = yes
+    }
+<% end -%>
+<% # Single element arrays become plain strings in PuppetDB
+   incl = [@include_paths].flatten
+   incl.each do |path| -%>
     File = <%= path %>
 <% end -%>
 <% unless @exclude_dir_containing.to_s == '' -%>
@@ -30,9 +47,9 @@ FileSet {
      # Otherwise filter out excludes which do not prefix match any of
      # the include paths.
 
-     unless @include_paths.include? '/'
+     unless incl.include? '/'
        excl = excl.reject do |p|
-         @include_paths.select { |i| p =~ %r{^#{i}/} }.empty?
+         incl.select { |i| p =~ %r{^#{i}/} }.empty?
        end
      end
 -%>

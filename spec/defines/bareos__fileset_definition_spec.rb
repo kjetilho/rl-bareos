@@ -31,6 +31,27 @@ describe 'bareos::fileset_definition' do
               .with_content(/Name\s+=\s+"#{title}"/)
               .with_content(/OneFS\s+=\s+no/)
               .with_content(/FSType\s+=\s+ext4/)
+              .with_content(/Compression\s+=\s+GZIP$/)
+    end
+  end
+
+  context "disabled compression" do
+    let(:title) { "#{facts[:fqdn]}-normal" }
+    let(:params) do
+      default_params.merge(
+        {
+          'compression' => false
+        })
+    end
+
+    it { should compile.with_all_deps }
+
+    it do
+      should contain_file("#{prefix}#{title}.conf")
+              .with_content(/Name\s+=\s+"#{title}"/)
+              .with_content(/OneFS\s+=\s+no/)
+              .with_content(/FSType\s+=\s+ext4/)
+              .without_content(/Compression\s+=/)
     end
   end
 
@@ -76,6 +97,36 @@ describe 'bareos::fileset_definition' do
               .with_content(%r{File\s+=\s+/$})
               .with_content(%r{File\s+=\s+/mnt$})
               .with_content(%r{File\s+=\s+/srv/tmp$})
+    end
+  end
+
+  context "exclude patterns" do
+    let(:title) { "#{facts[:fqdn]}-normal" }
+    let(:params) do
+      default_params.merge(
+        {
+          :include_paths    => '/',
+          :exclude_patterns => {
+            'wild_file' => '*.jpg',
+            'regex_dir' => ['^/var/lib/postgresql/[^/]*/main',
+                            '^/etc/postgresql/[^/]*/log',
+                           ]
+          }
+        })
+    end
+
+    it { should compile.with_all_deps }
+
+    it do
+      should contain_file("#{prefix}#{title}.conf")
+              .with_content(/Name\s+=\s+"#{title}"/)
+              .with_content(/OneFS\s+=\s+no/)
+              .with_content(/FSType\s+=\s+ext4/)
+              .with_content(%r{File\s+=\s+/$})
+              .with_content(%r{Exclude\s+=\s+yes$})
+              .with_content(%r{WildFile\s+=\s+"\*\.jpg"$})
+              .with_content(%r{RegexDir = "\^/var/lib/postgresql/\[\^/\]\*/main"$})
+              .with_content(%r{RegexDir = "\^/etc/postgresql/\[\^/\]\*/log"$})
     end
   end
 
