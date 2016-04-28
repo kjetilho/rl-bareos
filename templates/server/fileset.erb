@@ -16,6 +16,19 @@ FileSet {
 <%   end -%>
 <% end -%>
     }
+<% if not @exclude_patterns.empty? -%>
+    Options {
+<%   %w{wild_file wild_dir regex_file regex_dir}.each do |k|
+       directive = k.split('_').map { |c| c.capitalize }.join('')
+       if @exclude_patterns.include? k
+         [@exclude_patterns[k]].flatten.each do |val| -%>
+      <%= directive %> = <%= val.inspect %>
+<%       end
+       end
+     end -%>
+      Exclude = yes
+    }
+<% end -%>
 <% # Single element arrays become plain strings in PuppetDB
    incl = [@include_paths].flatten
    incl.each do |path| -%>

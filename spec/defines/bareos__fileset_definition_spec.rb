@@ -79,6 +79,36 @@ describe 'bareos::fileset_definition' do
     end
   end
 
+  context "exclude patterns" do
+    let(:title) { "#{facts[:fqdn]}-normal" }
+    let(:params) do
+      default_params.merge(
+        {
+          :include_paths    => '/',
+          :exclude_patterns => {
+            'wild_file' => '*.jpg',
+            'regex_dir' => ['^/var/lib/postgresql/[^/]*/main',
+                            '^/etc/postgresql/[^/]*/log',
+                           ]
+          }
+        })
+    end
+
+    it { should compile.with_all_deps }
+
+    it do
+      should contain_file("#{prefix}#{title}.conf")
+              .with_content(/Name\s+=\s+"#{title}"/)
+              .with_content(/OneFS\s+=\s+no/)
+              .with_content(/FSType\s+=\s+ext4/)
+              .with_content(%r{File\s+=\s+/$})
+              .with_content(%r{Exclude\s+=\s+yes$})
+              .with_content(%r{WildFile\s+=\s+"\*\.jpg"$})
+              .with_content(%r{RegexDir = "\^/var/lib/postgresql/\[\^/\]\*/main"$})
+              .with_content(%r{RegexDir = "\^/etc/postgresql/\[\^/\]\*/log"$})
+    end
+  end
+
   context "one fs" do
     let(:title) { "#{facts[:fqdn]}-one" }
     let(:pre_condition) { <<-eot

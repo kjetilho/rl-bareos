@@ -26,6 +26,7 @@ class bareos::client (
   $filesets       = {},
   $fstype         = $bareos::params::client::fstype,
   $exclude_paths  = $bareos::params::client::exclude_paths,
+  $exclude_patterns  = $bareos::params::client::exclude_patterns,
   $manage_backup_dir = true,
   $backup_dir        = $bareos::params::client::backup_dir,
   $backup_dir_owner  = $bareos::params::client::backup_dir_owner,
