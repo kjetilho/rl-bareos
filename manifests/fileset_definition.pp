@@ -11,6 +11,7 @@ define bareos::fileset_definition(
   $ignore_changes,
   $acl_support,
   $onefs = false,
+  $compression = 'GZIP',
   $fstype = ['ext2','ext3','ext4','jfs','reiserfs','rootfs','xfs'],
 )
 {

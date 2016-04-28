@@ -31,6 +31,27 @@ describe 'bareos::fileset_definition' do
               .with_content(/Name\s+=\s+"#{title}"/)
               .with_content(/OneFS\s+=\s+no/)
               .with_content(/FSType\s+=\s+ext4/)
+              .with_content(/Compression\s+=\s+GZIP$/)
+    end
+  end
+
+  context "disabled compression" do
+    let(:title) { "#{facts[:fqdn]}-normal" }
+    let(:params) do
+      default_params.merge(
+        {
+          'compression' => false
+        })
+    end
+
+    it { should compile.with_all_deps }
+
+    it do
+      should contain_file("#{prefix}#{title}.conf")
+              .with_content(/Name\s+=\s+"#{title}"/)
+              .with_content(/OneFS\s+=\s+no/)
+              .with_content(/FSType\s+=\s+ext4/)
+              .without_content(/Compression\s+=/)
     end
   end
 

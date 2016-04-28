@@ -19,6 +19,7 @@ define bareos::client::fileset(
   $exclude_dir_containing = '.nobackup',
   $ignore_changes = true,
   $acl_support = true,
+  $compression = $bareos::client::compression,
   $onefs = false,
   $fstype = $bareos::client::fstype,
 )

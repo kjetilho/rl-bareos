@@ -4,9 +4,11 @@ FileSet {
   Include {
     Options {
         aclsupport = <%= @acl_support ? 'yes' : 'no' %>
-        sparse = yes
-        signature = MD5
-        compression = GZIP
+        Sparse = yes
+        Signature = MD5
+<% if @compression -%>
+        Compression = <%= @compression %>
+<% end -%>
 <% if @onefs -%>
         OneFS = yes
 <% else -%>

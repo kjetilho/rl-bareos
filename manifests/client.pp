@@ -24,6 +24,7 @@ class bareos::client (
   $monitors       = {},
   $jobs           = {'system' => {}},
   $filesets       = {},
+  $compression    = $bareos::params::client::compression,
   $fstype         = $bareos::params::client::fstype,
   $exclude_paths  = $bareos::params::client::exclude_paths,
   $exclude_patterns  = $bareos::params::client::exclude_patterns,

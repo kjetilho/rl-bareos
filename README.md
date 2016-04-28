@@ -139,13 +139,16 @@ Additional list of monitors to add to bacula-fd.conf.  Typical use:
 Use eyaml to protect "password-in-plain-text".  All keys in the hash
 are added as parameters to the Director directive.
 
+__`bareos::client::compression`__: This variable is __only__ used as a
+default for [filesets](#filesets) declared on this host.
+
 __`bareos::client::fstype`__: This variable is __only__ used as a
 default for [filesets](#filesets) declared on this host.
 
 __`bareos::client::exclude_paths`__: This variable is __only__ used as
 a default for [filesets](#filesets) declared on this host.
 
-__`bareos::client::exclude_pattern`__: This variable is __only__ used as
+__`bareos::client::exclude_patterns`__: This variable is __only__ used as
 a default for [filesets](#filesets) declared on this host.
 
 __`bareos::client::backup_dir`__: The default parent directory where
@@ -392,6 +395,9 @@ set to `false`.  Default: true
 
 __`acl_support`__: Include information about ACLs in backup.  Causes
 an extra system call per file.  Default: true
+
+__`compression`__: What compression algorithm to use.  To disable
+compression, set to `false`.  Default: "GZIP"
 
 __`onefs`__: Whether to recurse into mount points.  Default:
 false (do not recurse).
