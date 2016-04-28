@@ -16,7 +16,9 @@ FileSet {
 <%   end -%>
 <% end -%>
     }
-<% [@include_paths].flatten.each do |path| -%>    
+<% # Single element arrays become plain strings in PuppetDB
+   incl = [@include_paths].flatten
+   incl.each do |path| -%>
     File = <%= path %>
 <% end -%>
 <% unless @exclude_dir_containing.to_s == '' -%>
@@ -30,9 +32,9 @@ FileSet {
      # Otherwise filter out excludes which do not prefix match any of
      # the include paths.
 
-     unless @include_paths.include? '/'
+     unless incl.include? '/'
        excl = excl.reject do |p|
-         @include_paths.select { |i| p =~ %r{^#{i}/} }.empty?
+         incl.select { |i| p =~ %r{^#{i}/} }.empty?
        end
      end
 -%>
