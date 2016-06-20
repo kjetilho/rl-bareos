@@ -4,11 +4,12 @@
 # it in common.eyaml or similar.
 class bareos  (
   $director = 'dump-dir',
-  $schedules,
   $default_jobdef = 'DefaultJob',
-  $secret,
   $security_zone = ''
 )
 {
-
+  # Avoid storing these in PuppetDB.  The first for security reasons,
+  # the second for efficiency.
+  $secret = hiera('bareos::secret')
+  $schedules = hiera_hash('bareos::schedules')
 }
