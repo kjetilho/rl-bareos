@@ -437,7 +437,7 @@ job finishes, the cleanup script will run.
             runscript:
                 -
                   command:      "/usr/local/sbin/prepare"
-                  abortonerror: true
+                  abortjobonerror: true
                 -
                   command:      "/usr/local/sbin/cleanup"
                   runswhen:     after

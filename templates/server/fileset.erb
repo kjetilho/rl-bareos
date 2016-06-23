@@ -52,11 +52,13 @@ FileSet {
          incl.select { |i| p =~ %r{^#{i}/} }.empty?
        end
      end
+     if not excl.empty?
 -%>
   Exclude {
-<% excl.each do |path| -%>
+<%     excl.each do |path| -%>
     File = <%= path %>
-<% end -%>
+<%     end -%>
   }
+<%   end -%>
 <% end -%>
 }
