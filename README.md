@@ -464,11 +464,10 @@ filesystems, we could set `fstype: ["nfs"]`
             onefs: true
             include_paths:
                 - /srv/data
-
-   bareos::client::jobs:
-       system: {}
-       nfs:
-           fileset: "nfs"
+    bareos::client::jobs:
+        system: {}
+        nfs:
+            fileset: "nfs"
 
 
 ### Service address
