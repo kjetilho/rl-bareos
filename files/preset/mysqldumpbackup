@@ -121,6 +121,7 @@ SKIP=""
 
 # Defaults
 DBSERVER="localhost"
+DBSOCKET=""
 MYSQL="mysql"
 BACKUPDIR="/var/backups/mysql"
 MYSQLDUMP="mysqldump"
@@ -182,7 +183,12 @@ case $conf in
         ;;
 esac
 
-if [ "$DBSERVER" = "" -o "$DBSERVER" = "localhost" ]
+if [ "$DBSOCKET" != "" ]
+then
+    MYSQL="$MYSQL -S $DBSOCKET"
+    MYSQLDUMP="$MYSQLDUMP -S $DBSOCKET"
+    MYSQLADMIN="$MYSQLADMIN -S $DBSOCKET"
+elif [ "$DBSERVER" = "" -o "$DBSERVER" = "localhost" ]
 then
     # Debian stores root's mysql-password in this file
     debian_cnf=/etc/mysql/debian.cnf
@@ -216,7 +222,7 @@ $MYSQLDUMP --events >/dev/null 2>&1
 
 MYSQL="$MYSQL -s"
 
-if [ "$DBSERVER" != "" ]; then
+if [ "$DBSERVER" != "" -a "$DBSOCKET" = "" ]; then
     MYSQL="$MYSQL -h $DBSERVER"
     MYSQLDUMP="$MYSQLDUMP -h $DBSERVER"
     MYSQLADMIN="$MYSQLADMIN -h $DBSERVER"

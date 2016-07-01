@@ -19,6 +19,9 @@ SKIP="$SKIP <%= @skip_databases.join(" ") %>"
 <% if @server != '' -%>
 DBSERVER="<%= @server %>"
 <% end -%>
+<% if @socket != '' -%>
+DBSOCKET="<%= @socket %>"
+<% end -%>
 <% if @initscript != '' -%>
 INITSCRIPT="<%= @initscript %>"
 <% end -%>
