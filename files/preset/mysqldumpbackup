@@ -183,11 +183,11 @@ case $conf in
         ;;
 esac
 
-if [ "$DBSOCKET" != "" ]
-then
-    MYSQL="$MYSQL -S $DBSOCKET"
-    MYSQLDUMP="$MYSQLDUMP -S $DBSOCKET"
-    MYSQLADMIN="$MYSQLADMIN -S $DBSOCKET"
+if [ -s "$MYCNF" -a -r "$MYCNF" ]; then
+    MYSQL="$MYSQL --defaults-extra-file=$MYCNF"
+    MYSQLDUMP="$MYSQLDUMP --defaults-extra-file=$MYCNF"
+    MYSQLADMIN="$MYSQLADMIN --defaults-extra-file=$MYCNF"
+    MY_PRINT_DEFAULTS="$MY_PRINT_DEFAULTS --defaults-extra-file=$MYCNF"
 elif [ "$DBSERVER" = "" -o "$DBSERVER" = "localhost" ]
 then
     # Debian stores root's mysql-password in this file
@@ -203,11 +203,11 @@ then
 fi
 DBUSER=${DBUSER:-"root"}
 
-if [ -s "$MYCNF" -a -r "$MYCNF" ]; then
-    MYSQL="$MYSQL --defaults-extra-file=$MYCNF"
-    MYSQLDUMP="$MYSQLDUMP --defaults-extra-file=$MYCNF"
-    MYSQLADMIN="$MYSQLADMIN --defaults-extra-file=$MYCNF"
-    MY_PRINT_DEFAULTS="$MY_PRINT_DEFAULTS --defaults-extra-file=$MYCNF"
+if [ "$DBSOCKET" != "" ]
+then
+    MYSQL="$MYSQL -S $DBSOCKET"
+    MYSQLDUMP="$MYSQLDUMP -S $DBSOCKET"
+    MYSQLADMIN="$MYSQLADMIN -S $DBSOCKET"
 fi
 
 case $GZIP in
