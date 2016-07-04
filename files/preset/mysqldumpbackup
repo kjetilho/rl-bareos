@@ -234,6 +234,8 @@ fi
 
 # Check if I'm supposed to run this.
 if [ "$SERVICENAME" ]; then
+    # Normalise service name to skip systemd's .service postfix
+    SERVICENAME=${SERVICENAME/.service/}
     if type clustat >/dev/null 2>&1
     then
         this_node=$(hostname --fqdn)
@@ -443,7 +445,14 @@ if $MYSQLADMIN variables | grep ' log_bin *. *ON' >/dev/null
 then
     log debug "Binary log is enabled"
     if $COPYBINLOG; then
-        LOGBIN=$($MY_PRINT_DEFAULTS mysqld |
+        # If we are backing up one of a multiple instances managed by
+        # systemd, guess instance name (section) in configuration to
+        # be, e.g, "mysqld2" for "mysqld@2"
+        case $SERVICENAME in
+            *@*) INSTANCENAME=${SERVICENAME//@/} ;;
+            *)   INSTANCENAME=mysqld ;;
+        esac
+        LOGBIN=$($MY_PRINT_DEFAULTS $INSTANCENAME |
             sed -n -e 's/^--log[_-]bin=\(.*\)\.log/\1/p' \
                    -e 's/^--log[_-]bin=\(.*\)/\1/p' |
             tail -1)
@@ -453,6 +462,8 @@ then
         esac
         if [ -z "$LOGBIN" ]; then
             log warning "Unable to establish log-bin path"
+        else
+            log debug "log-bin location for $INSTANCENAME is $LOGBIN"
         fi
     fi
     DUMPOPTIONS="$DUMPOPTIONS $DUMPOPTIONS_BINLOG"
