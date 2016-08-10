@@ -464,6 +464,10 @@ filesystems, we could set `fstype: ["nfs"]`
             onefs: true
             include_paths:
                 - /srv/data
+
+We add another job which uses the new fileset (the system job still
+uses the default fileset specified in the ``$bareos::default_jobdef``)
+
     bareos::client::jobs:
         system: {}
         nfs:
