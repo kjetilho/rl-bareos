@@ -121,6 +121,7 @@ SKIP=""
 
 # Defaults
 DBSERVER="localhost"
+DBSOCKET=""
 MYSQL="mysql"
 BACKUPDIR="/var/backups/mysql"
 MYSQLDUMP="mysqldump"
@@ -182,7 +183,12 @@ case $conf in
         ;;
 esac
 
-if [ "$DBSERVER" = "" -o "$DBSERVER" = "localhost" ]
+if [ -s "$MYCNF" -a -r "$MYCNF" ]; then
+    MYSQL="$MYSQL --defaults-extra-file=$MYCNF"
+    MYSQLDUMP="$MYSQLDUMP --defaults-extra-file=$MYCNF"
+    MYSQLADMIN="$MYSQLADMIN --defaults-extra-file=$MYCNF"
+    MY_PRINT_DEFAULTS="$MY_PRINT_DEFAULTS --defaults-extra-file=$MYCNF"
+elif [ "$DBSERVER" = "" -o "$DBSERVER" = "localhost" ]
 then
     # Debian stores root's mysql-password in this file
     debian_cnf=/etc/mysql/debian.cnf
@@ -197,11 +203,11 @@ then
 fi
 DBUSER=${DBUSER:-"root"}
 
-if [ -s "$MYCNF" -a -r "$MYCNF" ]; then
-    MYSQL="$MYSQL --defaults-extra-file=$MYCNF"
-    MYSQLDUMP="$MYSQLDUMP --defaults-extra-file=$MYCNF"
-    MYSQLADMIN="$MYSQLADMIN --defaults-extra-file=$MYCNF"
-    MY_PRINT_DEFAULTS="$MY_PRINT_DEFAULTS --defaults-extra-file=$MYCNF"
+if [ "$DBSOCKET" != "" ]
+then
+    MYSQL="$MYSQL -S $DBSOCKET"
+    MYSQLDUMP="$MYSQLDUMP -S $DBSOCKET"
+    MYSQLADMIN="$MYSQLADMIN -S $DBSOCKET"
 fi
 
 case $GZIP in
@@ -216,7 +222,7 @@ $MYSQLDUMP --events >/dev/null 2>&1
 
 MYSQL="$MYSQL -s"
 
-if [ "$DBSERVER" != "" ]; then
+if [ "$DBSERVER" != "" -a "$DBSOCKET" = "" ]; then
     MYSQL="$MYSQL -h $DBSERVER"
     MYSQLDUMP="$MYSQLDUMP -h $DBSERVER"
     MYSQLADMIN="$MYSQLADMIN -h $DBSERVER"
@@ -228,6 +234,8 @@ fi
 
 # Check if I'm supposed to run this.
 if [ "$SERVICENAME" ]; then
+    # Normalise service name to skip systemd's .service postfix
+    SERVICENAME=${SERVICENAME/.service/}
     if type clustat >/dev/null 2>&1
     then
         this_node=$(hostname --fqdn)
@@ -437,7 +445,14 @@ if $MYSQLADMIN variables | grep ' log_bin *. *ON' >/dev/null
 then
     log debug "Binary log is enabled"
     if $COPYBINLOG; then
-        LOGBIN=$($MY_PRINT_DEFAULTS mysqld |
+        # If we are backing up one of a multiple instances managed by
+        # systemd, guess instance name (section) in configuration to
+        # be, e.g, "mysqld2" for "mysqld@2"
+        case $SERVICENAME in
+            *@*) INSTANCENAME=${SERVICENAME//@/} ;;
+            *)   INSTANCENAME=mysqld ;;
+        esac
+        LOGBIN=$($MY_PRINT_DEFAULTS $INSTANCENAME |
             sed -n -e 's/^--log[_-]bin=\(.*\)\.log/\1/p' \
                    -e 's/^--log[_-]bin=\(.*\)/\1/p' |
             tail -1)
@@ -447,6 +462,8 @@ then
         esac
         if [ -z "$LOGBIN" ]; then
             log warning "Unable to establish log-bin path"
+        else
+            log debug "log-bin location for $INSTANCENAME is $LOGBIN"
         fi
     fi
     DUMPOPTIONS="$DUMPOPTIONS $DUMPOPTIONS_BINLOG"

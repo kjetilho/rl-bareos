@@ -7,7 +7,8 @@
 # +backup_dir_owner+: what permissions to use on backup_dir.  Default: 'root'
 # +backup_dir_group+: what permissions to use on backup_dir.  Default: 'root'
 # +backup_dir_mode+: what permissions to use on backup_dir.  Default: '0750'
-# +server+: server name to connect to (default is local socket)
+# +server+: server name to connect to (default is localhost)
+# +socket+: socket name to connect to, overrides server (default is unset)
 # +initscript+: to check if service is running
 # +servicename+: to check if service is running
 # +my_cnf+: path to my.cnf
@@ -26,6 +27,7 @@ define bareos::job::preset::mysqldumpbackup::config(
   $backup_dir_group=$bareos::client::backup_dir_group,
   $backup_dir_mode='0750',
   $server='',
+  $socket='',
   $initscript='',
   $servicename='',
   $my_cnf='',

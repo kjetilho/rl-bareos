@@ -465,10 +465,13 @@ filesystems, we could set `fstype: ["nfs"]`
             include_paths:
                 - /srv/data
 
-   bareos::client::jobs:
-       system: {}
-       nfs:
-           fileset: "nfs"
+We add another job which uses the new fileset (the system job still
+uses the default fileset specified in the ``$bareos::default_jobdef``)
+
+    bareos::client::jobs:
+        system: {}
+        nfs:
+            fileset: "nfs"
 
 
 ### Service address
