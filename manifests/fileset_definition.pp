@@ -6,7 +6,8 @@
 define bareos::fileset_definition(
   $include_paths,
   $exclude_paths,
-  $exclude_patterns = [],
+  $include_patterns = {},
+  $exclude_patterns = {},
   $exclude_dir_containing,
   $ignore_changes,
   $acl_support,

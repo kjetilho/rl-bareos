@@ -11,7 +11,7 @@ class bareos::params::client {
       $root_group = 'Administrators'
       $fstype = [ 'ntfs' ]
       $exclude_paths = [ 'C:/Windows/Temp' ]
-      $exclude_patterns = [ ]
+      $exclude_patterns = {}
     }
     default: {
       $_impl = 'bacula'
@@ -19,7 +19,7 @@ class bareos::params::client {
       $root_group = 'root'
       $fstype = [ 'btrfs', 'ext2', 'ext3', 'ext4', 'jfs', 'reiserfs', 'rootfs', 'xfs' ]
       $exclude_paths = [ '/mnt', '/var/cache' ]
-      $exclude_patterns = [ ]
+      $exclude_patterns = {}
     }
   }
   $implementation = hiera('bareos::client::implementation', $_impl)

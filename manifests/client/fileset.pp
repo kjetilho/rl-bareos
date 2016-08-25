@@ -15,6 +15,7 @@ define bareos::client::fileset(
   $client_name = $bareos::client::client_name,
   $include_paths,
   $exclude_paths = $bareos::client::exclude_paths,
+  $include_patterns = {},
   $exclude_patterns = $bareos::client::exclude_patterns,
   $exclude_dir_containing = '.nobackup',
   $ignore_changes = true,
@@ -26,6 +27,8 @@ define bareos::client::fileset(
 {
   validate_array($include_paths)
   validate_array($exclude_paths)
+  validate_hash($include_patterns)
+  validate_hash($exclude_patterns)
   validate_bool($ignore_changes)
   validate_bool($acl_support)
   validate_bool($onefs)
@@ -52,6 +55,7 @@ define bareos::client::fileset(
     $_fileset_name:
       include_paths          => $include_paths,
       exclude_paths          => $_exclude_paths,
+      include_patterns       => $include_patterns,
       exclude_patterns       => $exclude_patterns,
       exclude_dir_containing => $exclude_dir_containing,
       acl_support            => $acl_support,

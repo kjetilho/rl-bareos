@@ -18,6 +18,71 @@ FileSet {
 <%   end -%>
 <% end -%>
     }
+<% if not @include_patterns.empty?
+     # Handling of include patterns quite complex.  Blame Bacula.
+
+     # File directives are relatively simple.  They will be paired
+     # with an exclusion rule of WildFile = "*", so that recursion
+     # is not halted.
+
+     file_rules = []
+     %w{wild_file regex_file}.each do |k|
+       directive = k.split('_').map { |c| c.capitalize }.join('')
+       if @include_patterns.include? k
+         file_rules.push([@include_patterns[k]].flatten.map do |val|
+           "#{directive} = #{val.inspect}"
+         end)
+       end
+     end
+
+     # Directory directives are harder.  We want to avoid needless
+     # recursion, so we will always pair this with an exclusion of
+     # WildDir = "*".  Unfortunately, this means include paths must
+     # list the direct parent directory of each pattern.  We don't
+     # enforce this, but add a comment warning about this.
+     #
+     # We use the same check for regex_dir, although this is quite
+     # likely to give a faulty warning.
+
+     dir_rules = []
+     %w{wild_dir regex_dir}.each do |k|
+       directive = k.split('_').map { |c| c.capitalize }.join('')
+       if @include_patterns.include? k
+         [@include_patterns[k]].flatten.each do |val|
+           dirname = File.dirname(val)
+           if (dirname.start_with? '/' and
+               @include_paths.select { |p| dirname == p }.empty?)
+-%>
+    # WARNING: <%= k %> entry <%= val %> does not look like a
+    # direct child directory of any included paths, this will probably
+    # not work as intended.
+<%         end
+           dir_rules.push([@include_patterns[k]].flatten.map do |val|
+             "#{directive} = #{val.inspect}"
+           end)
+         end
+       end
+     end
+     unless file_rules.empty?
+-%>
+    Options {
+        <%= file_rules.join("\n        ") %>
+    }
+    Options {
+        RegexFile = ".*"
+        Exclude = yes
+    }
+<%   end -%>
+<%   unless dir_rules.empty? -%>
+    Options {
+        <%= dir_rules.join("\n        ") %>
+    }
+    Options {
+        RegexDir = ".*"
+        Exclude = yes
+    }
+<%   end -%>
+<% end -%>
 <% if not @exclude_patterns.empty? -%>
     Options {
 <%   %w{wild_file wild_dir regex_file regex_dir}.each do |k|

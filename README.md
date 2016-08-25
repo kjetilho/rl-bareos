@@ -383,12 +383,22 @@ array.
 __`exclude_patterns`__: Hash of different kinds of patterns to
 exclude.  If unset, use the client's default
 (bareos::client::exclude_patterns).  The possible keys are `wild_dir`,
-`wild_path`, `regex_dir` and `regex_file`.  Each key in the hash can
+`wild_file`, `regex_dir` and `regex_file`.  Each key in the hash can
 have a list of patterns as its value.
 
 __`exclude_dir_containing`__: Directories containing a file with this
 name will be skipped.  Set to "" to disable functionality.  Default:
 ".nobackup".
+
+__`include_patterns`__: Hash of different kinds of patterns to
+include.  Default is empty (no special rules).  The possible keys are
+`wild_dir`, `wild_file`, `regex_dir` and `regex_file`.  Each key in
+the hash can have a list of patterns as its value.  In Bareos, all
+files will be included by default, so specifying an extra include rule
+changes nothing.  Therefore, an exclude rule matching all files will
+be added to the configuration as well.  It is recommended to manually
+inspect the result on the server to see if it works as intended.  This
+is especially important for the `wild_dir` and `regex_dir` directives.
 
 __`ignore_changes`__: If fileset changes, rerun Full backup if this is
 set to `false`.  Default: true
