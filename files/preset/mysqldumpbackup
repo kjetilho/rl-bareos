@@ -383,6 +383,11 @@ DATADIR=$($MYSQLADMIN variables | awk '$2 == "datadir" {print $4}')
 if [ -e "$DATADIR/my.cnf" ]; then
     cp -p "$DATADIR/my.cnf" . || fail "cp $DATADIR/my.cnf"
 fi
+SERVERVERSION=$($MYSQLADMIN version | awk '/Server version/ {print $3}')
+case $SERVERVERSION in
+    5.[56789]* | [678].* | [1-9][0-9].*)
+        DUMPOPTIONS="$DUMPOPTIONS --default-character-set=utf8mb4" ;;
+esac
 
 ########################
 # Function to copy binary logs.  Does nothing if LOGBIN is unset
