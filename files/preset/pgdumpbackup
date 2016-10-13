@@ -97,8 +97,15 @@ PG_DUMP="pg_dump"
 PG_DUMPALL="pg_dumpall"
 INITSCRIPT="/etc/init.d/postgresql"
 
-# Service name for Red Hat Cluster, will override usage of initscript:
+# Service name for Red Hat Cluster, will override usage of initscript.
+# If SERVICENAME is set and the clustat utility doesn't exist, dumping
+# will always be performed.
+#
+# On systemd hosts without SysV init scripts, service name will be
+# assumed to be basename of INITSCRIPT.
+#
 SERVICENAME=""
+
 # Number of days to keep dump on disk
 KEEPBACKUP=5
 
@@ -187,12 +194,27 @@ if [ "$SERVICENAME" ]; then
     this_node=$(hostname --fqdn)
     pgsql_owner=$(clustat -ls $SERVICENAME | awk '$1 == "Owner" {print $NF}')
     [ "$this_node" = "$pgsql_owner" ] || exit 0
-elif ! $INITSCRIPT status > /dev/null 2>&1; then
-    if $EXIT_SILENTLY_WHEN_NOT_RUNNING; then
-        log info "PostgreSQL is not running here, bailing out."
-        exit 0
+elif [ -e "$INITSCRIPT" ]
+then
+    if ! $INITSCRIPT status > /dev/null 2>&1; then
+        if $EXIT_SILENTLY_WHEN_NOT_RUNNING; then
+            log info "PostgreSQL is not running here, bailing out."
+            exit 0
+        fi
+        exec $INITSCRIPT status
     fi
-    exec $INITSCRIPT status
+elif type -p systemctl >/dev/null
+then
+    if ! systemctl status $(basename "$INITSCRIPT") >/dev/null
+    then
+        if $EXIT_SILENTLY_WHEN_NOT_RUNNING; then
+            log info "PostgreSQL is not running here, bailing out."
+            exit 0
+        fi
+        exec systemctl status $(basename "$INITSCRIPT")
+    fi
+else
+    log info "$INITSCRIPT: Not found.  continuing..."
 fi
 
 if $CLEAN; then
