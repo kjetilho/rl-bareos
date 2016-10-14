@@ -450,21 +450,33 @@ if $MYSQLADMIN variables | grep ' log_bin *. *ON' >/dev/null
 then
     log debug "Binary log is enabled"
     if $COPYBINLOG; then
-        # If we are backing up one of a multiple instances managed by
-        # systemd, guess instance name (section) in configuration to
-        # be, e.g, "mysqld2" for "mysqld@2"
-        case $SERVICENAME in
-            *@*) INSTANCENAME=${SERVICENAME//@/} ;;
-            *)   INSTANCENAME=mysqld ;;
-        esac
-        LOGBIN=$($MY_PRINT_DEFAULTS $INSTANCENAME |
-            sed -n -e 's/^--log[_-]bin=\(.*\)\.log/\1/p' \
-                   -e 's/^--log[_-]bin=\(.*\)/\1/p' |
-            tail -1)
-        case $LOGBIN in
-            "")     LOGBIN="$DATADIR/mysql-bin" ;;
-            [^/]*)  LOGBIN="$DATADIR/$LOGBIN" ;;
-        esac
+        # First look for log_bin_basename (added in MySQL 5.6.2)
+        log_bin_basename=$($MYSQLADMIN variables | awk '$2 == "log_bin_basename" {print $4}')
+        if [ "$log_bin_basename" ]; then
+            LOGBIN="$log_bin_basename"
+        else
+            # If we are backing up one of a multiple instances managed by
+            # systemd, guess instance name (section) in configuration to
+            # be, e.g, "mysqld2" for "mysqld@2"
+            case $SERVICENAME in
+                *@*) INSTANCENAME=${SERVICENAME//@/} ;;
+                *)   INSTANCENAME=mysqld ;;
+            esac
+            LOGBIN=$($MY_PRINT_DEFAULTS $INSTANCENAME |
+                            sed -n -e 's/^--log[_-]bin=\(.*\)\.log/\1/p' \
+                                -e 's/^--log[_-]bin=\(.*\)/\1/p' |
+                            tail -1)
+            case $LOGBIN in
+                "")
+                    # The default is $hostname-bin in MySQL 5.5, don't
+                    # know when this was changed.
+                    LOGBIN="$DATADIR/mysql-bin"
+                    ;;
+                [^/]*)
+                    LOGBIN="$DATADIR/$LOGBIN"
+                    ;;
+            esac
+        fi
         if [ -z "$LOGBIN" ]; then
             log warning "Unable to establish log-bin path"
         else
