@@ -34,7 +34,7 @@ define bareos::job::preset::mysqldumpbackup::config(
   $skip_databases=[],
   $dumpoptions='',
   $compress_program='',
-  $log_method='console',
+  $log_method='both',
   $syslog_facility='daemon',
   $environ=[],
 )

@@ -41,6 +41,9 @@ backupretention=<%= @keep_backup %>
 <% if @datefmt != '' -%>
 datefmt=<%= @datefmt %>
 <% end -%>
+<% if @quiet -%>
+quiet=1
+<% end -%>
 
 #
 # Logging options. The Sys::Syslog module is required for syslog option
