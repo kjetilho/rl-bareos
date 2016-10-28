@@ -380,7 +380,7 @@ describe 'bareos::client' do
         it { should contain_package('mylvmbackup') }
 
         # the test for runscript is way too intimate with implementation
-        command = 'env HOME=/root /usr/bin/mylvmbackup --quiet'
+        command = 'env HOME=/root /usr/bin/mylvmbackup'
         it do
           expect(exported_resources).to contain_bareos__job_definition("#{facts[:fqdn]}-mylvm-job")
                                          .with_jobdef('DefaultMySQLJob')
@@ -395,6 +395,7 @@ describe 'bareos::client' do
                      .with_content(/vgname=rootvg/)
                      .with_content(/lvname=mysql/)
                      .with_content(/relpath=$/)
+                     .with_content(/quiet=1/)
         }
         it { should contain_file('/var/backups/mylvmbackup')
                      .with_ensure('directory')

@@ -25,7 +25,8 @@ define bareos::job::preset::mylvmbackup(
     $_jobdef = $jobdef
   }
 
-  $base_command = 'env HOME=/root /usr/bin/mylvmbackup --quiet'
+  $base_command = 'env HOME=/root /usr/bin/mylvmbackup'
+
   if $params['instance'] {
     $conffile = "/etc/mylvmbackup-${params['instance']}.conf"
     $command = "${base_command} -c ${conffile}"

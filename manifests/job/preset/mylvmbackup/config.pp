@@ -17,8 +17,9 @@
 # +datefmt+: the format for the timestamp used in the tarball filename.
 #     Set to empty string to get mylvmbackup's default.  Default: '%Y-%m-%d_%H'
 # +compress_program+: program to use for compression.  Default (in mylvmbackup): 'gzip'
-# +log_method+: where to log.  Default: 'console' (stdout/stderr)
+# +log_method+: where to log.  Default: 'both' (syslog and console)
 # +syslog_facility+: Default: 'daemon'
+# +quiet+: disable informational messages.  Default: true
 # +mountdir+: where to mount the snapshot.  Default: '/var/cache/mylvmbackup'
 # +local_config+: text appended verbatim to mylvmbackup.conf.
 #
@@ -39,6 +40,7 @@ define bareos::job::preset::mylvmbackup::config(
   $compress_program='',
   $log_method='both',
   $syslog_facility='daemon',
+  $quiet=true,
   $mountdir='/var/cache/mylvmbackup',
   $local_config='',
 )
