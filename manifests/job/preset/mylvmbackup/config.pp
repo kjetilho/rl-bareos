@@ -37,7 +37,7 @@ define bareos::job::preset::mylvmbackup::config(
   $prefix='',
   $datefmt='%Y-%m-%d_%H',
   $compress_program='',
-  $log_method='console',
+  $log_method='both',
   $syslog_facility='daemon',
   $mountdir='/var/cache/mylvmbackup',
   $local_config='',
