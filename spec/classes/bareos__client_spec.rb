@@ -84,6 +84,10 @@ describe 'bareos::client' do
           it { should contain_file('/etc/bareos/bareos-fd.conf')
                        .with_content(%r{Plugin Directory\s+=\s+"/usr/lib64/bareos/plugins"})
           }
+        when 'Debian'
+          it { should contain_file('/etc/bareos/bareos-fd.conf')
+                       .with_content(%r{Plugin Directory\s+=\s+"/usr/lib/bareos/plugins"})
+          }
         end
         it do
           should contain_service('bareos-fd')

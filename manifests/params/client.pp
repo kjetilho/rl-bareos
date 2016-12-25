@@ -70,7 +70,7 @@ class bareos::params::client {
         'bareos': {
           $package    = "${implementation}-filedaemon"
           $pid_dir    = $working_dir
-          $plugin_dir = "/usr/lib64/${implementation}/plugins"
+          $plugin_dir = "/usr/lib/${implementation}/plugins"
         }
         default: {
           $package = "${implementation}-fd"
