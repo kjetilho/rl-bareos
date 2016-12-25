@@ -64,5 +64,3 @@ define bareos::job::preset::mysqldumpbackup(
       tag         => "bareos::server::${bareos::director}"
   }
 }
-
-  
