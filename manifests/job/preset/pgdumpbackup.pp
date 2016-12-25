@@ -65,5 +65,3 @@ define bareos::job::preset::pgdumpbackup(
       tag         => "bareos::server::${bareos::director}"
   }
 }
-
-  

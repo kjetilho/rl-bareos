@@ -44,6 +44,7 @@ class bareos::client (
   $log_dir        = $bareos::params::client::log_dir,
   $pid_dir        = $bareos::params::client::pid_dir,
   $working_dir    = $bareos::params::client::working_dir,
+  $plugin_dir     = $bareos::params::client::plugin_dir,
 ) inherits bareos::params::client
 {
 

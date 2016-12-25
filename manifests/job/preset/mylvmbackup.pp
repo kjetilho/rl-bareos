@@ -56,5 +56,3 @@ define bareos::job::preset::mylvmbackup(
       tag         => "bareos::server::${bareos::director}"
   }
 }
-
-  

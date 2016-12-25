@@ -59,7 +59,7 @@ define bareos::job::preset::mysqldumpbackup::config(
       mode   => $backup_dir_mode,
     }
   }
-  
+
   file { "/etc/default/${title}":
     content => template('bareos/preset/mysqldumpbackup.conf.erb'),
     mode    => '0400',

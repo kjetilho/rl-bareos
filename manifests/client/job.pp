@@ -73,7 +73,7 @@ define bareos::client::job(
     } else {
       $_jobdef = $jobdef
     }
-    
+
     @@bareos::job_definition {
       $job_title:
         client_name => $client_name,
