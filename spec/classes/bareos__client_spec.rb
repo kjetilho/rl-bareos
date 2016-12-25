@@ -79,6 +79,12 @@ describe 'bareos::client' do
                   .with_content(/Name = "systray-mon"/)
                   .with_content(/Name = "backup.example.com-dir"/)
         end
+        case facts[:os]['family']
+        when 'RedHat'
+          it { should contain_file('/etc/bareos/bareos-fd.conf')
+                       .with_content(%r{Plugin Directory\s+=\s+"/usr/lib64/bareos/plugins"})
+          }
+        end
         it do
           should contain_service('bareos-fd')
                   .with_enable(true)

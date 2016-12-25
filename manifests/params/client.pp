@@ -55,6 +55,7 @@ class bareos::params::client {
           $package     = "${implementation}-filedaemon"
           $working_dir = "/var/lib/${implementation}"
           $pid_dir     = $working_dir
+          $plugin_dir  = "/usr/lib64/${implementation}/plugins"
         }
         default: {
           $package     = "${implementation}-client"
@@ -67,8 +68,9 @@ class bareos::params::client {
       $working_dir = "/var/lib/${implementation}"
       case $implementation {
         'bareos': {
-          $package = "${implementation}-filedaemon"
-          $pid_dir = $working_dir
+          $package    = "${implementation}-filedaemon"
+          $pid_dir    = $working_dir
+          $plugin_dir = "/usr/lib64/${implementation}/plugins"
         }
         default: {
           $package = "${implementation}-fd"

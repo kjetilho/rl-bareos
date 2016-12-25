@@ -29,6 +29,9 @@ FileDaemon {
   Pid Directory            = <%= @pid_dir %>
 <%   end -%>
 <% end -%>
+<% if @plugin_dir -%>
+  Plugin Directory         = "<%= @plugin_dir %>"
+<% end -%>
   Maximum Concurrent Jobs  = 20
   Heartbeat Interval       = 1 min
 }
