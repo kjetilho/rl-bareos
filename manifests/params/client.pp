@@ -50,9 +50,18 @@ class bareos::params::client {
 
   case $::osfamily {
     'RedHat': {
-      $package     = "${implementation}-client"
-      $working_dir = "/var/spool/${implementation}"
-      $pid_dir     = '/var/run'
+      case $implementation {
+        'bareos': {
+          $package     = "${implementation}-filedaemon"
+          $working_dir = "/var/lib/${implementation}"
+          $pid_dir     = $working_dir
+        }
+        default: {
+          $package     = "${implementation}-client"
+          $working_dir = "/var/spool/${implementation}"
+          $pid_dir     = '/var/run'
+        }
+      }
     }
     'Debian': {
       $working_dir = "/var/lib/${implementation}"
