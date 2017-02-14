@@ -18,11 +18,12 @@ define bareos::client::fileset(
   $include_patterns = {},
   $exclude_patterns = $bareos::client::exclude_patterns,
   $exclude_dir_containing = '.nobackup',
+  $plugins = [],
   $ignore_changes = true,
   $acl_support = true,
-  $compression = $bareos::client::compression,
-  $sparse = true,
   $onefs = false,
+  $sparse = true,
+  $compression = $bareos::client::compression,
   $fstype = $bareos::client::fstype,
 )
 {
@@ -59,10 +60,12 @@ define bareos::client::fileset(
       include_patterns       => $include_patterns,
       exclude_patterns       => $exclude_patterns,
       exclude_dir_containing => $exclude_dir_containing,
-      acl_support            => $acl_support,
+      plugins                => $plugins,
       ignore_changes         => $ignore_changes,
+      acl_support            => $acl_support,
       onefs                  => $onefs,
       sparse                 => $sparse,
+      compression            => $compression,
       fstype                 => $fstype,
       tag                    => "bareos::server::${bareos::director}"
   }

@@ -18,6 +18,9 @@ FileSet {
 <%   end -%>
 <% end -%>
     }
+<% @plugins.each do |plugin| -%>
+    Plugin = <%= plugin %>
+<% end -%>
 <% if not @include_patterns.empty?
      # Handling of include patterns quite complex.  Blame Bacula.
 

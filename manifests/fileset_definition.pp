@@ -9,6 +9,7 @@ define bareos::fileset_definition(
   $include_patterns = {},
   $exclude_patterns = {},
   $exclude_dir_containing,
+  $plugins = [],
   $ignore_changes,
   $acl_support,
   $onefs = false,
