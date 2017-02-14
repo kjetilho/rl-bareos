@@ -409,6 +409,9 @@ an extra system call per file.  Default: true
 __`compression`__: What compression algorithm to use.  To disable
 compression, set to `false`.  Default: "GZIP"
 
+__`sparse`__: Whether to store information about the holes in sparse
+files or just store the holes as plain NUL bytes.  Default: true
+
 __`onefs`__: Whether to recurse into mount points.  Default:
 false (do not recurse).
 

@@ -21,6 +21,7 @@ define bareos::client::fileset(
   $ignore_changes = true,
   $acl_support = true,
   $compression = $bareos::client::compression,
+  $sparse = true,
   $onefs = false,
   $fstype = $bareos::client::fstype,
 )
@@ -61,6 +62,7 @@ define bareos::client::fileset(
       acl_support            => $acl_support,
       ignore_changes         => $ignore_changes,
       onefs                  => $onefs,
+      sparse                 => $sparse,
       fstype                 => $fstype,
       tag                    => "bareos::server::${bareos::director}"
   }

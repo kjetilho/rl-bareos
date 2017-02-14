@@ -4,7 +4,7 @@ FileSet {
   Include {
     Options {
         aclsupport = <%= @acl_support ? 'yes' : 'no' %>
-        Sparse = yes
+        Sparse = <%= @sparse ? 'yes' : 'no' %>
         Signature = MD5
 <% if @compression -%>
         Compression = <%= @compression %>
