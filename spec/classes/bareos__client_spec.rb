@@ -337,6 +337,39 @@ describe 'bareos::client' do
         }
       end
 
+      context "on #{os} with preset percona" do
+        let(:facts) { facts.merge( { :specialcase => 'implementation' } ) }
+        let(:params) do
+          { :jobs => {
+              'db' => {
+                'preset' => 'bareos::job::preset::percona',
+              },
+            }
+          }
+        end
+
+        it { should compile.with_all_deps }
+        it { should contain_package('bareos-filedaemon-python-plugin') }
+        case facts[:os]['family']
+        when 'RedHat'
+          it { should contain_file('/etc/bareos/bareos-fd.conf')
+                       .with_content(%r{Plugin Directory\s+=\s+"/usr/lib64/bareos/plugins"})
+          }
+          it { should contain_file('/usr/lib64/bareos/plugins/bareos-fd-percona.py') }
+        when 'Debian'
+          it { should contain_file('/etc/bareos/bareos-fd.conf')
+                       .with_content(%r{Plugin Directory\s+=\s+"/usr/lib/bareos/plugins"})
+          }
+          it { should contain_file('/usr/lib/bareos/plugins/bareos-fd-percona.py') }
+        end
+        it do
+          expect(exported_resources).to contain_bareos__job_definition("#{facts[:fqdn]}-db-job")
+                                         .with_jobdef('DefaultJob')
+                                         .with_fileset("#{facts[:fqdn]}-percona")
+          expect(exported_resources).to contain_bareos__fileset_definition("#{facts[:fqdn]}-percona")
+        end
+      end
+
       context "on #{os} with preset pgdumpbackup" do
         let(:facts) { facts }
         let(:params) do
