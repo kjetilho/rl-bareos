@@ -19,7 +19,7 @@ FileSet {
 <% end -%>
     }
 <% [@plugins].flatten.each do |plugin| -%>
-    Plugin = <%= plugin %>
+    Plugin = "<%= plugin %>"
 <% end -%>
 <% if not @include_patterns.empty?
      # Handling of include patterns quite complex.  Blame Bacula.
