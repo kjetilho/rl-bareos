@@ -38,7 +38,7 @@ class bareos::client (
   $root_group     = $bareos::params::client::root_group,
   $package        = $bareos::params::client::package,
   $competitor     = $bareos::params::client::competitor,
-  $python_plugin_package = $bareos::params::client::python_plugin_package,
+  $python_plugin_packages = $bareos::params::client::python_plugin_packages,
   $config_file    = $bareos::params::client::config_file,
   $service        = $bareos::params::client::service,
   $service_ensure = 'running',

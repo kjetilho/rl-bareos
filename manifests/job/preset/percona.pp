@@ -18,6 +18,13 @@ define bareos::job::preset::percona(
 )
 {
   validate_re($bareos::client::implementation, 'bareos')
+
+  if $bareos::client::python_plugin_packages {
+    ensure_packages($bareos::client::python_plugin_packages)
+  } else {
+    fail("No support yet for ${::operatingsystem}")
+  }
+
   if ($jobdef == '') {
     $_jobdef = $bareos::default_jobdef
     if $fileset == '' {
@@ -48,9 +55,6 @@ define bareos::job::preset::percona(
     group  => 'root',
   })
 
-  if $bareos::client::python_plugin_package {
-    ensure_packages($bareos::client::python_plugin_package)
-  }
 
   @@bareos::job_definition {
     $title:
