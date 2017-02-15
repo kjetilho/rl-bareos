@@ -58,6 +58,7 @@ define bareos::job::preset::percona(
       name_suffix => $bareos::client::name_suffix,
       jobdef      => $_jobdef,
       fileset     => $_fileset,
+      runscript   => $runscript,
       sched       => $sched,
       order       => $order,
       tag         => "bareos::server::${bareos::director}"
