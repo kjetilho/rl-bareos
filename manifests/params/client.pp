@@ -53,6 +53,7 @@ class bareos::params::client {
       case $implementation {
         'bareos': {
           $package     = "${implementation}-filedaemon"
+          $competitor  = 'bacula-client'
           $working_dir = "/var/lib/${implementation}"
           $pid_dir     = $working_dir
           $plugin_dir  = "/usr/lib64/${implementation}/plugins"
@@ -60,6 +61,7 @@ class bareos::params::client {
         }
         default: {
           $package     = "${implementation}-client"
+          $competitor  = 'bareos-filedaemon'
           $working_dir = "/var/spool/${implementation}"
           $pid_dir     = '/var/run'
         }
@@ -70,13 +72,15 @@ class bareos::params::client {
       case $implementation {
         'bareos': {
           $package    = "${implementation}-filedaemon"
+          $competitor = 'bacula-fd'
           $pid_dir    = $working_dir
           $plugin_dir = "/usr/lib/${implementation}/plugins"
           $python_plugin_package = "${implementation}-filedaemon-python-plugin"
         }
         default: {
-          $package = "${implementation}-fd"
-          $pid_dir = "/var/run/${implementation}"
+          $package    = "${implementation}-fd"
+          $competitor = 'bareos-filedaemon'
+          $pid_dir    = "/var/run/${implementation}"
         }
       }
     }
