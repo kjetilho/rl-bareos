@@ -37,6 +37,8 @@ class bareos::client (
   $root_user      = $bareos::params::client::root_user,
   $root_group     = $bareos::params::client::root_group,
   $package        = $bareos::params::client::package,
+  $competitor     = $bareos::params::client::competitor,
+  $python_plugin_packages = $bareos::params::client::python_plugin_packages,
   $config_file    = $bareos::params::client::config_file,
   $service        = $bareos::params::client::service,
   $service_ensure = 'running',
@@ -72,6 +74,10 @@ class bareos::client (
   }
 
   ensure_packages($package)
+  if $competitor {
+    ensure_packages($competitor, { ensure => absent })
+    Package[$competitor] -> Package[$package]
+  }
 
   service {
     $service:

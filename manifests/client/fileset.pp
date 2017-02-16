@@ -18,10 +18,12 @@ define bareos::client::fileset(
   $include_patterns = {},
   $exclude_patterns = $bareos::client::exclude_patterns,
   $exclude_dir_containing = '.nobackup',
+  $plugins = [],
   $ignore_changes = true,
   $acl_support = true,
-  $compression = $bareos::client::compression,
   $onefs = false,
+  $sparse = true,
+  $compression = $bareos::client::compression,
   $fstype = $bareos::client::fstype,
 )
 {
@@ -35,14 +37,14 @@ define bareos::client::fileset(
   validate_array($fstype)
 
   if $fileset_name == '' {
-    validate_re($title, '^[A-Za-z0-9:_ -]+$')
+    validate_re($title, '^[A-Za-z0-9:._ -]+$')
     if $client_name == $::fqdn {
       $_fileset_name = "${client_name}-${title}"
     } else {
       $_fileset_name = "${::fqdn}/${client_name}-${title}"
     }
   } else {
-    validate_re($fileset_name, '^[A-Za-z0-9:_ -]+$')
+    validate_re($fileset_name, '^[A-Za-z0-9:._ -]+$')
     $_fileset_name = $fileset_name
   }
   if 'defaults' in $exclude_paths {
@@ -58,9 +60,12 @@ define bareos::client::fileset(
       include_patterns       => $include_patterns,
       exclude_patterns       => $exclude_patterns,
       exclude_dir_containing => $exclude_dir_containing,
-      acl_support            => $acl_support,
+      plugins                => $plugins,
       ignore_changes         => $ignore_changes,
+      acl_support            => $acl_support,
       onefs                  => $onefs,
+      sparse                 => $sparse,
+      compression            => $compression,
       fstype                 => $fstype,
       tag                    => "bareos::server::${bareos::director}"
   }
