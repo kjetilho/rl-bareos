@@ -47,12 +47,14 @@ define bareos::job::preset::percona(
     mode   => '0555',
     owner  => 'root',
     group  => 'root',
+    notify => Service[$bareos::client::service]
   })
   ensure_resource('file', "${bareos::client::plugin_dir}/BareosFdPercona.py", {
     source => 'puppet:///modules/bareos/preset/percona/BareosFdPercona.py',
     mode   => '0555',
     owner  => 'root',
     group  => 'root',
+    notify => Service[$bareos::client::service]
   })
 
 
