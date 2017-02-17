@@ -1,4 +1,7 @@
-# This preset has no params (yet)
+# This preset has one param
+#
+# +xtrapackage_package+: name of package containing xtrabackup(1)
+# Default is "percona-xtrabackup".
 #
 # If jobdef is set, it is assumed that it will refer to a fileset
 # which uses the correct plugin, or that a correct fileset is given
@@ -19,10 +22,15 @@ define bareos::job::preset::percona(
 {
   validate_re($bareos::client::implementation, 'bareos')
 
-  if $bareos::client::python_plugin_packages {
-    ensure_packages($bareos::client::python_plugin_packages)
+  if $bareos::client::python_plugin_package {
+    ensure_packages($bareos::client::python_plugin_package)
   } else {
     fail("No support yet for ${::operatingsystem}")
+  }
+  if $params['xtrabackup_package'] {
+    ensure_packages($params['xtrabackup_package'])
+  } else {
+    ensure_packages('percona-xtrabackup')
   }
 
   if ($jobdef == '') {
