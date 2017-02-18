@@ -102,7 +102,7 @@ FileSet {
 <% # Single element arrays become plain strings in PuppetDB
    incl = [@include_paths].flatten
    incl.each do |path| -%>
-    File = "<%= path %>"
+    File = <%= path.inspect %>
 <% end -%>
 <% unless @exclude_dir_containing.to_s == '' -%>
     Exclude dir containing = "<%= @exclude_dir_containing %>"
@@ -124,7 +124,7 @@ FileSet {
 -%>
   Exclude {
 <%     excl.each do |path| -%>
-    File = "<%= path %>"
+    File = <%= path.inspect %>
 <%     end -%>
   }
 <%   end -%>
