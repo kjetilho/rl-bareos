@@ -1,7 +1,8 @@
-# This preset has one param
+# This preset has the following params
 #
 # +xtrapackage_package+: name of package containing xtrabackup(1)
-# Default is "percona-xtrabackup".
+#   Default is "percona-xtrabackup".
+# +mycnf+: location of my.cnf to use
 #
 # If jobdef is set, it is assumed that it will refer to a fileset
 # which uses the correct plugin, or that a correct fileset is given
@@ -39,9 +40,9 @@ define bareos::job::preset::percona(
       $_fileset = "${bareos::client::client_name}-percona"
       ensure_resource('bareos::client::fileset', 'percona', {
         'fileset_name' => $_fileset,
-        'include_paths' => [],
+        'include_paths' => ['\|/etc/bareos/mysql-logbin-location'],
         'sparse'  => false,
-        'plugins' => ["python:module_path=${bareos::client::plugin_dir}:module_name=bareos-fd-percona"],
+        'plugins' => [ template('bareos/preset/percona-plugin.erb') ],
       })
     } else {
       $_fileset = $fileset
@@ -64,7 +65,12 @@ define bareos::job::preset::percona(
     group  => 'root',
     notify => Service[$bareos::client::service]
   })
-
+  ensure_resource('file', "/etc/bareos/mysql-logbin-location", {
+    source => 'puppet:///modules/bareos/preset/percona/mysql-logbin-location',
+    mode   => '0555',
+    owner  => 'root',
+    group  => 'root',
+  })
 
   @@bareos::job_definition {
     $title:

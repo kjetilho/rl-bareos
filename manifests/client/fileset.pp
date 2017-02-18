@@ -31,6 +31,7 @@ define bareos::client::fileset(
   validate_array($exclude_paths)
   validate_hash($include_patterns)
   validate_hash($exclude_patterns)
+  validate_array($plugins)
   validate_bool($ignore_changes)
   validate_bool($acl_support)
   validate_bool($onefs)

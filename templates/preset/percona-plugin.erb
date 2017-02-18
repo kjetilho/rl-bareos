@@ -1,0 +1,18 @@
+<%
+  parts = ['python', 'module_path=' + scope['bareos::client::plugin_dir']]
+  parts.push('module_name=bareos-fd-percona')
+  known_options = ['dumpbinary',
+                   'restorecommand',
+                   'mycnf',
+                   'strictIncremental',
+                   'dumpoptions',
+                   'extradumpoptions',
+                   'mysqlcmd',
+                  ]
+    known_options.each do |optionname|
+    if @params.include? optionname
+      parts.push(optionname + '=' + @params[optionname])
+    end
+  end
+-%>
+<%= parts.join(':') -%>

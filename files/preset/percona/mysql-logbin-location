@@ -1,0 +1,67 @@
+#! /usr/bin/perl
+
+# Print list of paths to binary log files for Bareos
+
+use strict;
+use warnings;
+use Getopt::Long;
+
+sub usage {
+    print STDERR "Usage: $0 [--defaults-file=FILE] [--servicename=SVC]\n";
+    exit(64);
+}
+
+my $mycnf;
+my $servicename;
+
+GetOptions('defaults-file=s', \$mycnf,
+           'servicename=s', \$servicename
+    ) or usage();
+
+usage if @ARGV;
+
+my @args;
+push(@args, "--defaults-file=$mycnf") if $mycnf;
+
+my %var;
+
+open(my $m, "-|", 'mysqladmin', @args, 'variables') or die "mysqladmin";
+while (<$m>) {
+      next unless s/^\|\s+//;
+      my ($key, $value) = split(/\s+\|\s*/);
+      $var{$key} = $value;
+}
+close($m);
+
+die "Could not find log_bin setting\n" unless defined $var{log_bin};
+
+exit 0 if $var{log_bin} eq 'OFF';
+
+my @files;
+
+# First look for log_bin_basename (added in MySQL 5.6.2)
+if ($var{log_bin_basename}) {
+    @files = glob("$var{log_bin_basename}.*")
+} else {
+    $servicename ||= 'mysqld';
+    my $datadir = $var{datadir};
+    $datadir =~ s/\/+$//;
+    open(my $m, "-|", 'my_print_defaults', @args, $servicename)
+        or die "my_print_defaults";
+    my $logbin = '';
+    while (<$m>) {
+        $logbin = $1 if /^--log.bin=(.*)/;
+    }
+    close($m);
+    $logbin =~ s/\.log$//;
+    if ($logbin eq '') {
+        $logbin = "$datadir/mysql-bin";
+    } elsif ($logbin =~ /^\//) {
+        # absolute path
+    } else {
+        $logbin = "$datadir/$logbin";
+    }
+    @files = glob("$var{log_bin_basename}.*");
+}
+
+print join("\n", @files), "\n";
