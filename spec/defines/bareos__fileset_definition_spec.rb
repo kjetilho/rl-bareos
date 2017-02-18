@@ -92,9 +92,9 @@ describe 'bareos::fileset_definition' do
               .with_content(/Name\s+=\s+"#{title}"/)
               .with_content(/OneFS\s+=\s+no/)
               .with_content(/FSType\s+=\s+ext4/)
-              .with_content(%r{File\s+=\s+/srv$})
-              .with_content(%r{File\s+=\s+/srv/tmp$})
-              .without_content(%r{File\s+=\s+/mnt$})
+              .with_content(%r{File\s+=\s+"/srv"$})
+              .with_content(%r{File\s+=\s+"/srv/tmp"$})
+              .without_content(%r{File\s+=\s+"/mnt"$})
     end
   end
 
@@ -115,9 +115,9 @@ describe 'bareos::fileset_definition' do
               .with_content(/Name\s+=\s+"#{title}"/)
               .with_content(/OneFS\s+=\s+no/)
               .with_content(/FSType\s+=\s+ext4/)
-              .with_content(%r{File\s+=\s+/$})
-              .with_content(%r{File\s+=\s+/mnt$})
-              .with_content(%r{File\s+=\s+/srv/tmp$})
+              .with_content(%r{File\s+=\s+"/"$})
+              .with_content(%r{File\s+=\s+"/mnt"$})
+              .with_content(%r{File\s+=\s+"/srv/tmp"$})
     end
   end
 
@@ -143,7 +143,7 @@ describe 'bareos::fileset_definition' do
               .with_content(/Name\s+=\s+"#{title}"/)
               .with_content(/OneFS\s+=\s+no/)
               .with_content(/FSType\s+=\s+ext4/)
-              .with_content(%r{File\s+=\s+/$})
+              .with_content(%r{File\s+=\s+"/"$})
               .with_content(%r{Exclude\s+=\s+yes$})
               .with_content(%r{WildFile\s+=\s+"\*\.jpg"$})
               .with_content(%r{RegexDir = "\^/var/lib/postgresql/\[\^/\]\*/main"$})
@@ -169,7 +169,7 @@ describe 'bareos::fileset_definition' do
               .with_content(/Name\s+=\s+"#{title}"/)
               .with_content(/OneFS\s+=\s+no/)
               .with_content(/FSType\s+=\s+ext4/)
-              .with_content(%r{File\s+=\s+/srv$})
+              .with_content(%r{File\s+=\s+"/srv"$})
               .with_content(%r{WildFile = "\*\.jpg"$\s+\}$\s+Options \{$\s+RegexFile = "\.\*"$\s+Exclude = yes$})
     end
   end
@@ -192,7 +192,7 @@ describe 'bareos::fileset_definition' do
               .with_content(/Name\s+=\s+"#{title}"/)
               .with_content(/OneFS\s+=\s+no/)
               .with_content(/FSType\s+=\s+ext4/)
-              .with_content(%r{File\s+=\s+/srv$})
+              .with_content(%r{File\s+=\s+"/srv"$})
               .with_content(%r{WildDir = "/srv/a/ab/abc\*"$\s+\}$\s+Options \{$\s+RegexDir = "\.\*"$\s+Exclude = yes$})
               .with_content(%r{WARNING})
     end
