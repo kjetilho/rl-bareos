@@ -365,11 +365,50 @@ describe 'bareos::client' do
           should contain_file('/etc/bareos/bareos-fd.conf')
                    .with_content(%r{Plugin Directory\s+=\s+"#{libdir}"})
           should contain_file("#{libdir}/bareos-fd-percona.py")
+          should contain_file("/etc/bareos/mysql-logbin-location")
           expect(exported_resources).to contain_bareos__fileset_definition("#{facts[:fqdn]}-percona")
                                           .with_plugins(["python:module_path=#{libdir}:module_name=bareos-fd-percona:mycnf=/etc/my.cnf"])
           expect(exported_resources).to contain_bareos__job_definition("#{facts[:fqdn]}-db-job")
                                          .with_jobdef('DefaultJob')
                                          .with_fileset("#{facts[:fqdn]}-percona")
+        }
+      end
+
+      context "on #{os} with preset percona without logbin" do
+        let(:facts) { facts.merge( { :specialcase => 'implementation' } ) }
+        let(:params) do
+          { :jobs => {
+              'db' => {
+                'preset' => 'bareos::job::preset::percona',
+                'preset_params' => {
+                  'skip_binlog' => true
+                },
+              },
+            }
+          }
+        end
+
+        it { should compile.with_all_deps }
+        it { should contain_package('bareos-filedaemon-python-plugin') }
+        it { should contain_package('percona-xtrabackup') }
+        case facts[:os]['family']
+        when 'RedHat'
+          libdir = '/usr/lib64/bareos/plugins'
+        when 'Debian'
+          libdir = '/usr/lib/bareos/plugins'
+        end
+
+        it {
+          should contain_file('/etc/bareos/bareos-fd.conf')
+                   .with_content(%r{Plugin Directory\s+=\s+"#{libdir}"})
+          should contain_file("#{libdir}/bareos-fd-percona.py")
+          should_not contain_file("/etc/bareos/mysql-logbin-location")
+          expect(exported_resources).to contain_bareos__fileset_definition("#{facts[:fqdn]}-percona")
+                                          .with_plugins(["python:module_path=#{libdir}:module_name=bareos-fd-percona"])
+          expect(exported_resources).to contain_bareos__job_definition("#{facts[:fqdn]}-db-job")
+                                          .with_jobdef('DefaultJob')
+                                          .with_include_paths([])
+                                          .with_fileset("#{facts[:fqdn]}-percona")
         }
       end
 

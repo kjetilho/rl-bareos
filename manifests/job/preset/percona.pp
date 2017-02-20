@@ -3,6 +3,7 @@
 # +xtrapackage_package+: name of package containing xtrabackup(1)
 #   Default is "percona-xtrabackup".
 # +mycnf+: location of my.cnf to use
+# +skip_binlog+: do not include binlogs in backup, default is false
 #
 # If jobdef is set, it is assumed that it will refer to a fileset
 # which uses the correct plugin, or that a correct fileset is given
@@ -34,15 +35,26 @@ define bareos::job::preset::percona(
     ensure_packages('percona-xtrabackup')
   }
 
+  if $params['skip_binlog'] {
+    $include_paths = []
+  } else {
+    ensure_resource('file', "/etc/bareos/mysql-logbin-location", {
+      source => 'puppet:///modules/bareos/preset/percona/mysql-logbin-location',
+      mode   => '0555',
+      owner  => 'root',
+      group  => 'root',
+      })
+    $include_paths = ['\|/etc/bareos/mysql-logbin-location']
+  }
+
   if ($jobdef == '') {
     $_jobdef = $bareos::default_jobdef
     if $fileset == '' {
       $_fileset = "${bareos::client::client_name}-percona"
       ensure_resource('bareos::client::fileset', 'percona', {
-        'fileset_name' => $_fileset,
-        'include_paths' => ['\|/etc/bareos/mysql-logbin-location'],
-        'sparse'  => false,
-        'plugins' => [ template('bareos/preset/percona-plugin.erb') ],
+        'fileset_name'  => $_fileset,
+        'include_paths' => $include_paths,
+        'plugins'       => [ template('bareos/preset/percona-plugin.erb') ],
       })
     } else {
       $_fileset = $fileset
@@ -64,12 +76,6 @@ define bareos::job::preset::percona(
     owner  => 'root',
     group  => 'root',
     notify => Service[$bareos::client::service]
-  })
-  ensure_resource('file', "/etc/bareos/mysql-logbin-location", {
-    source => 'puppet:///modules/bareos/preset/percona/mysql-logbin-location',
-    mode   => '0555',
-    owner  => 'root',
-    group  => 'root',
   })
 
   @@bareos::job_definition {
