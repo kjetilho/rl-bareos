@@ -1,9 +1,9 @@
 # This preset has the following params
 #
-# +xtrapackage_package+: name of package containing xtrabackup(1)
-#   Default is "percona-xtrabackup".
+# +xtrabackup_package+: name of package containing xtrabackup(1)
+# Default: "percona-xtrabackup".
 # +mycnf+: location of my.cnf to use
-# +skip_binlog+: do not include binlogs in backup, default is false
+# +skip_binlog+: do not include binlogs in backup. Default: false
 #
 # If jobdef is set, it is assumed that it will refer to a fileset
 # which uses the correct plugin, or that a correct fileset is given
