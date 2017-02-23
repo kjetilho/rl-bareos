@@ -57,8 +57,7 @@ class bareos::params::client {
           $working_dir = "/var/lib/${implementation}"
           $pid_dir     = $working_dir
           $plugin_dir  = "/usr/lib64/${implementation}/plugins"
-          $python_plugin_packages = ["${implementation}-filedaemon-python-plugin",
-                                     'percona-xtrabackup']
+          $python_plugin_package = "${implementation}-filedaemon-python-plugin"
         }
         default: {
           $package     = "${implementation}-client"
@@ -76,8 +75,7 @@ class bareos::params::client {
           $competitor = 'bacula-fd'
           $pid_dir    = $working_dir
           $plugin_dir = "/usr/lib/${implementation}/plugins"
-          $python_plugin_packages = ["${implementation}-filedaemon-python-plugin",
-                                     'percona-xtrabackup']
+          $python_plugin_package = "${implementation}-filedaemon-python-plugin"
         }
         default: {
           $package    = "${implementation}-fd"

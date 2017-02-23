@@ -10,6 +10,7 @@ Bareos
    3. [Job presets](#job-presets)
       1. [mysqldumpbackup](#mysqldumpbackup)
       2. [mylvmbackup](#mylvmbackup)
+      3. [percona](#percona)
       3. [pgdumpbackup](#pgdumpbackup)
       4. [Writing your own](#writing-your-own)
    4. [Filesets](#filesets)
@@ -270,6 +271,33 @@ Example usage:
            keep_backup: 5
            vgname:      sysvg
            lvname:      mysql
+
+### percona
+
+This preset installs the package percona-xtrabackup and the percona plugin
+from [bareos-contrib](https://github.com/bareos/bareos-contrib.git).
+(Since the plugin is not packaged, we distribute a copy of it in this
+module.)  The backup will include a "virtual" file in xbstream format and
+the binary logs.  You should still include a normal system backup.
+
+Available settings in `preset_params` include:
+
+__`mycnf`__: location of my.cnf to use
+
+__`skip_binlog`__: do not include binlogs in backup, default is `false`
+
+__`xtrapackage_package`__: name of package containing xtrabackup(1).
+On Ubuntu Xenial you may need to specify "percona-xtrabackup-24".
+Default: "percona-xtrabackup"
+
+Example usage:
+
+    bareos::client::jobs:
+      system: {}
+      db:
+         preset:        bareos::job::preset::percona
+         preset_params:
+           mycnf:       /etc/mysql/mysql-db02.cnf
 
 ### pgdumpbackup
 
