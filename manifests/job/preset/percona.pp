@@ -16,9 +16,10 @@ define bareos::job::preset::percona(
   $client_name,
   $jobdef,
   $fileset,
-  $sched,
-  $order,
   $runscript,
+  $sched,
+  $accurate, # ignored, hardcoded to false
+  $order,
   $params,
 )
 {
@@ -38,7 +39,7 @@ define bareos::job::preset::percona(
   if $params['skip_binlog'] {
     $include_paths = []
   } else {
-    ensure_resource('file', "/etc/bareos/mysql-logbin-location", {
+    ensure_resource('file', '/etc/bareos/mysql-logbin-location', {
       source => 'puppet:///modules/bareos/preset/percona/mysql-logbin-location',
       mode   => '0555',
       owner  => 'root',
@@ -86,6 +87,7 @@ define bareos::job::preset::percona(
       fileset     => $_fileset,
       runscript   => $runscript,
       sched       => $sched,
+      accurate    => false,
       order       => $order,
       tag         => "bareos::server::${bareos::director}"
   }

@@ -63,6 +63,7 @@ describe 'bareos::client' do
         it do
           expect(exported_resources).to contain_bareos__job_definition("#{facts[:fqdn]}-system-job")
                                          .with_sched('NormalSchedule')
+                                         .with_accurate('')
                                          .with_order('N50')
         end
       end
@@ -117,30 +118,37 @@ describe 'bareos::client' do
         let(:params) do
           { :jobs => {
               'job1' => {},
-              'job2' => {'schedule_set' => 'multiple'},
-              'job3' => {'sched' => 'SpecialSchedule',
-                         'order' => 'Z00'}
+              'job2' => { 'schedule_set' => 'multiple',
+                          'accurate' => false,
+                        },
+              'job3' => { 'sched'    => 'SpecialSchedule',
+                          'accurate' => true,
+                          'order'    => 'Z00',
+                        },
             }
           }
         end
 
         it { should compile.with_all_deps }
-        it do
+        it {
           expect(exported_resources).to have_bareos__job_definition_resource_count(3)
-        end
-        it do
+        }
+        it {
           expect(exported_resources).to contain_bareos__job_definition("#{facts[:fqdn]}-job1-job")
-                                         .with_sched('NormalSchedule')
-        end
-        it do
+                                          .with_sched('NormalSchedule')
+                                          .with_accurate('')
+        }
+        it {
           expect(exported_resources).to contain_bareos__job_definition("#{facts[:fqdn]}-job2-job")
-                                         .with_sched('Monday')
-        end
-        it do
+                                          .with_sched('Monday')
+                                          .with_accurate(false)
+        }
+        it {
           expect(exported_resources).to contain_bareos__job_definition("#{facts[:fqdn]}-job3-job")
                                          .with_sched('SpecialSchedule')
+                                         .with_accurate(true)
                                          .with_order('Z00')
-        end
+        }
       end
 
       context "on #{os} with fileset" do
@@ -361,16 +369,19 @@ describe 'bareos::client' do
           libdir = '/usr/lib/bareos/plugins'
         end
 
+        it { should contain_file('/etc/bareos/bareos-fd.conf')
+                      .with_content(%r{Plugin Directory\s+=\s+"#{libdir}"}) }
+        it { should contain_file("#{libdir}/bareos-fd-percona.py") }
+        it { should contain_file("/etc/bareos/mysql-logbin-location") }
         it {
-          should contain_file('/etc/bareos/bareos-fd.conf')
-                   .with_content(%r{Plugin Directory\s+=\s+"#{libdir}"})
-          should contain_file("#{libdir}/bareos-fd-percona.py")
-          should contain_file("/etc/bareos/mysql-logbin-location")
           expect(exported_resources).to contain_bareos__fileset_definition("#{facts[:fqdn]}-percona")
                                           .with_plugins(["python:module_path=#{libdir}:module_name=bareos-fd-percona:mycnf=/etc/my.cnf"])
+        }
+        it {
           expect(exported_resources).to contain_bareos__job_definition("#{facts[:fqdn]}-db-job")
-                                         .with_jobdef('DefaultJob')
-                                         .with_fileset("#{facts[:fqdn]}-percona")
+                                          .with_jobdef('DefaultJob')
+                                          .with_fileset("#{facts[:fqdn]}-percona")
+                                          .with_accurate(false)
         }
       end
 
@@ -398,16 +409,19 @@ describe 'bareos::client' do
           libdir = '/usr/lib/bareos/plugins'
         end
 
+        it { should contain_file('/etc/bareos/bareos-fd.conf')
+                      .with_content(%r{Plugin Directory\s+=\s+"#{libdir}"}) }
+        it { should contain_file("#{libdir}/bareos-fd-percona.py") }
+        it { should_not contain_file("/etc/bareos/mysql-logbin-location") }
         it {
-          should contain_file('/etc/bareos/bareos-fd.conf')
-                   .with_content(%r{Plugin Directory\s+=\s+"#{libdir}"})
-          should contain_file("#{libdir}/bareos-fd-percona.py")
-          should_not contain_file("/etc/bareos/mysql-logbin-location")
           expect(exported_resources).to contain_bareos__fileset_definition("#{facts[:fqdn]}-percona")
                                           .with_plugins(["python:module_path=#{libdir}:module_name=bareos-fd-percona"])
+        }
+        it {
           expect(exported_resources).to contain_bareos__job_definition("#{facts[:fqdn]}-db-job")
                                           .with_jobdef('DefaultJob')
                                           .with_include_paths([])
+                                          .with_accurate(false)
                                           .with_fileset("#{facts[:fqdn]}-percona")
         }
       end

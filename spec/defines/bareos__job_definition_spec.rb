@@ -8,6 +8,7 @@ describe 'bareos::job_definition' do
     :jobdef => 'DefaultJob',
     :fileset => '',
     :sched => 'StdSched',
+    :accurate => '',
     :order => 'N50',
     :runscript => [],
   }
@@ -34,6 +35,7 @@ describe 'bareos::job_definition' do
               .with_content(/Schedule\s+=\s+"StdSched"/)
               .without_content(/Fileset/)
               .without_content(/RunScript/)
+              .without_content(/Accurate/)
     end
   end
 
@@ -48,6 +50,28 @@ describe 'bareos::job_definition' do
               .with_content(/Client\s+=\s+"client.example.com-fd"/)
               .with_content(/Fileset\s+=\s+"service-fset"/)
               .without_content(/RunScript/)
+    end
+  end
+
+  context "enable accurate" do
+    let(:title) { "client.example.com-accurate-job" }
+    let(:params) { default_params.merge({ :accurate => true }) }
+    it { should compile.with_all_deps }
+
+    it do
+      should contain_file("#{prefix}N50_client.example.com-accurate-job.conf")
+              .with_content(/Accurate = yes/)
+    end
+  end
+
+  context "disable accurate" do
+    let(:title) { "client.example.com-inaccurate-job" }
+    let(:params) { default_params.merge({ :accurate => false }) }
+    it { should compile.with_all_deps }
+
+    it do
+      should contain_file("#{prefix}N50_client.example.com-inaccurate-job.conf")
+              .with_content(/Accurate = no/)
     end
   end
 
