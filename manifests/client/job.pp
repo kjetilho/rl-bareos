@@ -2,10 +2,11 @@ define bareos::client::job(
   $job_name = '',
   $client_name = $bareos::client::client_name,
   $jobdef = '',
-  $runscript = [],
   $fileset = '',
+  $runscript = [],
   $sched = '', # "schedule" is a metaparameter, hence reserved
   $schedule_set = 'normal',
+  $accurate = '',
   $order = 'N50',
   $preset = '',
   $preset_params = {},
@@ -60,9 +61,10 @@ define bareos::client::job(
         'client_name' => $client_name,
         'jobdef'      => $jobdef,
         'fileset'     => $_fileset,
-        'sched'       => $_sched,
-        'order'       => $order,
         'runscript'   => $runscript,
+        'sched'       => $_sched,
+        'accurate'    => $accurate,
+        'order'       => $order,
         'params'      => $preset_params,
       }
     }
@@ -82,6 +84,7 @@ define bareos::client::job(
         fileset     => $_fileset,
         runscript   => $runscript,
         sched       => $_sched,
+        accurate    => $accurate,
         order       => $order,
         tag         => "bareos::server::${bareos::director}"
     }

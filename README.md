@@ -198,6 +198,10 @@ from.  Default: normal
 __`sched`__: Explicit name of schedule, overrides random selection.
 (`schedule` is a reserved word in Puppet, hence the strange parameter name.)
 
+__`accurate`__: Whether to turn Accurate on or off.  When set to '',
+don't include directive in configuration (job defaults are used).
+Default: ''
+
 __`order`__: Give a hint to in what order jobs should run.  This
 should be a value consisting of one capital letter and two digits.
 Jobs with "A00" will be scheduled first, "Z99" will be scheduled last.

@@ -13,9 +13,10 @@ define bareos::job::preset::mylvmbackup(
   $client_name,
   $jobdef,
   $fileset,
-  $sched,
-  $order,
   $runscript,
+  $sched,
+  $accurate,
+  $order,
   $params,
 )
 {
@@ -52,6 +53,7 @@ define bareos::job::preset::mylvmbackup(
                                  ]
                                ]),
       sched       => $sched,
+      accurate    => $accurate,
       order       => $order,
       tag         => "bareos::server::${bareos::director}"
   }

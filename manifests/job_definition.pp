@@ -7,9 +7,10 @@ define bareos::job_definition(
   $name_suffix,
   $jobdef,
   $fileset,
-  $sched,
-  $order='N50',
   $runscript,
+  $sched,
+  $accurate='',
+  $order='N50',
 )
 {
   $job_name = regsubst($title, '.*?\/', '')

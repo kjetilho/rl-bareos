@@ -4,6 +4,9 @@ Job {
 <% if @fileset != '' -%>
   Fileset = "<%= @fileset %>"
 <% end -%>
+<% if @accurate != '' -%>
+  Accurate = <%= @accurate ? 'yes' : 'no' %>
+<% end -%>
   Maximum Concurrent Jobs = 1
   Schedule = "<%= @sched %>"
   Client = "<%= @client_name %><%= @name_suffix %>"
