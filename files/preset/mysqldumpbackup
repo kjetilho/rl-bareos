@@ -282,6 +282,12 @@ if $CLEAN; then
         /*/*/*)
             :
             ;;
+        /etc*|/usr*|/var*)
+            die "$BACKUPDIR: too few directory levels, won't clean, dump"
+            ;;
+        /*/*)
+            :
+            ;;
         *)
             die "$BACKUPDIR: too few directory levels, won't clean, dump"
             ;;
