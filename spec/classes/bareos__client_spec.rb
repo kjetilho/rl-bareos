@@ -8,9 +8,18 @@ describe 'bareos::client' do
     when 'windows'
       context "on #{os}" do
         let(:facts) { facts }
+
+        # The following trick is courtesy of binford2k:
+        # fake out the file checks so that they validate as absolute
+        # even though they're Windows paths.
+        before :each do
+          Puppet[:autosign] = false
+          Puppet::Util::Platform.stubs(:windows?).returns true
+        end
+
         it { should compile.with_all_deps }
         it do
-          should contain_file('//localhost/c$/ProgramData/Bareos/bareos-fd.conf')
+          should contain_file('C:/ProgramData/Bareos/bareos-fd.conf')
                   .with_content(/Name = "backup.example.com-dir"/)
         end
         it do
