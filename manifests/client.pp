@@ -47,6 +47,7 @@ class bareos::client (
   $pid_dir        = $bareos::params::client::pid_dir,
   $working_dir    = $bareos::params::client::working_dir,
   $plugin_dir     = $bareos::params::client::plugin_dir,
+  $systemd_limits = {},
 ) inherits bareos::params::client
 {
 
@@ -72,6 +73,7 @@ class bareos::client (
     validate_absolute_path($pid_dir)
     validate_absolute_path($working_dir)
   }
+  validate_hash($systemd_limits)
 
   ensure_packages($package)
   if $competitor {
@@ -103,6 +105,22 @@ class bareos::client (
       owner  => $bareos::client::implementation,
       group  => $bareos::client::implementation,
       mode   => '0755';
+    }
+  }
+
+  if ! empty($systemd_limits) {
+    file {
+      "/etc/systemd/system/${service}.service.d":
+        ensure  => directory,
+        owner   => 'root',
+        group   => 'root',
+        mode    => '0755';
+      "/etc/systemd/system/${service}.service.d/limits.conf":
+        # this should notify Exec['systemctl daemon-reload']
+        content => template('bareos/client/systemd/limits.conf.erb'),
+        owner   => 'root',
+        group   => 'root',
+        mode    => '0444';
     }
   }
 

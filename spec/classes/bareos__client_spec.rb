@@ -109,6 +109,7 @@ describe 'bareos::client' do
                      .with_owner('bareos')
                      .with_group('bareos')
         }
+        it { should_not contain_file('/etc/systemd/system/bareos-fd.service.d/limits.conf') }
         it do
           expect(exported_resources).to have_bareos__job_definition_resource_count(1)
         end
@@ -570,6 +571,15 @@ describe 'bareos::client' do
         it { is_expected.to compile.and_raise_error(/own name.*service address/) }
       end
 
+      context "on #{os} with systemd_limits" do
+        let(:facts) { facts.merge( { :specialcase => 'implementation' } ) }
+        let(:params) do
+          { :systemd_limits => { 'nofile' => 42 } }
+        end
+        it { should contain_file('/etc/systemd/system/bareos-fd.service.d/limits.conf')
+                      .with_content(/^LimitNOFILE = 42$/)
+        }
+      end
     end
   end
 end

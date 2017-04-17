@@ -167,6 +167,11 @@ Default: "root"
 __`bareos::client::backup_dir_mode`__: Mode of above directory
 Default: "0755"
 
+__`bareos::client::systemd_limits`__: Hash of resource limits which
+needs overriding.  Only works for systemd, but no check is done to see
+if systemd manages the service.  Example: { 'nofiles' => 16384 }.
+Default is to do nothing.
+
 In addition, you can manage the service, the location of the log file,
 the pid file and the working directory, but this should not be
 necessary to do.
