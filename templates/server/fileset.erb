@@ -1,26 +1,23 @@
+<% options = [ "aclsupport = #{ @acl_support ? 'yes' : 'no' }",
+               "Sparse = #{ @sparse ? 'yes' : 'no' }",
+               "Signature = MD5"
+               ]
+   if @compression
+       options.push("Compression = #{ @compression }");
+   end
+   if @onefs
+       options.push("OneFS = yes")
+   else
+       options.push("OneFS = no")
+       [@fstype].flatten.sort.each do |fs|
+           options.push("FSType = #{ fs }")
+       end
+   end
+-%>
 FileSet {
   Name = "<%= @fset_name %>"
   Ignore FileSet Changes = <%= @ignore_changes ? 'yes' : 'no' %>
   Include {
-    Options {
-        aclsupport = <%= @acl_support ? 'yes' : 'no' %>
-        Sparse = <%= @sparse ? 'yes' : 'no' %>
-        Signature = MD5
-<% if @compression -%>
-        Compression = <%= @compression %>
-<% end -%>
-<% if @onefs -%>
-        OneFS = yes
-<% else -%>
-        OneFS = no
-<%   [@fstype].flatten.sort.each do |fs| -%>
-        FSType = <%= fs %>
-<%   end -%>
-<% end -%>
-    }
-<% [@plugins].flatten.each do |plugin| -%>
-    Plugin = "<%= plugin %>"
-<% end -%>
 <% if not @include_patterns.empty?
      # Handling of include patterns quite complex.  Blame Bacula.
 
@@ -69,6 +66,7 @@ FileSet {
      unless file_rules.empty?
 -%>
     Options {
+        <%= options.join("\n        ") %>
         <%= file_rules.join("\n        ") %>
     }
     Options {
@@ -78,6 +76,7 @@ FileSet {
 <%   end -%>
 <%   unless dir_rules.empty? -%>
     Options {
+        <%= options.join("\n        ") %>
         <%= dir_rules.join("\n        ") %>
     }
     Options {
@@ -98,6 +97,12 @@ FileSet {
      end -%>
       Exclude = yes
     }
+<% end -%>
+    Options {
+        <%= options.join("\n        ") %>
+    }
+<% [@plugins].flatten.each do |plugin| -%>
+    Plugin = "<%= plugin %>"
 <% end -%>
 <% # Single element arrays become plain strings in PuppetDB
    incl = [@include_paths].flatten

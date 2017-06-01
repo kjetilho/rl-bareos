@@ -8,9 +8,18 @@ describe 'bareos::client' do
     when 'windows'
       context "on #{os}" do
         let(:facts) { facts }
+
+        # The following trick is courtesy of binford2k:
+        # fake out the file checks so that they validate as absolute
+        # even though they're Windows paths.
+        before :each do
+          Puppet[:autosign] = false
+          Puppet::Util::Platform.stubs(:windows?).returns true
+        end
+
         it { should compile.with_all_deps }
         it do
-          should contain_file('//localhost/c$/ProgramData/Bareos/bareos-fd.conf')
+          should contain_file('C:/ProgramData/Bareos/bareos-fd.conf')
                   .with_content(/Name = "backup.example.com-dir"/)
         end
         it do
@@ -100,6 +109,7 @@ describe 'bareos::client' do
                      .with_owner('bareos')
                      .with_group('bareos')
         }
+        it { should_not contain_file('/etc/systemd/system/bareos-fd.service.d/limits.conf') }
         it do
           expect(exported_resources).to have_bareos__job_definition_resource_count(1)
         end
@@ -420,7 +430,7 @@ describe 'bareos::client' do
         it {
           expect(exported_resources).to contain_bareos__job_definition("#{facts[:fqdn]}-db-job")
                                           .with_jobdef('DefaultJob')
-                                          .with_include_paths([])
+                                          .with_include_paths([nil]) # should be [], but export simulation breaks
                                           .with_accurate(false)
                                           .with_fileset("#{facts[:fqdn]}-percona")
         }
@@ -561,6 +571,15 @@ describe 'bareos::client' do
         it { is_expected.to compile.and_raise_error(/own name.*service address/) }
       end
 
+      context "on #{os} with systemd_limits" do
+        let(:facts) { facts.merge( { :specialcase => 'implementation' } ) }
+        let(:params) do
+          { :systemd_limits => { 'nofile' => 42 } }
+        end
+        it { should contain_file('/etc/systemd/system/bareos-fd.service.d/limits.conf')
+                      .with_content(/^LimitNOFILE = 42$/)
+        }
+      end
     end
   end
 end
