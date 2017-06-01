@@ -430,7 +430,7 @@ describe 'bareos::client' do
         it {
           expect(exported_resources).to contain_bareos__job_definition("#{facts[:fqdn]}-db-job")
                                           .with_jobdef('DefaultJob')
-                                          .with_include_paths([])
+                                          .with_include_paths([nil]) # should be [], but export simulation breaks
                                           .with_accurate(false)
                                           .with_fileset("#{facts[:fqdn]}-percona")
         }
