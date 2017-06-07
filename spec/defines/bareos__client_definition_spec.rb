@@ -71,9 +71,13 @@ describe 'bareos::client_definition' do
     let(:pre_condition) { <<-eot
       class bareos::server {
         $client_file_prefix = '#{prefix}'
-        $secrets = { "dmz" => 'dmzfoo' }
+        $secrets = { 'dmz' => 'dmzfoo' }
       }
       include bareos::server
+      class bareos {
+        $secret = 'foo'
+      }
+      include bareos
       eot
     }
     let(:params) { default_params.merge({ :security_zone => 'dmz' }) }
@@ -95,6 +99,10 @@ describe 'bareos::client_definition' do
         $secrets = {}
       }
       include bareos::server
+      class bareos {
+        $secret = 'foo'
+      }
+      include bareos
       eot
     }
     let(:params) { default_params.merge({ :security_zone => 'dmz' }) }

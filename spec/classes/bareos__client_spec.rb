@@ -283,9 +283,7 @@ describe 'bareos::client' do
                                          .with_jobdef('DefaultMySQLJob')
                                          .with_order('N50')
                                          .with_runscript(
-                                           { 'command' =>
-                                             '/usr/local/sbin/mysqldumpbackup -c' }
-                                         )
+                                           [ { 'command' => '/usr/local/sbin/mysqldumpbackup -c' } ])
         end
         it { should contain_file('/etc/default/mysqldumpbackup')
                      .with_content(/KEEPBACKUP="1"/) }
@@ -294,9 +292,10 @@ describe 'bareos::client' do
                                          .with_jobdef('DefaultMySQLJob')
                                          .with_order('A01')
                                          .with_runscript(
-                                           { 'command' =>
-                                             '/usr/local/sbin/mysqldumpbackup -c mysqldumpbackup-ece' }
-                                         )
+                                           [ { 'command' =>
+                                               '/usr/local/sbin/mysqldumpbackup -c mysqldumpbackup-ece',
+                                             },
+                                           ])
         end
         it { should contain_file('/etc/default/mysqldumpbackup-ece')
                      .with_content(/GZIP="xz"/)
@@ -310,7 +309,7 @@ describe 'bareos::client' do
                                            [ { 'command' =>
                                                '/usr/bin/combo' },
                                              { 'command' =>
-                                               '/usr/local/sbin/mysqldumpbackup -c mysqldumpbackup-combo' }
+                                               '/usr/local/sbin/mysqldumpbackup -c mysqldumpbackup-combo' },
                                            ])
         end
         it { should contain_file('/etc/default/mysqldumpbackup-combo')
@@ -343,9 +342,7 @@ describe 'bareos::client' do
           expect(exported_resources).to contain_bareos__job_definition("#{facts[:fqdn]}-failover-job")
                                          .with_jobdef('DefaultMySQLJob')
                                          .with_runscript(
-                                           { 'command' =>
-                                             '/usr/local/sbin/mysqldumpbackup -c -r' }
-                                         )
+                                           [ { 'command' => '/usr/local/sbin/mysqldumpbackup -c -r' } ])
         end
         it { should_not contain_file('/var/backups') }
         it { should contain_file('/var/backups/mysql')
@@ -454,9 +451,7 @@ describe 'bareos::client' do
           expect(exported_resources).to contain_bareos__job_definition("#{facts[:fqdn]}-pg-job")
                                          .with_jobdef('DefaultPgSQLJob')
                                          .with_runscript(
-                                           { 'command' =>
-                                             '/usr/local/sbin/pgdumpbackup -c' }
-                                         )
+                                           [ { 'command' => '/usr/local/sbin/pgdumpbackup -c' } ])
         end
         it { should contain_file('/etc/default/pgdumpbackup')
                      .with_content(/KEEPBACKUP="1"/) }
@@ -517,7 +512,7 @@ describe 'bareos::client' do
                                          .with_runscript(
                                            [ { 'command' => "#{command} -c /etc/mylvmbackup-wp.conf --action=purge" },
                                              { 'command' => "#{command} -c /etc/mylvmbackup-wp.conf",
-                                               "abortjobonerror" => true },
+                                               'abortjobonerror' => true },
                                            ])
         end
         it { should contain_file('/etc/mylvmbackup-wp.conf')

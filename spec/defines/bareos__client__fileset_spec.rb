@@ -3,12 +3,14 @@ require 'spec_helper'
 describe 'bareos::client::fileset' do
   let(:pre_condition) { <<-eot
     class bareos::client {
+      $compression = 'GZIP'
       $client_name = $::fqdn
       $fstype = ['rootfs', 'ext3', 'ext4']
       $exclude_paths = ['/mnt', '/var/cache']
       $exclude_patterns = {}
     }
     include bareos::client
+    include bareos
     eot
   }
   context 'basic fileset' do
