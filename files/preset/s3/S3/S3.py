@@ -278,6 +278,45 @@ class S3(object):
         response["list"] = getListFromXml(response["data"], "Bucket")
         return response
 
+    def bucket_list_iterate(self, bucket, prefix = None, recursive = None, uri_params = {}):
+        def _list_truncated(data):
+            ## <IsTruncated> can either be "true" or "false" or be missing completely
+            is_truncated = getTextFromXml(data, ".//IsTruncated") or "false"
+            return is_truncated.lower() != "false"
+
+        def _get_contents(data):
+            return getListFromXml(data, "Contents")
+
+        def _get_common_prefixes(data):
+            return getListFromXml(data, "CommonPrefixes")
+
+
+        uri_params = uri_params.copy()
+        truncated = True
+        list = []
+        prefixes = []
+
+        response = self.bucket_list_noparse(bucket, prefix, recursive, uri_params)
+        current_list = _get_contents(response["data"])
+        current_prefixes = _get_common_prefixes(response["data"])
+        truncated = _list_truncated(response["data"])
+        if truncated:
+            if current_list:
+                uri_params['marker'] = self.urlencode_string(current_list[-1]["Key"])
+            else:
+                uri_params['marker'] = self.urlencode_string(current_prefixes[-1]["Prefix"])
+            debug("Listing continues after '%s'" % uri_params['marker'])
+        else:
+            uri_params = {}
+
+        list += current_list
+        prefixes += current_prefixes
+
+        response['list'] = list
+        response['common_prefixes'] = prefixes
+        response['uri_params'] = uri_params
+        return response
+
     def bucket_list(self, bucket, prefix = None, recursive = None, uri_params = {}):
         def _list_truncated(data):
             ## <IsTruncated> can either be "true" or "false" or be missing completely
@@ -916,7 +955,43 @@ class S3(object):
             ## Don't do any pre-processing
             return string
 
-        encoded = quote_plus(string, safe="~/")
+        encoded = ""
+        ## List of characters that must be escaped for S3
+        ## Haven't found this in any official docs
+        ## but my tests show it's more less correct.
+        ## If you start getting InvalidSignature errors
+        ## from S3 check the error headers returned
+        ## from S3 to see whether the list hasn't
+        ## changed.
+        for c in string:    # I'm not sure how to know in what encoding
+                    # 'object' is. Apparently "type(object)==str"
+                    # but the contents is a string of unicode
+                    # bytes, e.g. '\xc4\x8d\xc5\xafr\xc3\xa1k'
+                    # Don't know what it will do on non-utf8
+                    # systems.
+                    #           [hope that sounds reassuring ;-)]
+            o = ord(c)
+            if (o < 0x20 or o == 0x7f):
+                if urlencoding_mode == "fixbucket":
+                    encoded += "%%%02X" % o
+                else:
+                    error(u"Non-printable character 0x%02x in: %s" % (o, string))
+                    error(u"Please report it to s3tools-bugs@lists.sourceforge.net")
+                    encoded += replace_nonprintables(c)
+            elif (o == 0x20 or  # Space and below
+                o == 0x22 or    # "
+                o == 0x23 or    # #
+                o == 0x25 or    # % (escape character)
+                o == 0x26 or    # &
+                o == 0x2B or    # + (or it would become <space>)
+                o == 0x3C or    # <
+                o == 0x3E or    # >
+                o == 0x3F or    # ?
+                o == 0x60 or    # `
+                o >= 123):      # { and above, including >= 128 for UTF-8
+                encoded += "%%%02X" % o
+            else:
+                encoded += c
         debug("String '%s' encoded to '%s'" % (string, encoded))
         return encoded
 
@@ -1255,6 +1330,45 @@ class S3(object):
             raise S3UploadError(getTextFromXml(response["data"], 'Message'))
         return response
 
+    def recv_file_streamed(self, request):
+        method_string, resource, headers = request.get_triplet()
+        try:
+            conn = ConnMan.get(self.get_hostname(resource['bucket']))
+            conn.c.putrequest(method_string, self.format_uri(resource))
+            for header in headers.keys():
+                conn.c.putheader(header, str(headers[header]))
+            conn.c.endheaders()
+            response = {}
+            http_response = conn.c.getresponse()
+            response["status"] = http_response.status
+            response["reason"] = http_response.reason
+            response["headers"] = convertTupleListToDict(http_response.getheaders())
+        except ParameterError, e:
+            raise
+        except OSError, e:
+            raise
+        except (IOError, Exception), e:
+            if hasattr(e, 'errno') and e.errno != errno.EPIPE:
+                raise
+            # close the connection and re-establish
+            conn.counter = ConnMan.conn_max_counter
+            ConnMan.put(conn)
+            raise S3DownloadError("Download failed for: %s" % resource['uri'])
+
+        if response["status"] == 400:
+            return self._http_400_handler(request, response, self.recv_file_streamed, request)
+        if response["status"] == 403:
+            return self._http_403_handler(request, response, self.recv_file_streamed, request)
+        if response["status"] == 404:
+           raise S3Error(response)
+        if response["status"] == 405: # Method Not Allowed.  Don't retry.
+           raise S3Error(response)
+
+        if response["status"] < 200 or response["status"] > 299:
+            raise S3Error(response)
+
+        return { 'resp': http_response, 'conn': conn }
+
     def recv_file(self, request, stream, labels, start_position = 0, retries = _max_retries):
         method_string, resource, headers = request.get_triplet()
         filename = unicodise(stream.name)
@@ -1313,9 +1427,9 @@ class S3(object):
             return self.recv_file(request, stream, labels)
 
         if response["status"] == 400:
-            return self._http_400_handler(request, response, self.recv_file, request, stream, labels)
+            return self._http_400_handler(request, response, self.recv_file, request)
         if response["status"] == 403:
-            return self._http_403_handler(request, response, self.recv_file, request, stream, labels)
+            return self._http_403_handler(request, response, self.recv_file, request)
         if response["status"] == 405: # Method Not Allowed.  Don't retry.
             raise S3Error(response)
 
