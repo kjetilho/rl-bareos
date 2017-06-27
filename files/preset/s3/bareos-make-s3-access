@@ -1,0 +1,124 @@
+#!/usr/bin/perl
+
+use JSON;
+use Data::Dumper;
+use Getopt::Long;
+use warnings;
+use strict;
+
+sub usage {
+    print STDERR <<"__END__";
+Usage: $0 [OPTIONS] USERNAME
+
+Generates access file for S3 by querying radosgw for credentials.
+
+Options:
+
+  --host-base NAME     Base host name for S3 service
+                       Default: rgw dns name from /etc/ceph/ceph.conf
+  --host-bucket VALUE  Host name for bucket
+                       Default: ''bucket''.HOST-BASE
+  --output-file FILE   Where to store credentials
+                       Default: /etc/bareos/s3/access-USERNAME.cfg
+  --umask MODE         Set umask before saving output-file (optional)
+__END__
+    exit(64);
+}
+
+my ($host_base, $host_bucket, $output_file, $umask);
+
+GetOptions('host|host-base|h=s', \$host_base,
+           'host-bucket=s', \$host_bucket,
+           'output-file=s', \$output_file,
+           'umask=s', \$umask,
+    ) or usage();
+usage() unless @ARGV == 1;
+
+unless ($host_base) {
+    open(my $conf, '/etc/ceph/ceph.conf')
+        or die "/etc/ceph/ceph.conf: $! - specify --host-base explicitly\n";
+    my @lines = grep { /^\s*rgw\s+dns\s+name\s*=/ } <$conf>;
+    close($conf);
+    die "/etc/ceph/ceph.conf: no rgw dns name - specify --host-base explicitly\n"
+        unless @lines;
+    chomp($host_base = $lines[0]);
+    $host_base =~ s/^.*?=\s*//;
+}
+my $username = shift;
+$host_bucket ||= "%(bucket)s.${host_base}";
+$output_file ||= "/etc/bareos/s3/access-${username}.cfg";
+
+umask(oct($umask)) if $umask;
+
+my $body = "";
+
+open(my $fh, "-|", "radosgw-admin", "user", "info", "--uid=${username}")
+    or die "radosgw-admin: $!\n";
+while (<$fh>) {
+  $body .= $_;
+}
+close($fh) or die "radosgw-admin: $!\n";
+
+if ($?) {
+    my $signal = $? & 0xff;
+    my $status = $? >> 8;
+    die "radosgw-admin exited with status $status, signal $signal\n";
+}
+
+my $user_info = decode_json($body);
+die "Got user info for $user_info->{user_id}, not $username\n"
+    if $user_info->{user_id} ne $username;
+
+my $key;
+for my $k (@{$user_info->{keys}}) {
+    $key = $k if $k->{user} eq $username;
+}
+die "No key for user $username\n"
+    unless $key;
+
+open(my $cfg, ">", $output_file)
+    or die "$output_file: $!\n";
+
+print $cfg <<"__END__";
+[default]
+access_key = $key->{access_key}
+bucket_location = US
+default_mime_type = binary/octet-stream
+delete_removed = False
+dry_run = False
+enable_multipart = False
+encoding = UTF-8
+encrypt = False
+follow_symlinks = False
+force = False
+get_continue = False
+gpg_command = /usr/local/bin/gpg
+gpg_decrypt = %(gpg_command)s -d --verbose --no-use-agent --batch --yes --passphrase-fd %(passphrase_fd)s -o %(output_file)s %(input_file)s
+gpg_encrypt = %(gpg_command)s -c --verbose --no-use-agent --batch --yes --passphrase-fd %(passphrase_fd)s -o %(output_file)s %(input_file)s
+gpg_passphrase = password
+guess_mime_type = True
+host_base = ${host_base}
+host_bucket = ${host_bucket}
+human_readable_sizes = False
+list_md5 = False
+log_target_prefix =
+preserve_attrs = True
+progress_meter = True
+proxy_host =
+proxy_port = 0
+recursive = False
+recv_chunk = 4096
+reduced_redundancy = False
+secret_key = $key->{secret_key}
+send_chunk = 4096
+simpledb_host = sdb.amazonaws.com
+skip_existing = False
+socket_timeout = 300
+urlencoding_mode = normal
+use_https = false
+verbosity = WARNING
+signature_v2 = True
+__END__
+close($cfg)
+    or die "$cfg: close failed: $!\n";
+

@@ -321,6 +321,51 @@ Example usage:
          preset_params:
            cluster:     9.2/main
 
+### s3
+
+This preset installs an S3 plugin for Bareos.  (Since the plugin is
+not packaged, we distribute a copy of it in this module.)  The backup
+will include a "virtual" file directory tree `/situla` with a
+traversed copy of the bucket inside.  A script which calls
+`radosgw-admin` to create an authentication file is also included.
+
+Available settings in `preset_params` include:
+
+__`user_name`__: who to authenticate as
+
+__`bucket`__: what bucket to backup.
+
+__`prefix`__: an optional prefix to restrict the backup
+
+__`pattern`__: an optional regexp to restrict the backup to matching
+files.
+
+For convenience, the job name can be used to specify these values, if
+it is on the format `anything:user_name:bucket:prefix`.  `bucket` and
+`prefix` are optional, if bucket is unspecified, it is assumed to be
+the same as the user name.
+
+Example usage:
+
+    bareos::client::jobs:
+      # backup of bucket websrv as user websrv
+      "s3:websrv":
+         preset:        bareos::job::preset::s3
+         preset_params:
+           pattern:     "\.pdf$"
+      # backup of bucket aux as user websrv
+      "s3:websrv:aux":
+         preset:        bareos::job::preset::s3
+      # backup of bucket aux2, subdirectory img, as user websrv
+      "s3:websrv:aux2:img":
+         preset:        bareos::job::preset::s3
+      # backup of bucket aux2, subdirectory docs, as user websrv
+      "docs":
+         preset:        bareos::job::preset::s3
+         preset_params:
+           user_name: websrv
+           bucket:    aux2
+           prefix:    docs
 
 ### Writing your own preset
 
