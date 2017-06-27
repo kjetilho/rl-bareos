@@ -25,9 +25,10 @@ define bareos::job::preset::s3::config(
   }
 
   ensure_resource('exec', "bareos-make-s3-access ${user_name}", {
-    command  => $_cmd,
-    path     => '/usr/local/sbin:/usr/sbin:/sbin:/usr/bin:/bin',
-    creates  => "/etc/bareos/s3/access-${user_name}.cfg",
+    command => $_cmd,
+    path    => '/usr/local/sbin:/usr/sbin:/sbin:/usr/bin:/bin',
+    creates => "/etc/bareos/s3/access-${user_name}.cfg",
+    require => File['/usr/local/sbin/bareos-make-s3-access'],
   })
 
   $plugin = [
