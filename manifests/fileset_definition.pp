@@ -24,7 +24,8 @@ define bareos::fileset_definition(
   validate_array($fstype)
 
   $fset_name = regsubst($title, '.*?\/', '')
-  $filename = "${bareos::server::fileset_file_prefix}${fset_name}.conf"
+  $_fset_name = regsubst($fset_name, '[^A-Za-z0-9.:_-]+', '_', 'G')
+  $filename = "${bareos::server::fileset_file_prefix}${_fset_name}.conf"
 
   ensure_resource('file', $filename, {
     content => template('bareos/server/fileset.erb'),
