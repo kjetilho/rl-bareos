@@ -30,13 +30,14 @@ define bareos::job::preset::s3::config(
     creates  => "/etc/bareos/s3/access-${user_name}.cfg",
   })
 
-  $plugin = ['python',
-             "module_path=${bareos::client::plugin_dir}",
-             'module_name=bareos-fd-s3',
-             "config=/etc/bareos/s3/access-${user_name}.cfg",
-             "bucket=${bucket}",
-             "prefix=${prefix}",
-             ]
+  $plugin = [
+    'python',
+    "module_path=${bareos::client::plugin_dir}",
+    'module_name=bareos-fd-s3',
+    "config=/etc/bareos/s3/access-${user_name}.cfg",
+    "bucket=${bucket}",
+    "prefix=${prefix}",
+  ]
   if $pattern != '' {
     $_plugin = join(flatten([$plugin, "pattern=${pattern}"]), ':')
   } else {
