@@ -4,18 +4,9 @@ describe 'bareos::client' do
   on_supported_os.each do |os, facts|
 
     case facts[:kernel]
-
     when 'windows'
-      context "on #{os}" do
+      context "on #{os}", skip: "unable to make it work on Unix system" do
         let(:facts) { facts }
-
-        # The following trick is courtesy of binford2k:
-        # fake out the file checks so that they validate as absolute
-        # even though they're Windows paths.
-        before :each do
-          Puppet[:autosign] = false
-          Puppet::Util::Platform.stubs(:windows?).returns true
-        end
 
         it { should compile.with_all_deps }
         it do
@@ -41,7 +32,7 @@ describe 'bareos::client' do
         end
       end
 
-      # All the Unix tests
+    # All the Unix tests
     else
       context "on #{os}" do
         let(:facts) { facts }
