@@ -27,7 +27,7 @@ define bareos::job::preset::s3(
   validate_re($bareos::client::implementation, 'bareos')
 
   if $fileset != '' {
-    fail("bareos::job::preset::s3 does not support specifying a fileset")
+    fail('bareos::job::preset::s3 does not support specifying a fileset')
   }
 
   if $bareos::client::python_plugin_package {
@@ -35,7 +35,7 @@ define bareos::job::preset::s3(
   } else {
     fail("No support yet for ${::operatingsystem}")
   }
-  
+
   if ($jobdef == '') {
     $_jobdef = $bareos::default_jobdef
   } else {
@@ -104,7 +104,7 @@ define bareos::job::preset::s3(
     default: {
       $title_params = {
         user_name => $comps[1],
-        bucket    => $comps[2] ? { '' => $comps[1], '*' => $comps[2] },
+        bucket    => $comps[2] ? { '' => $comps[1], default => $comps[2] },
         prefix    => $comps[3],
       }
       # components 4 and onwards are ignored as well
@@ -125,7 +125,7 @@ define bareos::job::preset::s3(
       fileset     => "S3 ${_fileset}",
       runscript   => $runscript,
       sched       => $sched,
-      accurate    => $accurate ? { '' => true, '*' => $accurate },
+      accurate    => $accurate ? { '' => true, default => $accurate },
       order       => $order,
       tag         => "bareos::server::${bareos::director}"
   }
