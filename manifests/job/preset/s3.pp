@@ -56,8 +56,8 @@ define bareos::job::preset::s3(
     group  => 'root',
     notify => Service[$bareos::client::service]
   })
-  ensure_resource('file', "${bareos::client::plugin_dir}/BareosFdS3.py", {
-    source => 'puppet:///modules/bareos/preset/s3/BareosFdS3.py',
+  ensure_resource('file', "${bareos::client::plugin_dir}/BareosFdPluginS3.py", {
+    source => 'puppet:///modules/bareos/preset/s3/BareosFdPluginS3.py',
     mode   => '0555',
     owner  => 'root',
     group  => 'root',
