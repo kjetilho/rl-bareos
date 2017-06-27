@@ -12,6 +12,7 @@ Bareos
       2. [mylvmbackup](#mylvmbackup)
       3. [percona](#percona)
       3. [pgdumpbackup](#pgdumpbackup)
+      3. [s3](#s3)
       4. [Writing your own](#writing-your-own)
    4. [Filesets](#filesets)
    5. [Complex examples](#complex-examples)
@@ -219,8 +220,8 @@ array of strings.  `runswhen` is either `before` or `after`, by
 default it is `before`.  Other parameters are written verbatim as `Key
 = value` to bareos configuration.
 
-__`preset`__: Use specified class to export the job.  See next
-section.
+__`preset`__: Use specified define to export the job.  See next
+section.  If unqualified, `bareos::job::preset::` will be prepended.
 
 __`preset_params`__: Parameters to pass to preset class.
 
@@ -341,9 +342,9 @@ __`pattern`__: an optional regexp to restrict the backup to matching
 files.
 
 For convenience, the job name can be used to specify these values, if
-it is on the format `anything:user_name:bucket:prefix`.  `bucket` and
-`prefix` are optional, if bucket is unspecified, it is assumed to be
-the same as the user name.
+it is on the format `anything:user_name:bucket:anything`.  `bucket` is
+optional, if it is unspecified, it is assumed to be the same as the
+user name.
 
 Example usage:
 
@@ -359,6 +360,8 @@ Example usage:
       # backup of bucket aux2, subdirectory img, as user websrv
       "s3:websrv:aux2:img":
          preset:        bareos::job::preset::s3
+         preset_params:
+           prefix:       img
       # backup of bucket aux2, subdirectory docs, as user websrv
       "docs":
          preset:        bareos::job::preset::s3

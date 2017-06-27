@@ -95,19 +95,12 @@ define bareos::job::preset::s3(
         bucket    => $comps[1], # same as user name
       }
     }
-    3: {
-      $title_params = {
-        user_name => $comps[1],
-        bucket    => $comps[2],
-      }
-    }
     default: {
       $title_params = {
         user_name => $comps[1],
         bucket    => $comps[2] ? { '' => $comps[1], default => $comps[2] },
-        prefix    => $comps[3],
       }
-      # components 4 and onwards are ignored as well
+      # components 3 and onwards are ignored as well
     }
   }
   $pass_on = {
