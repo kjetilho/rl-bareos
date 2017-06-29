@@ -1,4 +1,4 @@
 [Service]
-<% systemd_limits.each do |lim, val| -%>
+<% @systemd_limits.each do |lim, val| -%>
 Limit<%= lim.upcase %> = <%= val %>
 <% end -%>

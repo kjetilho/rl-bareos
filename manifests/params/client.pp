@@ -64,6 +64,8 @@ class bareos::params::client {
           $competitor  = ['bareos-filedaemon', 'bareos-common']
           $working_dir = "/var/spool/${implementation}"
           $pid_dir     = '/var/run'
+          $plugin_dir  = false
+          $python_plugin_package = false
         }
       }
     }
@@ -81,16 +83,25 @@ class bareos::params::client {
           $package    = "${implementation}-fd"
           $competitor = ['bareos-filedaemon', 'bareos-common']
           $pid_dir    = "/var/run/${implementation}"
+          $plugin_dir = false
+          $python_plugin_package = false
         }
       }
     }
     'windows': {
       $package     = 'Bareos 13.2.2-2.1'
+      $competitor  = false
+      $pid_dir     = false
+      $plugin_dir  = false
+      $python_plugin_package = false
+      $working_dir = false
     }
     default: {
       $package     = undef
       $working_dir = "/var/spool/${implementation}"
       $pid_dir     = '/var/run'
+      $plugin_dir  = false
+      $python_plugin_package = false
     }
   }
 }

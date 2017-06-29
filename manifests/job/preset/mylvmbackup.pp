@@ -50,8 +50,8 @@ define bareos::job::preset::mylvmbackup(
       runscript   => flatten([ $runscript,
                                [ { 'command' => "${command} --action=purge" },
                                  { 'command' => $command, 'abortjobonerror' => true },
-                                 ]
-                               ]),
+                               ]
+                             ]),
       sched       => $sched,
       accurate    => $accurate,
       order       => $order,

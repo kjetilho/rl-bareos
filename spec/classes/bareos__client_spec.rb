@@ -4,18 +4,9 @@ describe 'bareos::client' do
   on_supported_os.each do |os, facts|
 
     case facts[:kernel]
-
     when 'windows'
-      context "on #{os}" do
+      context "on #{os}", skip: "unable to make it work on Unix system" do
         let(:facts) { facts }
-
-        # The following trick is courtesy of binford2k:
-        # fake out the file checks so that they validate as absolute
-        # even though they're Windows paths.
-        before :each do
-          Puppet[:autosign] = false
-          Puppet::Util::Platform.stubs(:windows?).returns true
-        end
 
         it { should compile.with_all_deps }
         it do
@@ -41,7 +32,7 @@ describe 'bareos::client' do
         end
       end
 
-      # All the Unix tests
+    # All the Unix tests
     else
       context "on #{os}" do
         let(:facts) { facts }
@@ -283,9 +274,7 @@ describe 'bareos::client' do
                                          .with_jobdef('DefaultMySQLJob')
                                          .with_order('N50')
                                          .with_runscript(
-                                           { 'command' =>
-                                             '/usr/local/sbin/mysqldumpbackup -c' }
-                                         )
+                                           [ { 'command' => '/usr/local/sbin/mysqldumpbackup -c' } ])
         end
         it { should contain_file('/etc/default/mysqldumpbackup')
                      .with_content(/KEEPBACKUP="1"/) }
@@ -294,9 +283,10 @@ describe 'bareos::client' do
                                          .with_jobdef('DefaultMySQLJob')
                                          .with_order('A01')
                                          .with_runscript(
-                                           { 'command' =>
-                                             '/usr/local/sbin/mysqldumpbackup -c mysqldumpbackup-ece' }
-                                         )
+                                           [ { 'command' =>
+                                               '/usr/local/sbin/mysqldumpbackup -c mysqldumpbackup-ece',
+                                             },
+                                           ])
         end
         it { should contain_file('/etc/default/mysqldumpbackup-ece')
                      .with_content(/GZIP="xz"/)
@@ -310,7 +300,7 @@ describe 'bareos::client' do
                                            [ { 'command' =>
                                                '/usr/bin/combo' },
                                              { 'command' =>
-                                               '/usr/local/sbin/mysqldumpbackup -c mysqldumpbackup-combo' }
+                                               '/usr/local/sbin/mysqldumpbackup -c mysqldumpbackup-combo' },
                                            ])
         end
         it { should contain_file('/etc/default/mysqldumpbackup-combo')
@@ -343,9 +333,7 @@ describe 'bareos::client' do
           expect(exported_resources).to contain_bareos__job_definition("#{facts[:fqdn]}-failover-job")
                                          .with_jobdef('DefaultMySQLJob')
                                          .with_runscript(
-                                           { 'command' =>
-                                             '/usr/local/sbin/mysqldumpbackup -c -r' }
-                                         )
+                                           [ { 'command' => '/usr/local/sbin/mysqldumpbackup -c -r' } ])
         end
         it { should_not contain_file('/var/backups') }
         it { should contain_file('/var/backups/mysql')
@@ -454,12 +442,102 @@ describe 'bareos::client' do
           expect(exported_resources).to contain_bareos__job_definition("#{facts[:fqdn]}-pg-job")
                                          .with_jobdef('DefaultPgSQLJob')
                                          .with_runscript(
-                                           { 'command' =>
-                                             '/usr/local/sbin/pgdumpbackup -c' }
-                                         )
+                                           [ { 'command' => '/usr/local/sbin/pgdumpbackup -c' } ])
         end
         it { should contain_file('/etc/default/pgdumpbackup')
                      .with_content(/KEEPBACKUP="1"/) }
+      end
+
+      context "on #{os} with preset s3" do
+        let(:facts) { facts.merge( { :specialcase => 'implementation' } ) }
+        let(:params) do
+          { :jobs => {
+              's3:alice' => {
+                'preset' => 'bareos::job::preset::s3',
+              },
+              's3:lewis' => {
+                'preset' => 'bareos::job::preset::s3',
+                'preset_params' => {
+                  'user_name' => 'carol',
+                  'pattern' => '^mad'
+                },
+              },
+              's3:carol::cdn' => {
+                'preset' => 's3',
+                'preset_params' => {
+                  'prefix' => 'content'
+                },
+              },
+            }
+          }
+        end
+
+        it { should compile.with_all_deps }
+        it { should contain_package('bareos-filedaemon-python-plugin') }
+        case facts[:os]['family']
+        when 'RedHat'
+          libdir = '/usr/lib64/bareos/plugins'
+        when 'Debian'
+          libdir = '/usr/lib/bareos/plugins'
+        end
+
+        it { should contain_file('/etc/bareos/bareos-fd.conf')
+                      .with_content(%r{Plugin Directory\s+=\s+"#{libdir}"}) }
+        it { should contain_file("#{libdir}/bareos-fd-s3.py") }
+        it { should contain_file("#{libdir}/S3")
+                      .with_ensure('directory')
+                      .with_source('puppet:///modules/bareos/preset/s3/S3')
+                      .with_recurse(true)
+        }
+
+        # 's3:alice'
+        it {
+          expect(exported_resources)
+            .to contain_bareos__job_definition("#{facts[:fqdn]}-s3:alice-job")
+                  .with_jobdef('DefaultJob')
+                  .with_fileset('S3 s3:alice')
+                  .with_accurate(true)
+        }
+        it {
+          expect(exported_resources)
+            .to contain_bareos__fileset_definition('S3 s3:alice')
+                  .with_plugins(["python:module_path=#{libdir}:module_name=bareos-fd-s3:config=/etc/bareos/s3/access-alice.cfg:bucket=alice:prefix="])
+                  .with_include_paths(['/situla'])
+        }
+        it { should contain_exec('bareos-make-s3-access alice') }
+
+        # 's3:lewis'
+        it {
+          expect(exported_resources)
+            .to contain_bareos__job_definition("#{facts[:fqdn]}-s3:lewis-job")
+                  .with_jobdef('DefaultJob')
+                  .with_fileset('S3 s3:lewis')
+                  .with_accurate(true)
+        }
+        it {
+          expect(exported_resources)
+            .to contain_bareos__fileset_definition('S3 s3:lewis')
+                  .with_plugins(["python:module_path=#{libdir}:module_name=bareos-fd-s3:config=/etc/bareos/s3/access-carol.cfg:bucket=lewis:prefix=:pattern=^mad"])
+                  .with_include_paths(['/situla'])
+        }
+        it { should contain_exec('bareos-make-s3-access carol') }
+
+        # 's3:carol::cdn'
+        it {
+          expect(exported_resources)
+            .to contain_bareos__job_definition("#{facts[:fqdn]}-s3:carol::cdn-job")
+                  .with_jobdef('DefaultJob')
+                  .with_fileset('S3 s3:carol::cdn')
+                  .with_accurate(true)
+        }
+        it {
+          expect(exported_resources)
+            .to contain_bareos__fileset_definition("S3 s3:carol::cdn")
+                  .with_plugins(["python:module_path=#{libdir}:module_name=bareos-fd-s3:config=/etc/bareos/s3/access-carol.cfg:bucket=carol:prefix=content"])
+                  .with_include_paths(['/situla'])
+
+        }
+        # it { should contain_exec('bareos-make-s3-access carol') }
       end
 
       context "on #{os} with preset mylvmbackup" do
@@ -517,7 +595,7 @@ describe 'bareos::client' do
                                          .with_runscript(
                                            [ { 'command' => "#{command} -c /etc/mylvmbackup-wp.conf --action=purge" },
                                              { 'command' => "#{command} -c /etc/mylvmbackup-wp.conf",
-                                               "abortjobonerror" => true },
+                                               'abortjobonerror' => true },
                                            ])
         end
         it { should contain_file('/etc/mylvmbackup-wp.conf')

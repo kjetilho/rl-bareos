@@ -244,4 +244,16 @@ describe 'bareos::fileset_definition' do
               .with_content(/Name\s+=\s+"service-fset"/)
     end
   end
+
+  context "special fileset name" do
+    let(:title) { "This isn't desired & wanted as a filename" }
+    let(:params) { default_params }
+
+    it { should compile.with_all_deps }
+
+    it do
+      should contain_file("#{prefix}This_isn_t_desired_wanted_as_a_filename.conf")
+              .with_content(/Name\s+=\s+"This isn't desired & wanted as a filename"/)
+    end
+  end
 end

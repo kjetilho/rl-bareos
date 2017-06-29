@@ -63,5 +63,7 @@ end
 RSpec.configure do |c|
   c.include Support::ExportedResources # see above
   c.hiera_config = 'spec/fixtures/hiera/hiera.yaml'
-  c.default_facts = { fqdn: 'node.example.com' }
+  c.default_facts = { :specialcase => 'normal',
+                      :fqdn => 'node.example.com',
+                    }
 end
