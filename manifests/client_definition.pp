@@ -8,8 +8,9 @@ define bareos::client_definition(
   $job_retention,
   $file_retention,
   $concurrency,
-  $client_name='',
-  $security_zone='',
+  $port = 9102,
+  $client_name = '',
+  $security_zone = '',
 )
 {
   # use de-uniqueified title going forward, but keep client_name

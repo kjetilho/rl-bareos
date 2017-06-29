@@ -43,6 +43,7 @@ describe 'bareos::client' do
           should contain_file('/etc/bacula/bacula-fd.conf')
                   .with_content(/Name = "systray-mon"/)
                   .with_content(/Name = "backup.example.com-dir"/)
+                  .with_content(/FDAddresses * = {ipv6 = {port = 9102}}/)
         end
         it do
           should contain_service('bacula-fd')
@@ -615,6 +616,7 @@ describe 'bareos::client' do
               },
               'test-service2.example.com' => {
                 'address' => '10.0.0.0',
+                'port' => 19102,
               },
             }
           }
@@ -624,11 +626,13 @@ describe 'bareos::client' do
         it do
           expect(exported_resources).to contain_bareos__client_definition("#{facts[:fqdn]}/test-service1.example.com-fd")
                                          .with_address("test-service1.example.com")
+                                         .with_port(9102)
                                          .with_concurrency(5)
         end
         it do
           expect(exported_resources).to contain_bareos__client_definition("#{facts[:fqdn]}/test-service2.example.com-fd")
                                          .with_address("10.0.0.0")
+                                         .with_port(19102)
                                          .with_concurrency(10) # default in bareos::client
         end
       end

@@ -24,6 +24,7 @@ class bareos::params::client {
   }
   $implementation = hiera('bareos::client::implementation', $_impl)
   $compression = 'GZIP'
+  $port = 9102
 
   case $::osfamily {
     'windows': {
