@@ -39,14 +39,15 @@ define bareos::client::fileset(
 
   if $fileset_name == '' {
     validate_re($title, '^[A-Za-z0-9:._ -]+$')
-    if $client_name == $::fqdn {
-      $_fileset_name = "${client_name}-${title}"
-    } else {
-      $_fileset_name = "${::fqdn}/${client_name}-${title}"
-    }
+    $_fileset_name = "${client_name}-${title}"
   } else {
     validate_re($fileset_name, '^[A-Za-z0-9:._ -]+$')
     $_fileset_name = $fileset_name
+  }
+  if $client_name == $::fqdn {
+    $__fileset_name = $_fileset_name
+  } else {
+    $__fileset_name = "${::fqdn}/${_fileset_name}"
   }
   if 'defaults' in $exclude_paths {
     $_exclude_paths = flatten([ $bareos::client::exclude_paths,
@@ -55,7 +56,7 @@ define bareos::client::fileset(
     $_exclude_paths = $exclude_paths
   }
   @@bareos::fileset_definition {
-    $_fileset_name:
+    $__fileset_name:
       include_paths          => $include_paths,
       exclude_paths          => $_exclude_paths,
       include_patterns       => $include_patterns,
