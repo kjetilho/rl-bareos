@@ -9,6 +9,7 @@ define bareos::job_definition(
   $fileset,
   $runscript,
   $sched,
+  $base='',
   $accurate='',
   $order='N50',
 )

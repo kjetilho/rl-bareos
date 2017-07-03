@@ -7,6 +7,8 @@ bareos::client::monitors:
 bareos::schedules:
   normal:
     - NormalSchedule
+  base:
+    - BaseSchedule
   multiple:
     - Monday
     - Tuesday

@@ -1,6 +1,9 @@
 Job {
   Name = "<%= @job_name %>"
   JobDefs = "<%= @jobdef %>"
+<% if @base != '' -%>
+  Base = "<%= @base %>"
+<% end -%>
 <% if @fileset != '' -%>
   Fileset = "<%= @fileset %>"
 <% end -%>
