@@ -98,10 +98,10 @@ define bareos::client::job(
       'order'       => $order,
       'params'      => $preset_params,
     }
-    create_resources($_preset, { $job_title => $preset_args })
+    create_resources($_preset, { "${job_title}" => $preset_args })
     if $make_base_job {
       create_resources($_preset, {
-        $_base_job_name => merge($preset_args, { 'sched' => $_base_sched, 'base' => '' }),
+        "${_base_job_name}" => merge($preset_args, { 'sched' => $_base_sched, 'base' => '' })
       })
     }
   } else {
