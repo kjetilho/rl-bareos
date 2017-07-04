@@ -35,9 +35,10 @@ define bareos::client::job(
 
   if $make_base_job {
     $_base_job_name = $base_job_name ? {
-      ''      => "${job_title}-base",
+      ''      => "${_job_name}-base",
       default => $base_job_name,
     }
+    $_base_job_title = "${job_title}-base" # possibly with "fqdn/"
     $_base_jobdef = $base_jobdef ? {
       ''      => $bareos::default_base_jobdef,
       default => $base_jobdef
@@ -101,7 +102,7 @@ define bareos::client::job(
     create_resources($_preset, { "${job_title}" => $preset_args })
     if $make_base_job {
       create_resources($_preset, {
-        "${_base_job_name}" => merge($preset_args, { 'sched' => $_base_sched, 'base' => '' })
+        "${_base_job_title}" => merge($preset_args, { 'sched' => $_base_sched, 'base' => '' })
       })
     }
   } else {
@@ -126,7 +127,7 @@ define bareos::client::job(
 
     if $make_base_job {
       @@bareos::job_definition {
-        $_base_job_name:
+        $_base_job_title:
           client_name => $client_name,
           name_suffix => $bareos::client::name_suffix,
           jobdef      => $_base_jobdef,
