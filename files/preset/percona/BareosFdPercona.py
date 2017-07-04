@@ -50,6 +50,11 @@ class BareosFdPercona (BareosFdPluginBaseclass):
         self.max_to_lsn = 0
         self.subprocess_stdOut = ''
         self.subprocess_stdError = ''
+        # It is a common problem that bareos-fd runs with an almost empty
+        # environment, even without $HOME, which means ~/.my.cnf won't be found.
+        if os.getenv('HOME') is None:
+            import pwd
+            os.putenv('HOME', pwd.getpwuid(os.getuid())[5])
 
     def parse_plugin_definition(self, context, plugindef):
         '''
