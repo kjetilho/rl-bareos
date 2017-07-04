@@ -96,7 +96,7 @@ describe 'bareos::client::job' do
     end
     it do
       expect(exported_resources).to contain_bareos__job_definition("#{facts[:fqdn]}-preset:user-job-base")
-                                      .with_jobdef('DefaultJob')
+                                      .with_jobdef('BaseJob')
                                       .with_sched('BaseSchedule')
                                       .with_fileset('S3 preset:user')
                                       .with_base('')
