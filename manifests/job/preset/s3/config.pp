@@ -15,13 +15,13 @@ define bareos::job::preset::s3::config(
   $host_base = hiera('bareos::job::preset::s3::host_base', ''),
   $prefix = '',
   $pattern = '',
+  $base = '',
 )
 {
   $cmd = "bareos-make-s3-access ${user_name}"
-  if $host_base != '' {
-    $_cmd = "${cmd} --host-base ${host_base}"
-  } else {
-    $_cmd = $cmd
+  $_cmd = $host_base ? {
+    ''      => $cmd,
+    default => "${cmd} --host-base ${host_base}",
   }
 
   ensure_resource('exec', "bareos-make-s3-access ${user_name}", {
@@ -51,5 +51,5 @@ define bareos::job::preset::s3::config(
     'onefs'         => true,
     'include_paths' => [ '/situla' ],
     'plugins'       => [ $_plugin ],
-    })
+  })
 }

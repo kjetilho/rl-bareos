@@ -33,8 +33,17 @@ define bareos::client::job(
   }
   validate_re($_job_name, '^[A-Za-z0-9.:_-]+$')
 
-  if $preset != '' and $make_base_job {
-    fail("${title}: make_base_job can not (currently) be combined with a preset")
+  if $make_base_job {
+    $_base_job_name = $base_job_name ? {
+      ''      => "${job_title}-base",
+      default => $base_job_name,
+    }
+    $_base_jobdef = $base_jobdef ? {
+      ''      => $bareos::default_base_jobdef,
+      default => $base_jobdef
+    }
+  } else {
+    $_base_job_name = $base_job_name
   }
 
   if $sched != '' {
@@ -59,19 +68,6 @@ define bareos::client::job(
     }
   }
 
-  if $make_base_job {
-    $_base_job_name = $base_job_name ? {
-      ''      => "${job_title}-base",
-      default => $base_job_name,
-    }
-    $_base_jobdef = $base_jobdef ? {
-      ''      => $bareos::default_base_jobdef,
-      default => $base_jobdef
-    }
-  } else {
-    $_base_job_name = $base_job_name
-  }
-
   if has_key($bareos::client::filesets, $fileset) {
     if has_key($bareos::client::filesets[$fileset], 'fileset_name') {
       $_fileset = $bareos::client::filesets[$fileset]['fileset_name']
@@ -91,19 +87,23 @@ define bareos::client::job(
 
   if ($preset != '') {
     $_preset = $preset ? { /::/ => $preset, default => "bareos::job::preset::${preset}" }
-    $preset_def = {
-      "${job_title}" => {
-        'client_name' => $client_name,
-        'jobdef'      => $jobdef,
-        'fileset'     => $_fileset,
-        'runscript'   => $runscript,
-        'sched'       => $_sched,
-        'accurate'    => $accurate,
-        'order'       => $order,
-        'params'      => $preset_params,
-      }
+    $preset_args = {
+      'client_name' => $client_name,
+      'base'        => $_base_job_name,
+      'jobdef'      => $jobdef,
+      'fileset'     => $_fileset,
+      'runscript'   => $runscript,
+      'sched'       => $_sched,
+      'accurate'    => $accurate,
+      'order'       => $order,
+      'params'      => $preset_params,
     }
-    create_resources($_preset, $preset_def)
+    create_resources($_preset, { $job_title => $preset_args })
+    if $make_base_job {
+      create_resources($_preset, {
+        $_base_job_name => merge($preset_args, { 'sched' => $_base_sched, 'base' => '' }),
+      })
+    }
   } else {
     $_jobdef = $jobdef ? {
       ''      => $bareos::default_jobdef,

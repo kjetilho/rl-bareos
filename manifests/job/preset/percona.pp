@@ -14,6 +14,7 @@
 #
 define bareos::job::preset::percona(
   $client_name,
+  $base,
   $jobdef,
   $fileset,
   $runscript,
@@ -83,6 +84,7 @@ define bareos::job::preset::percona(
     $title:
       client_name => $client_name,
       name_suffix => $bareos::client::name_suffix,
+      base        => $base,
       jobdef      => $_jobdef,
       fileset     => $_fileset,
       runscript   => $runscript,

@@ -14,6 +14,7 @@
 #
 define bareos::job::preset::pgdumpbackup(
   $client_name,
+  $base,
   $jobdef,
   $fileset,
   $runscript,
@@ -58,6 +59,7 @@ define bareos::job::preset::pgdumpbackup(
     $title:
       client_name => $client_name,
       name_suffix => $bareos::client::name_suffix,
+      base        => $base,
       jobdef      => $_jobdef,
       fileset     => $fileset,
       runscript   => flatten([$runscript, [{ 'command' => $command }] ]),
