@@ -31,11 +31,15 @@ define bareos::job::preset::percona(
   } else {
     fail("No support yet for ${::operatingsystem}")
   }
+  if $bareos::client::python_mysql_package {
+    ensure_packages($bareos::client::python_mysql_package)
+  }
   if $params['xtrabackup_package'] {
     ensure_packages($params['xtrabackup_package'])
   } else {
     ensure_packages('percona-xtrabackup')
   }
+
 
   if $params['skip_binlog'] {
     $include_paths = []

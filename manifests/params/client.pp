@@ -59,6 +59,7 @@ class bareos::params::client {
           $pid_dir     = $working_dir
           $plugin_dir  = "/usr/lib64/${implementation}/plugins"
           $python_plugin_package = "${implementation}-filedaemon-python-plugin"
+          $python_mysql_package = 'MySQL-python'
         }
         default: {
           $package     = "${implementation}-client"
@@ -67,6 +68,7 @@ class bareos::params::client {
           $pid_dir     = '/var/run'
           $plugin_dir  = false
           $python_plugin_package = false
+          $python_mysql_package = 'MySQL-python'
         }
       }
     }
@@ -79,6 +81,7 @@ class bareos::params::client {
           $pid_dir    = $working_dir
           $plugin_dir = "/usr/lib/${implementation}/plugins"
           $python_plugin_package = "${implementation}-filedaemon-python-plugin"
+          $python_mysql_package = 'python-mysqldb'
         }
         default: {
           $package    = "${implementation}-fd"
@@ -86,6 +89,7 @@ class bareos::params::client {
           $pid_dir    = "/var/run/${implementation}"
           $plugin_dir = false
           $python_plugin_package = false
+          $python_mysql_package = 'python-mysqldb'
         }
       }
     }
@@ -95,6 +99,7 @@ class bareos::params::client {
       $pid_dir     = false
       $plugin_dir  = false
       $python_plugin_package = false
+      $python_mysql_package = false
       $working_dir = false
     }
     default: {
@@ -103,6 +108,7 @@ class bareos::params::client {
       $pid_dir     = '/var/run'
       $plugin_dir  = false
       $python_plugin_package = false
+      $python_mysql_package = false
     }
   }
 }
