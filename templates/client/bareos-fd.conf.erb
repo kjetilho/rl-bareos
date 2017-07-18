@@ -32,7 +32,7 @@ FileDaemon {
 <% if @plugin_dir -%>
   Plugin Directory         = "<%= @plugin_dir %>"
 <% end -%>
-  Maximum Concurrent Jobs  = 20
+  Maximum Concurrent Jobs  = <%= @concurrency + 10 %>
   Heartbeat Interval       = 1 min
 }
 

@@ -11,7 +11,8 @@ describe 'bareos::client' do
         it { should compile.with_all_deps }
         it do
           should contain_file('C:/ProgramData/Bareos/bareos-fd.conf')
-                  .with_content(/Name = "backup.example.com-dir"/)
+                   .with_content(/Name = "backup.example.com-dir"/)
+                   .with_content(/Maximum Concurrent Jobs\s+= 20/)
         end
         it do
           should contain_service('Bareos-fd')
@@ -44,6 +45,7 @@ describe 'bareos::client' do
                   .with_content(/Name = "systray-mon"/)
                   .with_content(/Name = "backup.example.com-dir"/)
                   .with_content(/FDAddresses * = {ipv6 = {port = 9102}}/)
+                  .with_content(/Maximum Concurrent Jobs\s+= 20/)
         end
         it do
           should contain_service('bacula-fd')
@@ -60,12 +62,27 @@ describe 'bareos::client' do
         end
         it do
           expect(exported_resources).to contain_bareos__client_definition("#{facts[:fqdn]}-fd")
+                                          .with_concurrency(10)
         end
         it do
           expect(exported_resources).to contain_bareos__job_definition("#{facts[:fqdn]}-system-job")
                                          .with_sched('NormalSchedule')
                                          .with_accurate('')
                                          .with_order('N50')
+        end
+      end
+
+      context "on #{os} with increased concurrency" do
+        let(:facts) { facts }
+        let(:params) { { :concurrency => 20 } }
+        it { should compile.with_all_deps }
+        it do
+          should contain_file('/etc/bacula/bacula-fd.conf')
+                  .with_content(/Maximum Concurrent Jobs\s+= 30/)
+        end
+        it do
+          expect(exported_resources).to contain_bareos__client_definition("#{facts[:fqdn]}-fd")
+                                          .with_concurrency(20)
         end
       end
 
@@ -80,6 +97,7 @@ describe 'bareos::client' do
           should contain_file('/etc/bareos/bareos-fd.conf')
                   .with_content(/Name = "systray-mon"/)
                   .with_content(/Name = "backup.example.com-dir"/)
+                  .with_content(/Maximum Concurrent Jobs\s+= 20/)
         end
         case facts[:os]['family']
         when 'RedHat'
@@ -107,6 +125,7 @@ describe 'bareos::client' do
         end
         it do
           expect(exported_resources).to contain_bareos__client_definition("#{facts[:fqdn]}-fd")
+                                          .with_concurrency(10)
         end
         it do
           expect(exported_resources).to contain_bareos__job_definition("#{facts[:fqdn]}-system-job")
