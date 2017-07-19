@@ -5,7 +5,7 @@ describe 'bareos::client' do
 
     case facts[:kernel]
     when 'windows'
-      context "on #{os}", skip: "unable to make it work on Unix system" do
+      context "on #{os}", skip: "absolute path check fails in rspec-puppet 2.5.0" do
         let(:facts) { facts }
 
         it { should compile.with_all_deps }
@@ -438,7 +438,7 @@ describe 'bareos::client' do
         it {
           expect(exported_resources).to contain_bareos__job_definition("#{facts[:fqdn]}-db-job")
                                           .with_jobdef('DefaultJob')
-                                          .with_include_paths([nil]) # should be [], but export simulation breaks
+                                          .with_include_paths([])
                                           .with_accurate(false)
                                           .with_fileset("#{facts[:fqdn]}-percona")
         }
