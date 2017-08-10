@@ -109,7 +109,9 @@ just a seed which is hashed with `${bareos::secret}`.  We do that
 extra step to avoid putting the actual password in PuppetDB.  Default: FQDN
 
 __`bareos::client::concurrency`__:
-How many jobs can run at the same time on this client.  Default: 10
+How many jobs the director will schedule at the same time on this
+client.  The FD will be configured to allow 10 more connections than
+this.  Default: 10
 
 __`bareos::client::implementation`__:
 Either `bacula` or `bareos`.  This needs to be set via Hiera to affect
