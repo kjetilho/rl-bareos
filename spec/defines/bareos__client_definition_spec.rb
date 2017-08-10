@@ -35,19 +35,21 @@ describe 'bareos::client_definition' do
       should contain_file("#{prefix}#{title}.conf")
               .with_content(/Name\s+=\s+"#{title}"/)
               .with_content(/Address\s+=\s+127.1.2.3/)
+              .with_content(/FDPort\s+=\s+9102/)
               .with_content(/Password\s+=\s+"8843d7f92416211de9ebb963ff4ce28125932878"/)
     end
   end
 
   context "service address" do
     let(:title) { "#{facts[:fqdn]}/service.example.com-fd" }
-    let(:params) { default_params }
+    let(:params) { default_params.merge({ :port => 19102 }) }
     it { should compile.with_all_deps }
 
     it do
       should contain_file("#{prefix}service.example.com-fd.conf")
               .with_content(/Name\s+=\s+"service.example.com-fd"/)
               .with_content(/Address\s+=\s+127.1.2.3/)
+              .with_content(/FDPort\s+=\s+19102/)
               .with_content(/Password\s+=\s+"8843d7f92416211de9ebb963ff4ce28125932878"/)
     end
   end

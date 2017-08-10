@@ -43,6 +43,7 @@ class bareos::client (
   $service        = $bareos::params::client::service,
   $service_ensure = 'running',
   $service_enable = true,
+  $port           = $bareos::params::client::port,
   $log_dir        = $bareos::params::client::log_dir,
   $pid_dir        = $bareos::params::client::pid_dir,
   $working_dir    = $bareos::params::client::working_dir,

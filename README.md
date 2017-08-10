@@ -225,6 +225,23 @@ section.  If unqualified, `bareos::job::preset::` will be prepended.
 
 __`preset_params`__: Parameters to pass to preset class.
 
+__`base_job_name`__: Optional name of a Base backup job.  If Bareos
+has a valid copy of this Base job, a Full backup will be relative to
+that base.
+
+__`make_base_job`__: Boolean which controls whether a companion Base
+level job should be defined.  The base backup job definition will be
+the same as this job, but with a different schedule and jobdefs.
+Default is `false`.
+
+__`base_schedule`__: What schedule set to use for the Base job.  Must
+have the same number of entries as the schedule set for the job
+itself.  Default is 'base'.
+
+__`base_jobdef`__: The jobdefs to use for the Base job.  Default is
+'BaseJob'.
+
+
 ### Example:
 
 The following example installs a backup agent and registers a job with

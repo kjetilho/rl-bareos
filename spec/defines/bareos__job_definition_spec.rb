@@ -36,6 +36,7 @@ describe 'bareos::job_definition' do
               .without_content(/Fileset/)
               .without_content(/RunScript/)
               .without_content(/Accurate/)
+              .without_content(/Base/)
     end
   end
 
@@ -134,6 +135,24 @@ describe 'bareos::job_definition' do
               .with_content(/Command = "post3"/)
               .with_content(/Runswhen = after/)
               .with_content(/Abortjobonerror = true/)
+    end
+  end
+
+  context "base job" do
+    let(:title) { "client.example.com-job" }
+    let(:params) { default_params.merge({ :base => 'a-base' }) }
+
+    it { should compile.with_all_deps }
+
+    it do
+      should contain_file("#{prefix}N50_#{title}.conf")
+              .with_content(/Name\s+=\s+"#{title}"/)
+              .with_content(/Base\s+=\s+"a-base"/)
+              .with_content(/JobDefs\s+=\s+"DefaultJob"/)
+              .with_content(/Schedule\s+=\s+"StdSched"/)
+              .without_content(/Fileset/)
+              .without_content(/RunScript/)
+              .without_content(/Accurate/)
     end
   end
 

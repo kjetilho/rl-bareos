@@ -5,6 +5,7 @@
 class bareos  (
   $director = 'dump-dir',
   $default_jobdef = 'DefaultJob',
+  $default_base_jobdef = 'BaseJob',
   $security_zone = ''
 )
 {

@@ -14,6 +14,7 @@
 #
 define bareos::job::preset::percona(
   $client_name,
+  $base,
   $jobdef,
   $fileset,
   $runscript,
@@ -30,11 +31,15 @@ define bareos::job::preset::percona(
   } else {
     fail("No support yet for ${::operatingsystem}")
   }
+  if $bareos::client::python_mysql_package {
+    ensure_packages($bareos::client::python_mysql_package)
+  }
   if $params['xtrabackup_package'] {
     ensure_packages($params['xtrabackup_package'])
   } else {
     ensure_packages('percona-xtrabackup')
   }
+
 
   if $params['skip_binlog'] {
     $include_paths = []
@@ -83,6 +88,7 @@ define bareos::job::preset::percona(
     $title:
       client_name => $client_name,
       name_suffix => $bareos::client::name_suffix,
+      base        => $base,
       jobdef      => $_jobdef,
       fileset     => $_fileset,
       runscript   => $runscript,

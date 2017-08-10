@@ -1,5 +1,6 @@
 define bareos::client::service_addr(
   $address='',
+  $port = $bareos::client::port,
   $job_retention = $bareos::client::job_retention,
   $file_retention = $bareos::client::file_retention,
   $concurrency = $bareos::client::concurrency,
@@ -10,6 +11,7 @@ define bareos::client::service_addr(
   @@bareos::client_definition { "${::fqdn}/${title}${bareos::client::name_suffix}":
     password       => $bareos::client::password,
     address        => $_address,
+    port           => $port,
     job_retention  => $job_retention,
     file_retention => $file_retention,
     concurrency    => $concurrency,
