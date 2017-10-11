@@ -315,7 +315,7 @@ __`mycnf`__: location of my.cnf to use
 
 __`skip_binlog`__: do not include binlogs in backup, default is `false`
 
-__`xtrapackage_package`__: name of package containing xtrabackup(1).
+__`xtrabackup_package`__: name of package containing xtrabackup(1).
 On Ubuntu Xenial you may need to specify "percona-xtrabackup-24".
 Default: "percona-xtrabackup"
 
