@@ -13,6 +13,7 @@
 # Other available parameters are documented in config.pp
 #
 define bareos::job::preset::s3(
+  $short_title,
   $client_name,
   $base,
   $jobdef,

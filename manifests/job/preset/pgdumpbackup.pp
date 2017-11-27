@@ -13,6 +13,7 @@
 # documented there.
 #
 define bareos::job::preset::pgdumpbackup(
+  $short_title,
   $client_name,
   $base,
   $jobdef,

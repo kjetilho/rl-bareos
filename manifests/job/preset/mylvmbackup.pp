@@ -10,6 +10,7 @@
 # documented there.
 #
 define bareos::job::preset::mylvmbackup(
+  $short_title,
   $client_name,
   $base,
   $jobdef,

@@ -401,6 +401,7 @@ Example usage:
 The signature for a preset should be this:
 
     define widget::backup::preset::widgetdump(
+        $short_title,
         $client_name,
         $jobdef,
         $fileset,
@@ -411,6 +412,8 @@ The signature for a preset should be this:
     )
 
 `title` for the define will be the full job name.
+
+`short_title` will be the short job name, for your convenience.
 
 `client_name` is the name of the client, and should be passed on.
 
@@ -443,6 +446,7 @@ This should be done like this:
         $title:
             client_name => $client_name,
             name_suffix => $bareos::client::name_suffix,
+            base        => $base,
             jobdef      => $_jobdef,
             fileset     => $fileset,
             sched       => $sched,

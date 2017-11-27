@@ -392,13 +392,13 @@ describe 'bareos::client' do
         it { should contain_file("#{libdir}/bareos-fd-percona.py") }
         it { should contain_file("/etc/bareos/mysql-logbin-location") }
         it {
-          expect(exported_resources).to contain_bareos__fileset_definition("#{facts[:fqdn]}-percona")
+          expect(exported_resources).to contain_bareos__fileset_definition("#{facts[:fqdn]}-db")
                                           .with_plugins(["python:module_path=#{libdir}:module_name=bareos-fd-percona:mycnf=/etc/my.cnf"])
         }
         it {
           expect(exported_resources).to contain_bareos__job_definition("#{facts[:fqdn]}-db-job")
                                           .with_jobdef('DefaultJob')
-                                          .with_fileset("#{facts[:fqdn]}-percona")
+                                          .with_fileset("#{facts[:fqdn]}-db")
                                           .with_accurate(false)
         }
       end
@@ -432,7 +432,7 @@ describe 'bareos::client' do
         it { should contain_file("#{libdir}/bareos-fd-percona.py") }
         it { should_not contain_file("/etc/bareos/mysql-logbin-location") }
         it {
-          expect(exported_resources).to contain_bareos__fileset_definition("#{facts[:fqdn]}-percona")
+          expect(exported_resources).to contain_bareos__fileset_definition("#{facts[:fqdn]}-db")
                                           .with_plugins(["python:module_path=#{libdir}:module_name=bareos-fd-percona"])
         }
         it {
@@ -440,7 +440,7 @@ describe 'bareos::client' do
                                           .with_jobdef('DefaultJob')
                                           .with_include_paths([])
                                           .with_accurate(false)
-                                          .with_fileset("#{facts[:fqdn]}-percona")
+                                          .with_fileset("#{facts[:fqdn]}-db")
         }
       end
 

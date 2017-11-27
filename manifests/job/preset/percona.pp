@@ -13,6 +13,7 @@
 # only contains data from the plugin.
 #
 define bareos::job::preset::percona(
+  $short_title,
   $client_name,
   $base,
   $jobdef,
@@ -56,8 +57,8 @@ define bareos::job::preset::percona(
   if ($jobdef == '') {
     $_jobdef = $bareos::default_jobdef
     if $fileset == '' {
-      $_fileset = "${bareos::client::client_name}-percona"
-      ensure_resource('bareos::client::fileset', 'percona', {
+      $_fileset = "${bareos::client::client_name}-${short_title}"
+      ensure_resource('bareos::client::fileset', $short_title, {
         'fileset_name'  => $_fileset,
         'include_paths' => $include_paths,
         'plugins'       => [ template('bareos/preset/percona-plugin.erb') ],
