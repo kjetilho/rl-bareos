@@ -92,6 +92,13 @@ resources.  Default: '/etc/bareos/jobs.d/'
 __`bareos::server::fileset_file_prefix`__: Where to put collected
 fileset resources.  Default: '/etc/bareos/filesets.d/'
 
+## Usage without Hiera
+
+The values `bareos::schedules`, `bareos::secret`, `bareos::server::secrets`
+are taken directly from Hiera.  Users without Hiera can pass the parameters
+`$default_schedules` and `$default_secret` to class `bareos` and the
+parameter `$default_secrets` to class `bareos::server`.
+
 
 Client
 ------
