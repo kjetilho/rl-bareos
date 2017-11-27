@@ -42,7 +42,7 @@ define bareos::job::preset::percona(
   }
 
 
-  if $params['skip_binlog'] {
+  if 'skip_binlog' in $params {
     $include_paths = []
   } else {
     ensure_resource('file', '/etc/bareos/mysql-logbin-location', {
@@ -51,7 +51,11 @@ define bareos::job::preset::percona(
       owner  => 'root',
       group  => 'root',
       })
-    $include_paths = ['\|/etc/bareos/mysql-logbin-location']
+    if 'mycnf' in $params {
+      $include_paths = ["\\|/etc/bareos/mysql-logbin-location --defaults-file=${params['mycnf']}"]
+    } else {
+      $include_paths = ['\|/etc/bareos/mysql-logbin-location']
+    }
   }
 
   if ($jobdef == '') {
