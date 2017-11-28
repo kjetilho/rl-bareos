@@ -179,7 +179,7 @@ Default: "0755"
 
 __`bareos::client::systemd_limits`__: Hash of resource limits which
 needs overriding.  Only works for systemd, but no check is done to see
-if systemd manages the service.  Example: { 'nofiles' => 16384 }.
+if systemd manages the service.  Example: { 'nofile' => 16384 }.
 Default is to do nothing.
 
 In addition, you can manage the service, the location of the log file,
