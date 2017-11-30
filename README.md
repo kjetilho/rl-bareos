@@ -92,6 +92,13 @@ resources.  Default: '/etc/bareos/jobs.d/'
 __`bareos::server::fileset_file_prefix`__: Where to put collected
 fileset resources.  Default: '/etc/bareos/filesets.d/'
 
+## Usage without Hiera
+
+The values `bareos::schedules`, `bareos::secret`, `bareos::server::secrets`
+are taken directly from Hiera.  Users without Hiera can pass the parameters
+`$default_schedules` and `$default_secret` to class `bareos` and the
+parameter `$default_secrets` to class `bareos::server`.
+
 
 Client
 ------
@@ -172,7 +179,7 @@ Default: "0755"
 
 __`bareos::client::systemd_limits`__: Hash of resource limits which
 needs overriding.  Only works for systemd, but no check is done to see
-if systemd manages the service.  Example: { 'nofiles' => 16384 }.
+if systemd manages the service.  Example: { 'nofile' => 16384 }.
 Default is to do nothing.
 
 In addition, you can manage the service, the location of the log file,
@@ -315,7 +322,7 @@ __`mycnf`__: location of my.cnf to use
 
 __`skip_binlog`__: do not include binlogs in backup, default is `false`
 
-__`xtrapackage_package`__: name of package containing xtrabackup(1).
+__`xtrabackup_package`__: name of package containing xtrabackup(1).
 On Ubuntu Xenial you may need to specify "percona-xtrabackup-24".
 Default: "percona-xtrabackup"
 
@@ -394,6 +401,7 @@ Example usage:
 The signature for a preset should be this:
 
     define widget::backup::preset::widgetdump(
+        $short_title,
         $client_name,
         $jobdef,
         $fileset,
@@ -404,6 +412,8 @@ The signature for a preset should be this:
     )
 
 `title` for the define will be the full job name.
+
+`short_title` will be the short job name, for your convenience.
 
 `client_name` is the name of the client, and should be passed on.
 
@@ -436,6 +446,7 @@ This should be done like this:
         $title:
             client_name => $client_name,
             name_suffix => $bareos::client::name_suffix,
+            base        => $base,
             jobdef      => $_jobdef,
             fileset     => $fileset,
             sched       => $sched,

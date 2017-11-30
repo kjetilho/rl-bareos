@@ -128,7 +128,7 @@ FileSet {
      if not excl.empty?
 -%>
   Exclude {
-<%     excl.each do |path| -%>
+<%     excl.uniq.each do |path| -%>
     File = <%= path.inspect %>
 <%     end -%>
   }

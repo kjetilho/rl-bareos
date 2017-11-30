@@ -13,6 +13,7 @@
 # documented there.
 #
 define bareos::job::preset::mysqldumpbackup(
+  $short_title,
   $client_name,
   $base,
   $jobdef,

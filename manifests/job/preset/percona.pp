@@ -13,6 +13,7 @@
 # only contains data from the plugin.
 #
 define bareos::job::preset::percona(
+  $short_title,
   $client_name,
   $base,
   $jobdef,
@@ -41,7 +42,7 @@ define bareos::job::preset::percona(
   }
 
 
-  if $params['skip_binlog'] {
+  if 'skip_binlog' in $params {
     $include_paths = []
   } else {
     ensure_resource('file', '/etc/bareos/mysql-logbin-location', {
@@ -50,14 +51,18 @@ define bareos::job::preset::percona(
       owner  => 'root',
       group  => 'root',
       })
-    $include_paths = ['\|/etc/bareos/mysql-logbin-location']
+    if 'mycnf' in $params {
+      $include_paths = ["\\|/etc/bareos/mysql-logbin-location --defaults-file=${params['mycnf']}"]
+    } else {
+      $include_paths = ['\|/etc/bareos/mysql-logbin-location']
+    }
   }
 
   if ($jobdef == '') {
     $_jobdef = $bareos::default_jobdef
     if $fileset == '' {
-      $_fileset = "${bareos::client::client_name}-percona"
-      ensure_resource('bareos::client::fileset', 'percona', {
+      $_fileset = "${bareos::client::client_name}-${short_title}"
+      ensure_resource('bareos::client::fileset', $short_title, {
         'fileset_name'  => $_fileset,
         'include_paths' => $include_paths,
         'plugins'       => [ template('bareos/preset/percona-plugin.erb') ],

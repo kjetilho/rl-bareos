@@ -8,7 +8,7 @@ group :test do
   gem 'facter', '~> 2.4.0'
   gem 'json'
   gem 'json_pure'
-  gem 'rspec-puppet', '~> 2.5.0'
+  gem 'rspec-puppet', '= 2.5.0' # see rspec-puppet issue 620.  2.6.0 breaks exported_resources
   gem 'puppetlabs_spec_helper'
   gem 'rspec-puppet-facts'
 end

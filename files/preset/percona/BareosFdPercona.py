@@ -27,7 +27,6 @@ import os
 from subprocess import *
 from BareosFdPluginBaseclass import *
 import BareosFdWrapper
-import MySQLdb
 import datetime
 import time
 import tempfile
@@ -42,7 +41,7 @@ class BareosFdPercona (BareosFdPluginBaseclass):
     '''
 
     def __init__(self, context, plugindef):
-        #BareosFdPluginBaseclass.__init__(self, context, plugindef)
+        # BareosFdPluginBaseclass.__init__(self, context, plugindef)
         super(BareosFdPercona, self).__init__(context, plugindef)
         # we first create and backup the stream and after that
         # the lsn file as restore-object
@@ -51,11 +50,6 @@ class BareosFdPercona (BareosFdPluginBaseclass):
         self.log = 'plugin-percona.log'
         self.rop_data = {}
         self.max_to_lsn = 0
-        # It is a common problem that bareos-fd runs with an almost empty
-        # environment, even without $HOME, which means ~/.my.cnf won't be found.
-        if os.getenv('HOME') is None:
-            import pwd
-            os.putenv('HOME', pwd.getpwuid(os.getuid())[5])
 
     def parse_plugin_definition(self, context, plugindef):
         '''
@@ -70,12 +64,12 @@ class BareosFdPercona (BareosFdPluginBaseclass):
         else:
             self.dumpbinary = "xtrabackup"
 
-        if not 'restorecommand' in self.options:
+        if 'restorecommand' not in self.options:
             self.restorecommand = "xbstream -x -C "
         else:
             self.restorecommand = self.options['restorecommand']
 
-        if not 'log' in self.options:
+        if 'log' not in self.options:
             self.log = os.path.join(GetValue(context, bVariable['bVarWorkingDir']), self.log)
         elif self.options['log'] == 'false':
             self.log = False
@@ -88,8 +82,8 @@ class BareosFdPercona (BareosFdPluginBaseclass):
         # this option to use extra files
         self.connect_options = { 'read_default_group': 'client' }
         if 'mycnf' in self.options:
-            self.mycnf = self.options['mycnf']
-            self.connect_options['read_default_file'] = self.mycnf
+            self.connect_options['read_default_file'] = self.options['mycnf'] 
+            self.mycnf = "--defaults-extra-file=%s " % self.options['mycnf']
         else:
             self.mycnf = ""
 
@@ -100,25 +94,30 @@ class BareosFdPercona (BareosFdPluginBaseclass):
         else:
             self.strictIncremental = False
 
-        # if dumpoptions is set, we use that completely here, otherwise defaults
+        self.dumpoptions = self.mycnf
+
+        # if dumpoptions is set, we use that here, otherwise defaults
         if 'dumpoptions' in self.options:
-            self.dumpoptions = self.options['dumpoptions']
+            self.dumpoptions += self.options['dumpoptions']
         else:
-            self.dumpoptions = ""
-            if self.mycnf != "":
-                self.dumpoptions += "--defaults-extra-file=%s " % self.mycnf
-            self.dumpoptions += "--backup --stream=xbstream"
+            self.dumpoptions += " --backup --stream=xbstream"
 
         self.dumpoptions += " --extra-lsndir=%s" % self.tempdir
 
         if 'extradumpoptions' in self.options:
             self.dumpoptions += " " + self.options['extradumpoptions']
 
+        # Used to get the current Log Sequence Number (LSN) when MySQLdb is unavailable
+        if 'mysqlcmd' in self.options:
+            self.mysqlcmd = self.options['mysqlcmd']
+        else:
+            self.mysqlcmd = "mysql %s -r" % self.mycnf
+
         return bRCs['bRC_OK']
 
     def check_plugin_options(self, context, mandatory_options=None):
         accurate_enabled = GetValue(context, bVariable['bVarAccurate'])
-        if not accurate_enabled is None and accurate_enabled != 0:
+        if accurate_enabled is not None and accurate_enabled != 0:
             JobMessage(context, bJobMessageType['M_FATAL'],
                        "start_backup_job: Accurate backup not allowed please disable in Job\n")
             return bRCs['bRC_Error']
@@ -178,24 +177,51 @@ class BareosFdPercona (BareosFdPluginBaseclass):
             if self.max_to_lsn == 0:
                 JobMessage(context, bJobMessageType['M_FATAL'], "No LSN received to be used with incremental backup\n")
                 return bRCs['bRC_Error']
-            # We check, if the DB was changed at all since last backup
+            # Try to load MySQLdb module
+            hasMySQLdbModule = False
             try:
-                conn = MySQLdb.connect(**self.connect_options)
-                cursor = conn.cursor()
-                cursor.execute('SHOW ENGINE INNODB STATUS')
-                result = cursor.fetchall()
-                if len(result) == 0:
-                    JobMessage(context, bJobMessageType['M_FATAL'], "Could not fetch SHOW ENGINE INNODB STATUS, unpriveleged user?")
+                import MySQLdb
+                hasMySQLdbModule = True
+                bareosfd.DebugMessage(context, 100, "Imported module MySQLdb\n")
+            except ImportError:
+                bareosfd.DebugMessage(context, 100, "Import of module MySQLdb failed. Using command pipe instead\n")
+            # contributed by https://github.com/kjetilho
+            if hasMySQLdbModule:
+                try:
+                    conn = MySQLdb.connect(**self.connect_options)
+                    cursor = conn.cursor()
+                    cursor.execute('SHOW ENGINE INNODB STATUS')
+                    result = cursor.fetchall()
+                    if len(result) == 0:
+                        JobMessage(context, bJobMessageType['M_FATAL'], "Could not fetch SHOW ENGINE INNODB STATUS, unpriveleged user?")
+                        return bRCs['bRC_Error']
+                    info = result[0][2]
+                    conn.close()
+                    for line in info.split("\n"):
+                        if line.startswith('Log sequence number'):
+                            last_lsn = int(line.split(' ')[3])
+                except Exception, e:
+                    JobMessage(context, bJobMessageType['M_FATAL'], "Could not get LSN, Error: %s" % e)
                     return bRCs['bRC_Error']
-                info = result[0][2]
-                conn.close()
-                for line in info.split("\n"):
-                    if line.startswith('Log sequence number'):
-                        last_lsn = int(line.split(' ')[3])
-            except Exception, e:
-                JobMessage(context, bJobMessageType['M_FATAL'], "Could not get LSN, Error: %s" % e)
-                return bRCs['bRC_Error']
-            bareosfd.DebugMessage(context, 100, "Current LSN value is %d\n" % last_lsn)
+            # use old method as fallback, if module MySQLdb not available
+            else:
+                get_lsn_command = ("echo 'SHOW ENGINE INNODB STATUS' | %s | grep 'Log sequence number' | cut -d ' ' -f 4"
+                                   % self.mysqlcmd)
+                last_lsn_proc = Popen(get_lsn_command, shell=True, stdout=PIPE, stderr=PIPE)
+                last_lsn_proc.wait()
+                returnCode = last_lsn_proc.poll()
+                (mysqlStdOut, mysqlStdErr) = last_lsn_proc.communicate()
+                if returnCode != 0 or mysqlStdErr:
+                    JobMessage(context, bJobMessageType['M_FATAL'], "Could not get LSN with command \"%s\", Error: %s"
+                        % (get_lsn_command, mysqlStdErr))
+                    return bRCs['bRC_Error']
+                else:
+                    try:
+                        last_lsn = int(mysqlStdOut)
+                    except:
+                        JobMessage(context, bJobMessageType['M_FATAL'], "Error reading LSN: \"%s\" not an integer" % mysqlStdOut)
+                        return bRCs['bRC_Error']
+            JobMessage(context, bJobMessageType['M_INFO'], "Backup until LSN: %d\n" %last_lsn)
             if self.max_to_lsn > 0 and self.max_to_lsn >= last_lsn and self.strictIncremental:
                 bareosfd.DebugMessage(
                     context, 100,

@@ -9,9 +9,11 @@ class bareos::server(
   $client_file_prefix = '/etc/bareos/clients.d/',
   $job_file_prefix = '/etc/bareos/jobs.d/',
   $fileset_file_prefix = '/etc/bareos/filesets.d/',
-  $secrets = {},
+  $default_secrets = {},
 )
 {
+  # See comment in init.pp
+  $secrets = hiera('bareos::server::secrets', $default_secrets)
   validate_hash($secrets)
 
   include bareos

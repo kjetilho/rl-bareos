@@ -89,6 +89,7 @@ define bareos::client::job(
   if ($preset != '') {
     $_preset = $preset ? { /::/ => $preset, default => "bareos::job::preset::${preset}" }
     $preset_args = {
+      'short_title' => $title,
       'client_name' => $client_name,
       'base'        => $_base_job_name,
       'jobdef'      => $jobdef,

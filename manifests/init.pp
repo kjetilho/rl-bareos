@@ -6,11 +6,15 @@ class bareos  (
   $director = 'dump-dir',
   $default_jobdef = 'DefaultJob',
   $default_base_jobdef = 'BaseJob',
-  $security_zone = ''
+  $default_secret = false,
+  $default_schedules = {},
+  $security_zone = '',
 )
 {
-  # Avoid storing these in PuppetDB.  The first for security reasons,
-  # the second for efficiency.
-  $secret = hiera('bareos::secret')
-  $schedules = hiera_hash('bareos::schedules')
+  # Passing values as class parameters will cause them to be stored in
+  # plain text in PuppetDB, and this should be avoided.  The first
+  # value for security reasons, the second for efficiency (the
+  # schedule set can be big).
+  $secret = hiera('bareos::secret', $default_secret)
+  $schedules = hiera_hash('bareos::schedules', $default_schedules)
 }
