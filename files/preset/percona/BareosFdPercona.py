@@ -27,8 +27,8 @@ import os
 from subprocess import *
 from BareosFdPluginBaseclass import *
 import BareosFdWrapper
-import datetime
 import time
+import datetime
 import tempfile
 import shutil
 import json
@@ -50,6 +50,13 @@ class BareosFdPercona (BareosFdPluginBaseclass):
         self.log = 'plugin-percona.log'
         self.rop_data = {}
         self.max_to_lsn = 0
+        self.MySQLdb = False
+        try:
+            import MySQLdb
+            self.MySQLdb = MySQLdb
+            bareosfd.DebugMessage(context, 100, "Imported module MySQLdb\n")
+        except ImportError:
+            bareosfd.DebugMessage(context, 100, "Import of module MySQLdb failed. Using command pipe instead\n")
 
     def parse_plugin_definition(self, context, plugindef):
         '''
@@ -107,7 +114,7 @@ class BareosFdPercona (BareosFdPluginBaseclass):
         if 'extradumpoptions' in self.options:
             self.dumpoptions += " " + self.options['extradumpoptions']
 
-        # Used to get the current Log Sequence Number (LSN) when MySQLdb is unavailable
+        # We need to call mysql to get the current Log Sequece Number (LSN)
         if 'mysqlcmd' in self.options:
             self.mysqlcmd = self.options['mysqlcmd']
         else:
@@ -177,18 +184,9 @@ class BareosFdPercona (BareosFdPluginBaseclass):
             if self.max_to_lsn == 0:
                 JobMessage(context, bJobMessageType['M_FATAL'], "No LSN received to be used with incremental backup\n")
                 return bRCs['bRC_Error']
-            # Try to load MySQLdb module
-            hasMySQLdbModule = False
-            try:
-                import MySQLdb
-                hasMySQLdbModule = True
-                bareosfd.DebugMessage(context, 100, "Imported module MySQLdb\n")
-            except ImportError:
-                bareosfd.DebugMessage(context, 100, "Import of module MySQLdb failed. Using command pipe instead\n")
-            # contributed by https://github.com/kjetilho
-            if hasMySQLdbModule:
+            if self.MySQLdb:
                 try:
-                    conn = MySQLdb.connect(**self.connect_options)
+                    conn = self.MySQLdb.connect(**self.connect_options)
                     cursor = conn.cursor()
                     cursor.execute('SHOW ENGINE INNODB STATUS')
                     result = cursor.fetchall()
@@ -351,7 +349,7 @@ class BareosFdPercona (BareosFdPluginBaseclass):
 
     def end_backup_file(self, context):
         '''
-        Check, if dump was successfull.
+        Check if dump was successful.
         '''
         # Usually the xtrabackup process should have terminated here, but on some servers
         # it has not always.
@@ -364,10 +362,11 @@ class BareosFdPercona (BareosFdPluginBaseclass):
                 DebugMessage(context, 100, "end_backup_file() entry point in Python called. Returncode: %d\n"
                              % self.stream.returncode)
                 if returnCode != 0:
-                    JobMessage(context, bJobMessageType['M_FATAL'],
-                               "Dump command returned non-zero value: %d, command: \"%s\"\n"
-                               % (returnCode, self.dumpcommand))
-
+                    msg = [ "Dump command returned non-zero value: %d" % returnCode,
+                            "command: \"%s\"" % self.dumpcommand ]
+                    if self.log:
+                        msg += ["log file: \"%s\"" % self.log]
+                    JobMessage(context, bJobMessageType['M_FATAL'], ", ".join(msg) + "\n")
             if returnCode != 0:
                 return bRCs['bRC_Error']
 
@@ -389,9 +388,10 @@ class BareosFdPercona (BareosFdPluginBaseclass):
                          "end_restore_file() entry point in Python called. Returncode: %d\n"
                          % self.stream.returncode)
             if returnCode != 0:
-                JobMessage(context, bJobMessageType['M_ERROR'],
-                           "Restore command returned non-zero value: %d\n"
-                           % returnCode)
+                msg = [ "Restore command returned non-zero value: %d" % return_code ]
+                if self.log:
+                    msg += [ "log file: \"%s\"" % self.log ]
+                JobMessage(context, bJobMessageType['M_ERROR'], ", ".join(msg) + "\n")
 
         if returnCode == 0:
             return bRCs['bRC_OK']
@@ -409,19 +409,25 @@ class BareosFdPercona (BareosFdPluginBaseclass):
             self.max_to_lsn = int(self.rop_data[ROP.jobid]['to_lsn'])
             JobMessage(context, bJobMessageType['M_INFO'],
                        "Got to_lsn %d from restore object of job %d\n" % (self.max_to_lsn, ROP.jobid))
-            try:
-                conn = MySQLdb.connect(**self.connect_options)
-                cursor = conn.cursor()
-                cursor.execute("SELECT create_time FROM information_schema.tables WHERE table_schema = 'mysql' AND table_name = 'user'")
-                create_time = cursor.fetchall()[0][0]
-                conn.close()
-            except Exception, e:
-                JobMessage(context, bJobMessageType['M_FATAL'], "Could not get create time for database, Error: %s" % e)
-                return bRCs['bRC_Error']
-            job_time = datetime.datetime.utcfromtimestamp(self.since)
-            if create_time > job_time:
-                JobMessage(context, bJobMessageType['M_FATAL'], "Database was created at %s which is after time of previous backup (%s).  Schedule a new Full backup." % (create_time, job_time))
-                return bRCs['bRC_Error']
+            if self.MySQLdb:
+                try:
+                    conn = self.MySQLdb.connect(**self.connect_options)
+                    cursor = conn.cursor()
+                    # In theory, mysql.user can have been dropped and recreated without affecting other tables,
+                    # so this is not perfect.  It will discover a full wipe + reinit, though.
+                    cursor.execute("SELECT create_time FROM information_schema.tables WHERE table_schema = 'mysql' AND table_name = 'user'")
+                    create_time = cursor.fetchall()[0][0]
+                    conn.close()
+                except Exception, e:
+                    JobMessage(context, bJobMessageType['M_FATAL'], "Could not get create time for database, Error: %s" % e)
+                    return bRCs['bRC_Error']
+                job_time = datetime.datetime.utcfromtimestamp(self.since)
+                if create_time > job_time:
+                    # It would be best to upgrade job, but it is not possible.  Fail rather than store useless data.
+                    JobMessage(context, bJobMessageType['M_FATAL'],
+                               "Database was created at %s which is after time of previous backup (%s).  Schedule a new Full backup."
+                               % (create_time, job_time))
+                    return bRCs['bRC_Error']
 
         return bRCs['bRC_OK']
 
