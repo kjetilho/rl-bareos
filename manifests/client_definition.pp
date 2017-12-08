@@ -11,6 +11,8 @@ define bareos::client_definition(
   $port = 9102,
   $client_name = '',
   $security_zone = '',
+  $passive = false,
+  $client_initiated_connection = false,
 )
 {
   # use de-uniqueified title going forward, but keep client_name

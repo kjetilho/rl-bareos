@@ -18,6 +18,8 @@ class bareos::client (
   $address        = $::fqdn,
   $password       = $::fqdn,
   $service_addr   = {},
+  $passive        = false,
+  $client_initiated_connection = false,
   $job_retention  = '180d',
   $file_retention = '60d',
   $concurrency    = 10,
@@ -76,6 +78,19 @@ class bareos::client (
   }
   validate_hash($systemd_limits)
 
+  if $implementation == 'bacula' {
+    if $passive {
+      notify { 'bacula-passive':
+        message => 'Bacula does not support passive mode'
+      }
+    }
+    if $client_initiated_connection {
+      notify { 'bacula-client-initiated':
+        message => 'Bacula does not support client initiated connection'
+      }
+    }
+  }
+
   ensure_packages($package)
   if $competitor {
     ensure_packages($competitor, { ensure => absent })
@@ -128,6 +143,8 @@ class bareos::client (
   @@bareos::client_definition { "${client_name}${name_suffix}":
     password       => $password,
     address        => $address,
+    passive        => $passive,
+    client_initiated_connection => $client_initiated_connection,
     job_retention  => $job_retention,
     file_retention => $file_retention,
     concurrency    => $concurrency,
