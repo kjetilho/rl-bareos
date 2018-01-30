@@ -133,6 +133,15 @@ The suffix to use.  Default: "-fd"
 __`bareos::client::address`__:
 The address or hostname the director should connect to.  Default: FQDN
 
+__`bareos::client::passive`__:
+Turn on passive mode, which makes SD connect to FD rather than the
+other way round.  Requires Bareos 14 and above.  Default: false
+
+__`bareos::client::client_initiated_connection`__:
+Turn on Client Initiated Connection, which makes FD connect to DIR on
+startup and leave the connection up.  This enables the FD to have a
+variable IP address.  Requires Bareos 16 and above.  Default: false
+
 __`bareos::client::job_retention`__:
 How long to keep jobs from this client in the database.  Default: "180d"
 

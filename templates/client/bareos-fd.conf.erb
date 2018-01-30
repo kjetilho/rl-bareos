@@ -9,6 +9,9 @@
 Director {
    Name = "<%= scope['bareos::director'] %>"
    Password = "<%= actual_password %>"
+<% if @client_initiated_connection -%>
+   Connection From Client To Director = yes 
+<% end -%>
 }
 <% @monitors.each do |mon, params| -%>
 
@@ -34,6 +37,9 @@ FileDaemon {
 <% end -%>
   Maximum Concurrent Jobs  = <%= (@concurrency.to_i + 10).to_s %>
   Heartbeat Interval       = 1 min
+<% if @implementation == 'bareos' and @passive -%>
+  Compatible               = no
+<% end -%>
 }
 
 Messages {

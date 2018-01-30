@@ -19,4 +19,10 @@ Client {
   Job Retention = <%= @job_retention %>
   AutoPrune = yes
   Maximum Concurrent Jobs = <%= @concurrency %>
+<% if @passive %>
+  Passive = yes
+<% end -%>
+<% if @client_initiated_connection -%>
+   Connection From Client To Director = yes 
+<% end -%>
 }

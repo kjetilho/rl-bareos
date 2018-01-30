@@ -27,6 +27,7 @@ import os
 from subprocess import *
 from BareosFdPluginBaseclass import *
 import BareosFdWrapper
+import datetime
 import time
 import datetime
 import tempfile
@@ -405,7 +406,9 @@ class BareosFdPercona (BareosFdPluginBaseclass):
         # Improve: sanity / consistence check of restore object
         self.row_rop_raw = ROP.object
         self.rop_data[ROP.jobid] = json.loads(str(self.row_rop_raw))
-        if 'to_lsn' in self.rop_data[ROP.jobid] and self.rop_data[ROP.jobid]['to_lsn'] > self.max_to_lsn:
+        if (chr(self.level) in ('I', 'D')
+            and 'to_lsn' in self.rop_data[ROP.jobid]
+            and self.rop_data[ROP.jobid]['to_lsn'] > self.max_to_lsn):
             self.max_to_lsn = int(self.rop_data[ROP.jobid]['to_lsn'])
             JobMessage(context, bJobMessageType['M_INFO'],
                        "Got to_lsn %d from restore object of job %d\n" % (self.max_to_lsn, ROP.jobid))
@@ -413,9 +416,8 @@ class BareosFdPercona (BareosFdPluginBaseclass):
                 try:
                     conn = self.MySQLdb.connect(**self.connect_options)
                     cursor = conn.cursor()
-                    # In theory, mysql.user can have been dropped and recreated without affecting other tables,
-                    # so this is not perfect.  It will discover a full wipe + reinit, though.
-                    cursor.execute("SELECT create_time FROM information_schema.tables WHERE table_schema = 'mysql' AND table_name = 'user'")
+                    # Look for age of oldest table as a canary for full wipe + reinit
+                    cursor.execute("SELECT MIN(create_time) FROM information_schema.tables")
                     create_time = cursor.fetchall()[0][0]
                     conn.close()
                 except Exception, e:

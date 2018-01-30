@@ -64,6 +64,7 @@ define bareos::job::preset::percona(
       $_fileset = "${bareos::client::client_name}-${short_title}"
       ensure_resource('bareos::client::fileset', $short_title, {
         'fileset_name'  => $_fileset,
+        'sparse'        => false,
         'include_paths' => $include_paths,
         'plugins'       => [ template('bareos/preset/percona-plugin.erb') ],
       })
