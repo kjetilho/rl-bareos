@@ -27,6 +27,7 @@ import os
 from subprocess import *
 from BareosFdPluginBaseclass import *
 import BareosFdWrapper
+import datetime
 import time
 import datetime
 import tempfile
@@ -405,7 +406,9 @@ class BareosFdPercona (BareosFdPluginBaseclass):
         # Improve: sanity / consistence check of restore object
         self.row_rop_raw = ROP.object
         self.rop_data[ROP.jobid] = json.loads(str(self.row_rop_raw))
-        if 'to_lsn' in self.rop_data[ROP.jobid] and self.rop_data[ROP.jobid]['to_lsn'] > self.max_to_lsn:
+        if (chr(self.level) in ('I', 'D')
+            and 'to_lsn' in self.rop_data[ROP.jobid]
+            and self.rop_data[ROP.jobid]['to_lsn'] > self.max_to_lsn):
             self.max_to_lsn = int(self.rop_data[ROP.jobid]['to_lsn'])
             JobMessage(context, bJobMessageType['M_INFO'],
                        "Got to_lsn %d from restore object of job %d\n" % (self.max_to_lsn, ROP.jobid))
