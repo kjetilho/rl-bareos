@@ -12,6 +12,7 @@ describe 'bareos::client' do
         it do
           should contain_file('C:/ProgramData/Bareos/bareos-fd.conf')
                    .with_content(/Name = "backup.example.com-dir"/)
+                   .without_content(/FDPort|FDAddresses/)
                    .with_content(/Maximum Concurrent Jobs\s+= 20/)
         end
         it do
@@ -83,6 +84,20 @@ describe 'bareos::client' do
         it do
           expect(exported_resources).to contain_bareos__client_definition("#{facts[:fqdn]}-fd")
                                           .with_concurrency(20)
+        end
+      end
+
+      context "on #{os} with IPv6 disabled and port set" do
+        let(:facts) { facts }
+        let(:params) { { :port => 19102, :ipv6 => false } }
+        it { should compile.with_all_deps }
+        it do
+          should contain_file('/etc/bacula/bacula-fd.conf')
+                  .with_content(/FDPort\s+= 19102/)
+        end
+        it do
+          expect(exported_resources).to contain_bareos__client_definition("#{facts[:fqdn]}-fd")
+                                          .with_port(19102)
         end
       end
 

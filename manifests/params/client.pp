@@ -33,11 +33,14 @@ class bareos::params::client {
       # Notice the use of UNC to get an "absolute path", this enables
       # us to run regression tests for Windows code on a Unix system.
       $config_file = "C:/ProgramData/Bareos/${implementation}-fd.conf"
+      # See https://bugs.bareos.org/view.php?id=477
+      $ipv6 = false
     }
     default: {
       $service = "${implementation}-fd"
       $log_dir = "/var/log/${implementation}"
       $config_file = "/etc/${implementation}/${implementation}-fd.conf"
+      $ipv6 = true
     }
   }
 

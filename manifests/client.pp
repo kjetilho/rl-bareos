@@ -36,6 +36,7 @@ class bareos::client (
   $backup_dir_group  = $bareos::params::client::backup_dir_group,
   $backup_dir_mode   = $bareos::params::client::backup_dir_mode,
   $systemd_limits    = {},
+  $ipv6              = $bareos::params::client::ipv6,
   # the remainder are unlikely to need changing
   $port              = $bareos::params::client::port,
   $root_user         = $bareos::params::client::root_user,
@@ -145,6 +146,7 @@ class bareos::client (
     address        => $address,
     passive        => $passive,
     client_initiated_connection => $client_initiated_connection,
+    port           => $port,
     job_retention  => $job_retention,
     file_retention => $file_retention,
     concurrency    => $concurrency,

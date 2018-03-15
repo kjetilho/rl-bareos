@@ -191,9 +191,12 @@ needs overriding.  Only works for systemd, but no check is done to see
 if systemd manages the service.  Example: { 'nofile' => 16384 }.
 Default is to do nothing.
 
-In addition, you can manage the service, the location of the log file,
-the pid file and the working directory, but this should not be
-necessary to do.
+__`bareos::client::ipv6`__: Whether to listen on IPv6 when available.
+This is by default set to `false` on Windows due to a bug in Bareos.
+
+In addition, you can manage the service, the port number, the location
+of the log file, the pid file and the working directory, but this
+should not be necessary to do.
 
 ## Jobs
 
