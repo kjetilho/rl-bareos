@@ -5,32 +5,40 @@ describe 'bareos::client' do
 
     case facts[:kernel]
     when 'windows'
-      context "on #{os}", skip: "absolute path check fails in rspec-puppet 2.5.0" do
-        let(:facts) { facts }
+      context "on #{os}" do
+        if Puppet.version.to_s < "4"
+          it "on Puppet 3" do
+            skip('rspec-puppet 2.6.11 has issue with fact hostname')
+            # Could not retrieve fact='hostname', resolution='<anonymous>': \
+            # Could not execute 'hostname': command not found
+          end
+        else
+          let(:facts) { facts }
 
-        it { should compile.with_all_deps }
-        it do
-          should contain_file('C:/ProgramData/Bareos/bareos-fd.conf')
-                   .with_content(/Name = "backup.example.com-dir"/)
-                   .without_content(/FDPort|FDAddresses/)
-                   .with_content(/Maximum Concurrent Jobs\s+= 20/)
-        end
-        it do
-          should contain_service('Bareos-fd')
-                  .with_enable(true)
-                  .with_ensure('running')
-        end
-        it { should_not contain_file('/var/log/bacula') }
-        it do
-          expect(exported_resources).to have_bareos__job_definition_resource_count(1)
-        end
-        it do
-          expect(exported_resources).to contain_bareos__client_definition("#{facts[:fqdn]}-fd")
-        end
-        it do
-          expect(exported_resources).to contain_bareos__job_definition("#{facts[:fqdn]}-system-job")
-                                         .with_sched('NormalSchedule')
-                                         .with_order('N50')
+          it { should compile.with_all_deps }
+          it do
+            should contain_file('C:/ProgramData/Bareos/bareos-fd.conf')
+                     .with_content(/Name = "backup.example.com-dir"/)
+                     .without_content(/FDPort|FDAddresses/)
+                     .with_content(/Maximum Concurrent Jobs\s+= 20/)
+          end
+          it do
+            should contain_service('Bareos-fd')
+                     .with_enable(true)
+                     .with_ensure('running')
+          end
+          it { should_not contain_file('/var/log/bacula') }
+          it do
+            expect(exported_resources).to have_bareos__job_definition_resource_count(1)
+          end
+          it do
+            expect(exported_resources).to contain_bareos__client_definition("#{facts[:fqdn]}-fd")
+          end
+          it do
+            expect(exported_resources).to contain_bareos__job_definition("#{facts[:fqdn]}-system-job")
+                                            .with_sched('NormalSchedule')
+                                            .with_order('N50')
+          end
         end
       end
 
@@ -448,12 +456,12 @@ describe 'bareos::client' do
         it { should_not contain_file("/etc/bareos/mysql-logbin-location") }
         it {
           expect(exported_resources).to contain_bareos__fileset_definition("#{facts[:fqdn]}-db")
+                                          .with_include_paths([])
                                           .with_plugins(["python:module_path=#{libdir}:module_name=bareos-fd-percona"])
         }
         it {
           expect(exported_resources).to contain_bareos__job_definition("#{facts[:fqdn]}-db-job")
                                           .with_jobdef('DefaultJob')
-                                          .with_include_paths([])
                                           .with_accurate(false)
                                           .with_fileset("#{facts[:fqdn]}-db")
         }

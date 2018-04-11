@@ -245,7 +245,7 @@ describe 'bareos::fileset_definition' do
     end
   end
 
-  context "special fileset name", skip: "broken in rspec-puppet 2.5.0 and 2.6.1 .. 2.6.9" do
+  context "special fileset name" do
     let(:title) { "This isn't desired & wanted as a filename" }
     let(:params) { default_params }
 
