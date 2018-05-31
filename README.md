@@ -303,6 +303,10 @@ Example usage:
            keep_backup: 5
            backup_dir:  /srv/mysql/backup
 
+If using MariaDB, add this to the `preset_params` block:
+
+           servicename: mariadb
+
 ### mylvmbackup
 
 This preset installs the package mylvmbackup and installs a
