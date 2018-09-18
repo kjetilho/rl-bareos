@@ -344,6 +344,7 @@ Default: "percona-xtrabackup"
 
 Example usage:
 
+    bareos::client::implementation: bareos
     bareos::client::jobs:
       system: {}
       db:
@@ -366,11 +367,11 @@ Example usage:
 
 ### s3
 
-This preset installs an S3 plugin for Bareos.  (Since the plugin is
-not packaged, we distribute a copy of it in this module.)  The backup
-will include a "virtual" file directory tree `/situla` with a
-traversed copy of the bucket inside.  A script which calls
-`radosgw-admin` to create an authentication file is also included.
+This preset installs an S3 plugin for Bareos (Bacula is not supported).
+(Since the plugin is not packaged, we distribute a copy of it in this
+module.)  The backup will include a "virtual" file directory tree
+`/situla` with a traversed copy of the bucket inside.  A script which
+calls `radosgw-admin` to create an authentication file is also included.
 
 Available settings in `preset_params` include:
 
@@ -390,6 +391,7 @@ user name.
 
 Example usage:
 
+    bareos::client::implementation: bareos
     bareos::client::jobs:
       # backup of bucket websrv as user websrv
       "s3:websrv":
