@@ -146,8 +146,11 @@ class BareosFdPluginS3(BareosFdPluginBaseclass.BareosFdPluginBaseclass):  # noqa
         '''
         bareosfd.DebugMessage(context, 100, "start_backup called\n")
         if not self.files_to_backup:
+            # add a synthetic entry for top-level to avoid "no fname in bareosCheckChanges packet."
+            self.files_to_backup.append({ 'size': 0,
+                                          'timestamp': int(time.time()),
+                                          'name': '/situla/' + self.options['bucket'] + '/'})
             bareosfd.DebugMessage(context, 100, "No files to backup\n")
-            return bRCs['bRC_Skip']
 
         file_to_backup = self.files_to_backup.pop(0)
         bareosfd.DebugMessage(context, 100, 'file: ' + file_to_backup['name'] + "\n")
@@ -198,6 +201,9 @@ class BareosFdPluginS3(BareosFdPluginBaseclass.BareosFdPluginBaseclass):  # noqa
             sp = str(self.FNAME).split('/',3)
             s3bucket = sp[2]
             s3object = sp[3]
+            if s3object == '':
+                # This is the synthetic entry when there are no files in bucket.  Do nothing and be happy.
+                return bRCs['bRC_OK']
             try:
                 if IOP.flags & (os.O_CREAT | os.O_WRONLY):
                     bareosfd.DebugMessage(context, 100, "plugin does not support restore yet.\n")
@@ -233,6 +239,11 @@ class BareosFdPluginS3(BareosFdPluginBaseclass.BareosFdPluginBaseclass):  # noqa
 
         elif IOP.func == bIOPS['IO_CLOSE']:
             bareosfd.DebugMessage(context, 100, "Closing file " + "\n")
+            sp = str(self.FNAME).split('/',3)
+            s3object = sp[3]
+            if s3object == '':
+                # This is the synthetic entry when there are no files in bucket.  Do nothing and be happy.
+                return bRCs['bRC_OK']
             ConnMan.put(self.req['conn'])
             return bRCs['bRC_OK']
 
