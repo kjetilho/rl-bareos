@@ -1,0 +1,28 @@
+---
+image: 'containers.i.bitbit.net/ci-images/puppet-test:3'
+
+variables:
+  LANG:             en_US.UTF-8
+  http_proxy:       'http://proxy.i.bitbit.net:3128'
+  https_proxy:      'http://proxy.i.bitbit.net:3128'
+  STRICT_VARIABLES: 'no'
+
+test puppet 3:
+  script:
+    - rake test
+
+test puppet 3 future parser:
+  variables:
+    FUTURE_PARSER: "yes"
+  script:
+    - rake test
+
+test puppet 4:
+  image: 'containers.i.bitbit.net/ci-images/puppet-test:4'
+  script:
+    - rake test
+
+test puppet 5:
+  image: 'containers.i.bitbit.net/ci-images/puppet-test:5'
+  script:
+    - rake test
