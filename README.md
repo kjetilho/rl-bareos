@@ -217,7 +217,9 @@ __`jobdef`__: The name of the job defaults.  Default: `$bareos::default_jobdef`
 __`fileset`__: The name of the fileset.  When set, overrides the
 fileset defined in the jobdef.  This can be the full name of the
 fileset, but also the abbreviated name used in
-`bareos::client::filesets`.
+`bareos::client::filesets`.  If unset, it will look for a custom
+fileset with the same name as the short name of this job (e.g.,
+"system"), and use that if it exists.
 
 __`schedule_set`__: The name of the list of schedules to pick randomly
 from.  Default: normal

@@ -244,6 +244,30 @@ describe 'bareos::client' do
         end
       end
 
+      context "on #{os} with implicit fileset" do
+        let(:facts) { facts }
+        let(:params) do
+          { :filesets => {
+              'srv' => {'include_paths' => ['/srv'], 'acl_support' => false}
+            },
+            :jobs => {
+              'srv' => {}
+            }
+          }
+        end
+
+        it { should compile.with_all_deps }
+        it do
+          expect(exported_resources).to contain_bareos__fileset_definition("#{facts[:fqdn]}-srv")
+                                         .with_include_paths(['/srv'])
+                                         .with_acl_support(false)
+        end
+        it do
+          expect(exported_resources).to contain_bareos__job_definition("#{facts[:fqdn]}-srv-job")
+                                         .with_fileset("#{facts[:fqdn]}-srv")
+        end
+      end
+
       context "on #{os} with system and service jobs" do
         let(:facts) { facts }
         let(:params) do
