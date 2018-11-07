@@ -203,7 +203,8 @@ should not be necessary to do.
 Jobs are defined in the `bareos::client::jobs` hash.
 
 By default, a "system" job will be enabled for the client, using the
-default jobdef.
+default jobdef.  If you define a "system" fileset, it will be used
+with this default job.
 
 Each key in the hash becomes the name of the resource.  This is added
 to the client name and used as the name of the job.  A
