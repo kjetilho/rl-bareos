@@ -69,20 +69,29 @@ define bareos::client::job(
     }
   }
 
-  if has_key($bareos::client::filesets, $fileset) {
-    if has_key($bareos::client::filesets[$fileset], 'fileset_name') {
-      $_fileset = $bareos::client::filesets[$fileset]['fileset_name']
+  # If fileset is unset, look for fileset matching the short name for
+  # the job.
+  if $fileset == '' {
+    $__fileset = $title
+  } else {
+    $__fileset = $fileset
+  }
+
+  if has_key($bareos::client::filesets, $__fileset) {
+    if has_key($bareos::client::filesets[$__fileset], 'fileset_name') {
+      $_fileset = $bareos::client::filesets[$__fileset]['fileset_name']
     } else {
       # allow shorthand names, use client_name hint from fileset
       # definition to qualify it
-      if has_key($bareos::client::filesets[$fileset], 'client_name') {
-        $_fileset = "${bareos::client::filesets[$fileset]['client_name']}-${fileset}"
+      if has_key($bareos::client::filesets[$__fileset], 'client_name') {
+        $_fileset = "${bareos::client::filesets[$fileset]['client_name']}-${__fileset}"
       } else {
         # $client_name can be different from what fileset uses
-        $_fileset = "${bareos::client::client_name}-${fileset}"
+        $_fileset = "${bareos::client::client_name}-${__fileset}"
       }
     }
   } else {
+    # no custom fileset found, trust original value (may be '')
     $_fileset = $fileset
   }
 

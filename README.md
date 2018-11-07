@@ -203,7 +203,8 @@ should not be necessary to do.
 Jobs are defined in the `bareos::client::jobs` hash.
 
 By default, a "system" job will be enabled for the client, using the
-default jobdef.
+default jobdef.  If you define a "system" fileset, it will be used
+with this default job.
 
 Each key in the hash becomes the name of the resource.  This is added
 to the client name and used as the name of the job.  A
@@ -217,7 +218,9 @@ __`jobdef`__: The name of the job defaults.  Default: `$bareos::default_jobdef`
 __`fileset`__: The name of the fileset.  When set, overrides the
 fileset defined in the jobdef.  This can be the full name of the
 fileset, but also the abbreviated name used in
-`bareos::client::filesets`.
+`bareos::client::filesets`.  If unset, it will look for a custom
+fileset with the same name as the short name of this job (e.g.,
+"system"), and use that if it exists.
 
 __`schedule_set`__: The name of the list of schedules to pick randomly
 from.  Default: normal
@@ -344,6 +347,7 @@ Default: "percona-xtrabackup"
 
 Example usage:
 
+    bareos::client::implementation: bareos
     bareos::client::jobs:
       system: {}
       db:
@@ -366,11 +370,11 @@ Example usage:
 
 ### s3
 
-This preset installs an S3 plugin for Bareos.  (Since the plugin is
-not packaged, we distribute a copy of it in this module.)  The backup
-will include a "virtual" file directory tree `/situla` with a
-traversed copy of the bucket inside.  A script which calls
-`radosgw-admin` to create an authentication file is also included.
+This preset installs an S3 plugin for Bareos (Bacula is not supported).
+(Since the plugin is not packaged, we distribute a copy of it in this
+module.)  The backup will include a "virtual" file directory tree
+`/situla` with a traversed copy of the bucket inside.  A script which
+calls `radosgw-admin` to create an authentication file is also included.
 
 Available settings in `preset_params` include:
 
@@ -390,6 +394,7 @@ user name.
 
 Example usage:
 
+    bareos::client::implementation: bareos
     bareos::client::jobs:
       # backup of bucket websrv as user websrv
       "s3:websrv":

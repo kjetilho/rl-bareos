@@ -1,5 +1,5 @@
 ---
-bareos::secret: 'A long and secret password string'
+bareos::secret: 'foo'
 bareos::director: backup.example.com-dir
 bareos::client::monitors:
   systray-mon:
