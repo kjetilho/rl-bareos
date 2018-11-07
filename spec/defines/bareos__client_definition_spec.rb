@@ -15,12 +15,10 @@ describe 'bareos::client_definition' do
   let(:pre_condition) { <<-eot
       class bareos::server {
         $client_file_prefix = '#{prefix}'
+        $secrets = { "dmz" => "dmzfoo" }
+        include bareos
       }
       include bareos::server
-      class bareos {
-        $secret = 'foo'
-      }
-      include bareos
       eot
   }
 
@@ -70,18 +68,6 @@ describe 'bareos::client_definition' do
 
   context "security zone" do
     let(:title) { "#{facts[:fqdn]}-fd" }
-    let(:pre_condition) { <<-eot
-      class bareos::server {
-        $client_file_prefix = '#{prefix}'
-        $secrets = { 'dmz' => 'dmzfoo' }
-      }
-      include bareos::server
-      class bareos {
-        $secret = 'foo'
-      }
-      include bareos
-      eot
-    }
     let(:params) { default_params.merge({ :security_zone => 'dmz' }) }
     it { should compile.with_all_deps }
 
@@ -95,22 +81,9 @@ describe 'bareos::client_definition' do
 
   context "unknown security zone" do
     let(:title) { "#{facts[:fqdn]}-fd" }
-    let(:pre_condition) { <<-eot
-      class bareos::server {
-        $client_file_prefix = '#{prefix}'
-        $secrets = {}
-      }
-      include bareos::server
-      class bareos {
-        $secret = 'foo'
-      }
-      include bareos
-      eot
-    }
-    let(:params) { default_params.merge({ :security_zone => 'dmz' }) }
+    let(:params) { default_params.merge({ :security_zone => 'hmz' }) }
 
-    it { should_not compile.with_all_deps }
-
+    it { should compile.and_raise_error(/secret for security zone 'hmz' unknown/) }
   end
 
 end
