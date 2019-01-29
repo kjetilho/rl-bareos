@@ -7,7 +7,7 @@ class bareos::params::client {
   case $::osfamily {
     'windows': {
       $_impl = 'bareos'
-      $root_user = 'Administrator'
+      $root_user = 'Administrators'
       $root_group = 'Administrators'
       $fstype = [ 'ntfs' ]
       $exclude_paths = [ 'C:/Windows/Temp' ]
