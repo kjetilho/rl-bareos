@@ -97,7 +97,7 @@ class bareos::params::client {
       }
     }
     'windows': {
-      $package     = 'Bareos 13.2.2-2.1'
+      $package     = []
       $competitor  = false
       $pid_dir     = false
       $plugin_dir  = false

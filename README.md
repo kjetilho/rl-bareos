@@ -194,9 +194,16 @@ Default is to do nothing.
 __`bareos::client::ipv6`__: Whether to listen on IPv6 when available.
 This is by default set to `false` on Windows due to a bug in Bareos.
 
-In addition, you can manage the service, the port number, the location
-of the log file, the pid file and the working directory, but this
-should not be necessary to do.
+__`bareos::client::package`__: The name of the package(s) to install.
+The default is chosen based on operatingsystem and implementation.  On
+Windows this is set to an empty array since the package name contains
+the version number, and Puppet usually will not be able to install the
+package.  In other words, the Bareos client must be installed before
+Puppet is run.
+
+In addition, you can manage the service name, the port number, the
+location of the log file, the pid file and the working directory, but
+this should not be necessary to do.
 
 ## Jobs
 
