@@ -7,7 +7,7 @@ class bareos::params::client {
   case $::osfamily {
     'windows': {
       $_impl = 'bareos'
-      $root_user = 'Administrator'
+      $root_user = 'Administrators'
       $root_group = 'Administrators'
       $fstype = [ 'ntfs' ]
       $exclude_paths = [ 'C:/Windows/Temp' ]
@@ -97,7 +97,7 @@ class bareos::params::client {
       }
     }
     'windows': {
-      $package     = 'Bareos 13.2.2-2.1'
+      $package     = []
       $competitor  = false
       $pid_dir     = false
       $plugin_dir  = false

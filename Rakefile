@@ -33,5 +33,15 @@ desc 'Run syntax, lint, and spec tests.'
 task :test => [
   :syntax,
   :lint,
+  :markdownlint,
   :spec,
 ]
+
+task :markdownlint do
+  require 'mkmf'
+  if find_executable0 'mdl'
+    sh 'find . -name "*.md" -type f -exec mdl --style .mdl-style.rb {} +'
+  else
+    sh 'echo Install mdl gem to get more thorough testing of Markdown files'
+  end
+end
