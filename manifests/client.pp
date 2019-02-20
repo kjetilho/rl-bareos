@@ -60,7 +60,7 @@ class bareos::client (
   File {
     owner   => $root_user,
     group   => $root_group,
-    mode    => '0400',
+    mode    => '0440',
     require => Package[$package],
     before  => Service[$service],
   }
