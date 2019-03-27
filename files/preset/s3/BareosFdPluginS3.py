@@ -86,16 +86,28 @@ class BareosFdPluginS3(BareosFdPluginBaseclass.BareosFdPluginBaseclass):  # noqa
                                   % (self.options['config']))
             return bRCs['bRC_Error']
 
+        # `prefix` is the common substring for all object names.  Can be
+        # a partial filename, not necessarily a folder.
         if ('prefix' not in self.options):
             self.options['prefix'] = None
+
+        # Folders listed in `prefix` are filtered against `pattern`, and only
+        # these folders are recursed into.
         if ('pattern' in self.options):
             self.pattern = re.compile(self.options['pattern'])
         else:
             self.pattern = None
 
+        # Every (remaining) object name is filtered against `object_pattern`.
+        if ('object_pattern' in self.options):
+            self.object_pattern = re.compile(self.options['object_pattern'])
+        else:
+            self.object_pattern = None
+
         self.files_to_backup = []
         self.s3 = S3(cfg)
-        self.prefix_list = [ None ]
+        self.current_prefix = self.options['prefix']
+        self.prefix_list = [ self.options['prefix'] ]
         self.file_iterator = {}
         self.file_iterator['uri_params'] = None
 
@@ -107,7 +119,7 @@ class BareosFdPluginS3(BareosFdPluginBaseclass.BareosFdPluginBaseclass):  # noqa
         return bRCs['bRC_OK']
 
     def make_prefix_list(self):
-        topfiles = self.s3.bucket_list(self.options['bucket'], prefix=None, recursive=False)
+        topfiles = self.s3.bucket_list(self.options['bucket'], prefix=self.current_prefix, recursive=False)
         self.prefix_list = []
         for item in topfiles['common_prefixes']:
             pf = deunicodise(item['Prefix'])
@@ -116,8 +128,8 @@ class BareosFdPluginS3(BareosFdPluginBaseclass.BareosFdPluginBaseclass):  # noqa
 
     def test_file_list(self):
         for item in self.file_iterator['list']:
-            if self.pattern:
-                if not self.pattern.match(deunicodise(item['Key'])):
+            if self.object_pattern:
+                if not self.object_pattern.match(deunicodise(item['Key'])):
                     continue
             if not deunicodise(item['Key'])[-1] == '/':
                 self.files_to_backup.append({ 'size': int(item['Size']),
@@ -126,15 +138,15 @@ class BareosFdPluginS3(BareosFdPluginBaseclass.BareosFdPluginBaseclass):  # noqa
 
     def iterate_files(self):
         if self.file_iterator['uri_params']:
-            self.file_iterator = self.s3.bucket_list_iterate(self.options['bucket'], prefix=self.options['prefix'], recursive=True, uri_params=self.file_iterator['uri_params'])
+            self.file_iterator = self.s3.bucket_list_iterate(self.options['bucket'], prefix=self.current_prefix, recursive=True, uri_params=self.file_iterator['uri_params'])
             self.test_file_list()
             if not self.files_to_backup:
                 self.iterate_files()
             return
 
         if self.prefix_list:
-            self.options['prefix'] = self.prefix_list.pop(0)
-            self.file_iterator = self.s3.bucket_list_iterate(self.options['bucket'], prefix=self.options['prefix'], recursive=True)
+            self.current_prefix = self.prefix_list.pop(0)
+            self.file_iterator = self.s3.bucket_list_iterate(self.options['bucket'], prefix=self.current_prefix, recursive=True)
             self.test_file_list()
             if not self.files_to_backup:
                 self.iterate_files()
