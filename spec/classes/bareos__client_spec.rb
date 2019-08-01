@@ -568,7 +568,7 @@ describe 'bareos::client' do
         it {
           expect(exported_resources)
             .to contain_bareos__fileset_definition('S3 s3:alice')
-                  .with_plugins(["python:module_path=#{libdir}:module_name=bareos-fd-s3:config=/etc/bareos/s3/access-alice.cfg:bucket=alice:prefix="])
+                  .with_plugins(["python:module_path=#{libdir}:module_name=bareos-fd-s3:config=/etc/bareos/s3/access-alice.cfg:bucket=alice:prefix=:pattern=:object_pattern="])
                   .with_include_paths(['/situla'])
         }
         it { should contain_exec('bareos-make-s3-access alice') }
@@ -584,7 +584,7 @@ describe 'bareos::client' do
         it {
           expect(exported_resources)
             .to contain_bareos__fileset_definition('S3 s3:lewis')
-                  .with_plugins(["python:module_path=#{libdir}:module_name=bareos-fd-s3:config=/etc/bareos/s3/access-carol.cfg:bucket=lewis:prefix=:pattern=^mad"])
+                  .with_plugins(["python:module_path=#{libdir}:module_name=bareos-fd-s3:config=/etc/bareos/s3/access-carol.cfg:bucket=lewis:prefix=:pattern=^mad:object_pattern="])
                   .with_include_paths(['/situla'])
         }
         it { should contain_exec('bareos-make-s3-access carol') }
@@ -600,7 +600,7 @@ describe 'bareos::client' do
         it {
           expect(exported_resources)
             .to contain_bareos__fileset_definition("S3 s3:carol::cdn")
-                  .with_plugins(["python:module_path=#{libdir}:module_name=bareos-fd-s3:config=/etc/bareos/s3/access-carol.cfg:bucket=carol:prefix=content"])
+                  .with_plugins(["python:module_path=#{libdir}:module_name=bareos-fd-s3:config=/etc/bareos/s3/access-carol.cfg:bucket=carol:prefix=content:pattern=:object_pattern="])
                   .with_include_paths(['/situla'])
 
         }

@@ -24,6 +24,11 @@ mountdir=<%= @mountdir %>
 backupdir=<%= @backup_dir %>
 relpath=<%= @relpath %>
 
+[tools]
+<% if @compress_program != '' -%>
+compress=<%= @compress_program %>
+<% end -%>
+
 [misc]
 hooksdir=/usr/local/share/mylvmbackup
 <% if @prefix != "" -%>
@@ -31,9 +36,6 @@ prefix=<%= @prefix %>
 <% end -%>
 <% if @snapshot_only -%>
 backuptype=none
-<% end -%>
-<% if @compress_program != '' -%>
-compress=<%= @compress_program %>
 <% end -%>
 <% if @keep_backup != '' -%>
 backupretention=<%= @keep_backup %>

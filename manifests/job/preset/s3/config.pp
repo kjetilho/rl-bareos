@@ -2,11 +2,12 @@
 #
 # Do not call directly.
 #
-# `host_base`: the DNS suffix for the bucket storage.
-# `user_name`: the user to connect as
-# `bucket`:    the bucket to backup
-# `prefix`:    optionally restrict backup to this prefix
-# `pattern`:   optionally restict backup to objects matching this regexp
+# `host_base`:      the DNS suffix for the bucket storage.
+# `user_name`:      the user to connect as
+# `bucket`:         the bucket to backup
+# `prefix`:         optionally restrict backup to this prefix
+# `pattern`:        optionally restrict backup to folders matching this regexp
+# `object_pattern`: optionally restrict backup to objects matching this regexp
 #
 define bareos::job::preset::s3::config(
   $client_name,
@@ -15,6 +16,7 @@ define bareos::job::preset::s3::config(
   $host_base = hiera('bareos::job::preset::s3::host_base', ''),
   $prefix = '',
   $pattern = '',
+  $object_pattern = '',
   $base = '',
 )
 {
@@ -31,25 +33,21 @@ define bareos::job::preset::s3::config(
     require => File['/usr/local/sbin/bareos-make-s3-access'],
   })
 
-  $plugin = [
-    'python',
-    "module_path=${bareos::client::plugin_dir}",
-    'module_name=bareos-fd-s3',
-    "config=/etc/bareos/s3/access-${user_name}.cfg",
-    "bucket=${bucket}",
-    "prefix=${prefix}",
-  ]
-  if $pattern != '' {
-    $_plugin = join(flatten([$plugin, "pattern=${pattern}"]), ':')
-  } else {
-    $_plugin = join($plugin, ':')
-  }
+  $plugin = join(['python',
+                  "module_path=${bareos::client::plugin_dir}",
+                  'module_name=bareos-fd-s3',
+                  "config=/etc/bareos/s3/access-${user_name}.cfg",
+                  "bucket=${bucket}",
+                  "prefix=${prefix}",
+                  "pattern=${pattern}",
+                  "object_pattern=${object_pattern}",
+                  ], ':')
 
   ensure_resource('bareos::client::fileset', $title, {
     'client_name'   => $client_name,
     'fileset_name'  => "S3 ${title}",
     'onefs'         => true,
     'include_paths' => [ '/situla' ],
-    'plugins'       => [ $_plugin ],
+    'plugins'       => [ $plugin ],
   })
 }
