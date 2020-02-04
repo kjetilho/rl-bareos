@@ -1,0 +1,7 @@
+extends: relaxed
+rules:
+  colons:
+    max-spaces-before: 0
+    max-spaces-after: 16
+  line-length:
+    max: 130

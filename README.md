@@ -194,6 +194,10 @@ Default is to do nothing.
 __`bareos::client::ipv6`__: Whether to listen on IPv6 when available.
 This is by default set to `false` on Windows due to a bug in Bareos.
 
+__`bareos::client::tls_enable`__: Whether to enable TLS.  Set to true
+or false, default is to omit directive.  (Proper TLS support will come
+in a later version of this module.)
+
 __`bareos::client::package`__: The name of the package(s) to install.
 The default is chosen based on operatingsystem and implementation.  On
 Windows this is set to an empty array since the package name contains

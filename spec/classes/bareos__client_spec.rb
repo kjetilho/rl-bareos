@@ -55,6 +55,7 @@ describe 'bareos::client' do
                   .with_content(/Name = "backup.example.com-dir"/)
                   .with_content(/FDAddresses * = {ipv6 = {port = 9102}}/)
                   .with_content(/Maximum Concurrent Jobs\s+= 20/)
+                  .without_content(/TLS *Enable/i)
         end
         it do
           should contain_service('bacula-fd')
@@ -121,6 +122,7 @@ describe 'bareos::client' do
                   .with_content(/Name = "systray-mon"/)
                   .with_content(/Name = "backup.example.com-dir"/)
                   .with_content(/Maximum Concurrent Jobs\s+= 20/)
+                  .without_content(/TLS *Enable/i)
         end
         case facts[:os]['family']
         when 'RedHat'
@@ -154,6 +156,19 @@ describe 'bareos::client' do
           expect(exported_resources).to contain_bareos__job_definition("#{facts[:fqdn]}-system-job")
                                          .with_sched('NormalSchedule')
                                          .with_order('N50')
+        end
+      end
+
+      context "on #{os} with bareos and TLS disabled" do
+        let(:facts) { facts.merge( { :specialcase => 'implementation' } ) }
+        let(:params) { { :tls_enable => false } }
+        it { should compile.with_all_deps }
+        it do
+          should contain_file('/etc/bareos/bareos-fd.conf')
+                  .with_content(/Name = "systray-mon"/)
+                  .with_content(/Name = "backup.example.com-dir"/)
+                  .with_content(/Maximum Concurrent Jobs\s+= 20/)
+                  .with_content(/TLS *Enable *= *no$/i)
         end
       end
 

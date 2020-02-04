@@ -6,7 +6,7 @@ source 'https://rubygems.org'
 # rspec-puppet 2.6.11 is a known good version
 #
 group :test do
-  gem 'rake'
+  gem 'rake', '~> 12.0'
   gem 'puppet', ENV['PUPPET_VERSION'] || '~> 3.0'
   gem 'rspec-puppet'
   gem 'puppetlabs_spec_helper'

@@ -12,6 +12,9 @@ Director {
 <% if @client_initiated_connection -%>
    Connection From Client To Director = yes 
 <% end -%>
+<% if @tls_enable != '' -%>
+   TLS Enable = <%= @tls_enable ? 'yes' : 'no' %>
+<% end -%>
 }
 <% @monitors.each do |mon, params| -%>
 
