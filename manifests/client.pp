@@ -37,6 +37,7 @@ class bareos::client (
   $backup_dir_mode   = $bareos::params::client::backup_dir_mode,
   $systemd_limits    = {},
   $ipv6              = $bareos::params::client::ipv6,
+  $tls_enable        = '',
   # the remainder are unlikely to need changing
   $port              = $bareos::params::client::port,
   $root_user         = $bareos::params::client::root_user,
