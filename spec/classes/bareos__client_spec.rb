@@ -1,51 +1,50 @@
 require 'spec_helper'
 
 describe 'bareos::client' do
-  on_supported_os.each do |os, facts|
-
-    case facts[:kernel]
-    when 'windows'
-      context "on #{os}" do
-        if Puppet.version.to_s < "4"
-          it "on Puppet 3" do
-            skip('rspec-puppet 2.6.11 has issue with fact hostname')
-            # Could not retrieve fact='hostname', resolution='<anonymous>': \
-            # Could not execute 'hostname': command not found
-          end
-        else
-          let(:facts) { facts }
-
-          it { should compile.with_all_deps }
-          it do
-            should contain_file('C:/ProgramData/Bareos/bareos-fd.conf')
-                     .with_content(/Name = "backup.example.com-dir"/)
-                     .without_content(/FDPort|FDAddresses/)
-                     .with_content(/Maximum Concurrent Jobs\s+= 20/)
-          end
-          it do
-            should contain_service('Bareos-fd')
-                     .with_enable(true)
-                     .with_ensure('running')
-          end
-          it { should_not contain_file('/var/log/bacula') }
-          it do
-            expect(exported_resources).to have_bareos__job_definition_resource_count(1)
-          end
-          it do
-            expect(exported_resources).to contain_bareos__client_definition("#{facts[:fqdn]}-fd")
-          end
-          it do
-            expect(exported_resources).to contain_bareos__job_definition("#{facts[:fqdn]}-system-job")
-                                            .with_sched('NormalSchedule')
-                                            .with_order('N50')
-          end
+  on_os({:kernel => 'windows'}).each do |os, facts|
+    context "on #{os}" do
+      if Puppet.version.to_s < "4"
+        it "on Puppet 3" do
+          skip('rspec-puppet 2.6.11 has issue with fact hostname')
+          # Could not retrieve fact='hostname', resolution='<anonymous>': \
+          # Could not execute 'hostname': command not found
+        end
+      else
+        let(:facts) { facts }
+        it { should compile.with_all_deps }
+        it do
+          should contain_file('C:/ProgramData/Bareos/bareos-fd.conf')
+                   .with_content(/Name = "backup.example.com-dir"/)
+                   .without_content(/FDPort|FDAddresses/)
+                   .with_content(/Maximum Concurrent Jobs\s+= 20/)
+        end
+        it do
+          should contain_service('Bareos-fd')
+                   .with_enable(true)
+                   .with_ensure('running')
+        end
+        it { should_not contain_file('/var/log/bacula') }
+        it do
+          expect(exported_resources).to have_bareos__job_definition_resource_count(1)
+        end
+        it do
+          expect(exported_resources).to contain_bareos__client_definition("#{facts[:fqdn]}-fd")
+        end
+        it do
+          expect(exported_resources).to contain_bareos__job_definition("#{facts[:fqdn]}-system-job")
+                                          .with_sched('NormalSchedule')
+                                          .with_order('N50')
         end
       end
+    end
+  end
 
-    # All the Unix tests
-    else
-      context "on #{os}" do
-        let(:facts) { facts }
+  on_os({:kernel => 'Linux'}).each do |os, facts|
+    context "on #{os}" do
+      let(:facts) { facts }
+      let(:node) { RSpec.configuration.default_facts[:fqdn] }
+
+      context "defaults" do
         it { should compile.with_all_deps }
         it do
           # These test against data from hiera, see
@@ -82,8 +81,7 @@ describe 'bareos::client' do
         end
       end
 
-      context "on #{os} with increased concurrency" do
-        let(:facts) { facts }
+      context "with increased concurrency" do
         let(:params) { { :concurrency => 20 } }
         it { should compile.with_all_deps }
         it do
@@ -96,8 +94,7 @@ describe 'bareos::client' do
         end
       end
 
-      context "on #{os} with IPv6 disabled and port set" do
-        let(:facts) { facts }
+      context "with IPv6 disabled and port set" do
         let(:params) { { :port => 19102, :ipv6 => false } }
         it { should compile.with_all_deps }
         it do
@@ -110,7 +107,7 @@ describe 'bareos::client' do
         end
       end
 
-      context "on #{os} with bareos" do
+      context "with bareos" do
         # Can't just use params, since other defaults build on Hiera
         # value, not passed value (chicken and egg)
         let(:facts) { facts.merge( { :specialcase => 'implementation' } ) }
@@ -159,7 +156,7 @@ describe 'bareos::client' do
         end
       end
 
-      context "on #{os} with bareos and TLS disabled" do
+      context "with bareos and TLS disabled" do
         let(:facts) { facts.merge( { :specialcase => 'implementation' } ) }
         let(:params) { { :tls_enable => false } }
         it { should compile.with_all_deps }
@@ -172,8 +169,7 @@ describe 'bareos::client' do
         end
       end
 
-      context "on #{os} with jobs" do
-        let(:facts) { facts }
+      context "with jobs" do
         let(:params) do
           { :jobs => {
               'job1' => {},
@@ -199,7 +195,7 @@ describe 'bareos::client' do
         }
         it {
           expect(exported_resources).to contain_bareos__job_definition("#{facts[:fqdn]}-job2-job")
-                                          .with_sched('Monday')
+                                          .with_sched('Thursday')
                                           .with_accurate(false)
         }
         it {
@@ -210,8 +206,7 @@ describe 'bareos::client' do
         }
       end
 
-      context "on #{os} with fileset" do
-        let(:facts) { facts }
+      context "with fileset" do
         let(:params) do
           { :filesets => {
               'just_srv' => {'include_paths' => ['/srv'], 'acl_support' => false}
@@ -234,8 +229,7 @@ describe 'bareos::client' do
         end
       end
 
-      context "on #{os} with client name and fileset" do
-        let(:facts) { facts }
+      context "with client name and fileset" do
         let(:params) do
           { :filesets => {
               'just_srv' => {'include_paths' => ['/srv'], 'acl_support' => false}
@@ -259,8 +253,7 @@ describe 'bareos::client' do
         end
       end
 
-      context "on #{os} with implicit fileset" do
-        let(:facts) { facts }
+      context "with implicit fileset" do
         let(:params) do
           { :filesets => {
               'srv' => {'include_paths' => ['/srv'], 'acl_support' => false}
@@ -283,8 +276,7 @@ describe 'bareos::client' do
         end
       end
 
-      context "on #{os} with system and service jobs" do
-        let(:facts) { facts }
+      context "with system and service jobs" do
         let(:params) do
           { :filesets => {
               'root' => { 'include_paths' => ['/'] },
@@ -316,8 +308,7 @@ describe 'bareos::client' do
         end
       end
 
-      context "on #{os} with preset mysqldumpbackup" do
-        let(:facts) { facts }
+      context "with preset mysqldumpbackup" do
         let(:params) do
           { :jobs => {
               'mysql' => {
@@ -339,9 +330,7 @@ describe 'bareos::client' do
           }
         end
 
-
         it { should compile.with_all_deps }
-
         it { should contain_file('/var/backups')
                      .with_ensure('directory')
                      .with_mode('0755')
@@ -394,8 +383,7 @@ describe 'bareos::client' do
         }
       end
 
-      context "on #{os} with preset mysqldumpbackup ignore_not_running" do
-        let(:facts) { facts }
+      context "with preset mysqldumpbackup ignore_not_running" do
         let(:params) do
           { :jobs => {
               'failover' => {
@@ -425,7 +413,7 @@ describe 'bareos::client' do
         }
       end
 
-      context "on #{os} with preset percona" do
+      context "with preset percona" do
         let(:facts) { facts.merge( { :specialcase => 'implementation' } ) }
         let(:params) do
           { :jobs => {
@@ -465,7 +453,7 @@ describe 'bareos::client' do
         }
       end
 
-      context "on #{os} with preset percona without logbin" do
+      context "with preset percona without logbin" do
         let(:facts) { facts.merge( { :specialcase => 'implementation' } ) }
         let(:params) do
           { :jobs => {
@@ -506,8 +494,7 @@ describe 'bareos::client' do
         }
       end
 
-      context "on #{os} with preset pgdumpbackup" do
-        let(:facts) { facts }
+      context "with preset pgdumpbackup" do
         let(:params) do
           { :jobs => {
               'pg' => {
@@ -530,7 +517,7 @@ describe 'bareos::client' do
                      .with_content(/KEEPBACKUP="1"/) }
       end
 
-      context "on #{os} with preset s3" do
+      context "with preset s3" do
         let(:facts) { facts.merge( { :specialcase => 'implementation' } ) }
         let(:params) do
           { :jobs => {
@@ -622,8 +609,7 @@ describe 'bareos::client' do
         # it { should contain_exec('bareos-make-s3-access carol') }
       end
 
-      context "on #{os} with preset mylvmbackup" do
-        let(:facts) { facts }
+      context "with preset mylvmbackup" do
         let(:params) do
           { :jobs => {
               'mylvm' => {
@@ -688,8 +674,7 @@ describe 'bareos::client' do
         }
       end
 
-      context "on #{os} with service address" do
-        let(:facts) { facts }
+      context "with service address" do
         let(:params) do
           { :service_addr => {
               'test-service1.example.com' => {
@@ -718,8 +703,7 @@ describe 'bareos::client' do
         end
       end
 
-      context "on #{os} with self as service address" do
-        let(:facts) { facts }
+      context "with self as service address" do
         let(:params) do
           { :service_addr => {
               'test-service1.example.com' => {
@@ -734,7 +718,7 @@ describe 'bareos::client' do
         it { is_expected.to compile.and_raise_error(/own name.*service address/) }
       end
 
-      context "on #{os} with systemd_limits" do
+      context "with systemd_limits" do
         let(:facts) { facts.merge( { :specialcase => 'implementation' } ) }
         let(:params) do
           { :systemd_limits => { 'nofile' => 42 } }
@@ -743,6 +727,15 @@ describe 'bareos::client' do
                       .with_content(/^LimitNOFILE = 42$/)
         }
       end
+
+      context "ensure absent" do
+        let(:params) { { :ensure => 'absent' } }
+        it { should compile.with_all_deps }
+        it {
+          should contain_class('bareos::client::uninstall')
+        }
+      end
     end
+
   end
 end

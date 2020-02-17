@@ -9,20 +9,24 @@ variables:
 
 test puppet 3:
   script:
+    - cat /tmp/cache-buster || true
     - rake test
 
 test puppet 3 future parser:
   variables:
     FUTURE_PARSER: "yes"
   script:
+    - cat /tmp/cache-buster || true
     - rake test
 
 test puppet 4:
   image: 'containers.i.bitbit.net/ci-images/puppet-test:4'
   script:
+    - cat /tmp/cache-buster || true
     - rake test
 
 test puppet 5:
   image: 'containers.i.bitbit.net/ci-images/puppet-test:5'
   script:
+    - cat /tmp/cache-buster || true
     - rake test
