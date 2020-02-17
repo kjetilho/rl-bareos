@@ -10,7 +10,8 @@
 #   to avoid putting the actual password in PuppetDB.
 # 
 #
-class bareos::client (
+class bareos::client(
+  $ensure         = 'present',
   $implementation = $bareos::params::client::implementation,
   $client_name    = $::fqdn,
   $name_suffix    = $bareos::params::client::name_suffix,
@@ -55,7 +56,6 @@ class bareos::client (
   $plugin_dir        = $bareos::params::client::plugin_dir,
 ) inherits bareos::params::client
 {
-
   include bareos
 
   File {
@@ -70,6 +70,7 @@ class bareos::client (
   validate_re($job_retention, '^[0-9]+d$')
   validate_re($file_retention, '^[0-9]+d$')
   validate_re($client_name, '^[A-Za-z0-9.-]+$')
+  validate_re($ensure, '^(present|absent)$')
   validate_hash($monitors)
   validate_hash($jobs)
   validate_absolute_path($config_file)
@@ -93,78 +94,10 @@ class bareos::client (
     }
   }
 
-  ensure_packages($package)
-  if $competitor {
-    ensure_packages($competitor, { ensure => absent })
-    Package[$competitor] -> Package[$package]
+  if $ensure == 'absent' {
+    include bareos::client::uninstall
   }
-
-  service {
-    $service:
-      enable => $service_enable
-  }
-
-  # Allow value of undef or '' to not manage the "ensure" parameter
-  if $service_ensure {
-    Service[$service] {
-      ensure => $service_ensure
-    }
-  }
-
-  file { $config_file:
-    ensure  => file,
-    content => template('bareos/client/bareos-fd.conf.erb'),
-    notify  => Service[$service]
-  }
-
-  if $log_dir {
-    file { $log_dir:
-      ensure => directory,
-      owner  => $bareos::client::implementation,
-      group  => $bareos::client::implementation,
-      mode   => '0755';
-    }
-  }
-
-  if ! empty($systemd_limits) {
-    file {
-      "/etc/systemd/system/${service}.service.d":
-        ensure  => directory,
-        owner   => 'root',
-        group   => 'root',
-        mode    => '0755';
-      "/etc/systemd/system/${service}.service.d/limits.conf":
-        # this should notify Exec['systemctl daemon-reload']
-        content => template('bareos/client/systemd/limits.conf.erb'),
-        owner   => 'root',
-        group   => 'root',
-        mode    => '0444';
-    }
-  }
-
-  @@bareos::client_definition { "${client_name}${name_suffix}":
-    password       => $password,
-    address        => $address,
-    passive        => $passive,
-    client_initiated_connection => $client_initiated_connection,
-    port           => $port,
-    job_retention  => $job_retention,
-    file_retention => $file_retention,
-    concurrency    => $concurrency,
-    security_zone  => $bareos::security_zone,
-    tag            => "bareos::server::${bareos::director}",
-  }
-
-  if ! empty($service_addr) {
-    if (has_key($service_addr, $client_name)) {
-      fail("Using client's own name (${client_name}) as a service address does not make sense")
-    }
-    create_resources('bareos::client::service_addr', $service_addr)
-  }
-  if ! empty($jobs) {
-    create_resources('bareos::client::job', $jobs)
-  }
-  if ! empty($filesets) {
-    create_resources('bareos::client::fileset', $filesets)
+  else {
+    include bareos::client::install
   }
 }
