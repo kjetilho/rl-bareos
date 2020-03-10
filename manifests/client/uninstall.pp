@@ -8,11 +8,6 @@ inherits bareos::client
     Package[$competitor] -> Package[$package]
   }
 
-  service { $service:
-    ensure => stopped,
-    enable => false,
-  }
-
   file { $config_file:
     ensure  => absent,
   }

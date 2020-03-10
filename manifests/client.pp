@@ -58,14 +58,6 @@ class bareos::client(
 {
   include bareos
 
-  File {
-    owner   => $root_user,
-    group   => $root_group,
-    mode    => '0440',
-    require => Package[$package],
-    before  => Service[$service],
-  }
-
   validate_re($implementation, '^(bareos|bacula)$')
   validate_re($job_retention, '^[0-9]+d$')
   validate_re($file_retention, '^[0-9]+d$')
