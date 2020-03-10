@@ -1,0 +1,3 @@
+---
+bareos::client::ensure: absent
+bareos::client::implementation: bareos
