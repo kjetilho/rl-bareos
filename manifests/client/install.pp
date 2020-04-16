@@ -2,6 +2,15 @@ class bareos::client::install
 inherits bareos::client
 {
   # lint:ignore:variable_scope We refer to inherited variables
+
+  File {
+    owner   => $root_user,
+    group   => $root_group,
+    mode    => '0440',
+    require => Package[$package],
+    before  => Service[$service],
+  }
+
   ensure_packages($package)
   if $competitor {
     ensure_packages($competitor, { ensure => absent })

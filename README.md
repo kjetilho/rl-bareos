@@ -214,8 +214,10 @@ this should not be necessary to do.
 Jobs are defined in the `bareos::client::jobs` hash.
 
 By default, a "system" job will be enabled for the client, using the
-default jobdef.  If you define a "system" fileset, it will be used
-with this default job.
+default jobdef.  If you define a "system" fileset in the
+`bareos::client::filesets` hash, it will be used with this default job.
+(It will not work for filesets declared directly with the
+`bareos::client::fileset` define.)
 
 Each key in the hash becomes the name of the resource.  This is added
 to the client name and used as the name of the job.  A
@@ -226,12 +228,11 @@ __`job_name`__: Specify the full job name explicitly.
 
 __`jobdef`__: The name of the job defaults.  Default: `$bareos::default_jobdef`
 
-__`fileset`__: The name of the fileset.  When set, overrides the
-fileset defined in the jobdef.  This can be the full name of the
+__`fileset`__: The name of the fileset to use.  When set, overrides
+the fileset defined in the jobdef.  This can be the full name of the
 fileset, but also the abbreviated name used in
-`bareos::client::filesets`.  If unset, it will look for a custom
-fileset with the same name as the short name of this job (e.g.,
-"system"), and use that if it exists.
+`bareos::client::filesets`.  If unset, it will look for short name of
+this job (e.g., "system"), and use that if it exists.
 
 __`schedule_set`__: The name of the list of schedules to pick randomly
 from.  Default: normal
