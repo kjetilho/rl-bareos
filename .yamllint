@@ -1,7 +1,11 @@
+---
 extends: relaxed
 rules:
   colons:
     max-spaces-before: 0
     max-spaces-after: 16
+  document-start:
+    present: true
   line-length:
     max: 130
+  empty-values: enable
