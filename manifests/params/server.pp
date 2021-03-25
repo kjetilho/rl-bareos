@@ -1,6 +1,6 @@
 class bareos::params::server {
   case $::operatingsystem {
-    'Ubuntu': {
+    'Ubuntu', 'CentOS', 'RedHat': {
       $packages = [
         'bareos-database-postgresql',
         'bareos-storage-tape',

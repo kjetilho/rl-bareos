@@ -62,7 +62,6 @@ class bareos::params::client {
           $pid_dir     = $working_dir
           $plugin_dir  = "/usr/lib64/${implementation}/plugins"
           $python_plugin_package = "${implementation}-filedaemon-python-plugin"
-          $python_mysql_package = 'MySQL-python'
         }
         default: {
           $package     = "${implementation}-client"
@@ -71,8 +70,13 @@ class bareos::params::client {
           $pid_dir     = '/var/run'
           $plugin_dir  = false
           $python_plugin_package = false
-          $python_mysql_package = 'MySQL-python'
         }
+      }
+      if versioncmp($::operatingsystemmajrelease, '7.0') <= 0 {
+        $python_mysql_package = 'MySQL-python'
+      }
+      else {
+        $python_mysql_package = 'python3-mysql'
       }
     }
     'Debian': {

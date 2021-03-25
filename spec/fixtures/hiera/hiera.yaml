@@ -1,7 +1,7 @@
 ---
 :hierarchy:
- - "%{::specialcase}"
- - common
+  - "%{::specialcase}"
+  - common
 
 :yaml:
   :datadir: 'spec/fixtures/hiera'
