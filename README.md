@@ -370,7 +370,38 @@ Example usage:
 #### pgdumpbackup
 
 This preset installs the script pgdumpbackup and installs a configuration
-file for it.  See [code](manifests/job/preset/pgdumpbackup.pp) for details.
+file for it.  It has the following params, passed via `preset_params`:
+
+__`instance`__: name of instance.  Needed if there is more than one
+job using this preset.  Will be added as argument to pgdumpbackup
+unless it is default.
+
+__`ignore_not_running`__: if true, exit silently without taking backup
+if postgresql is not running.  Default is false.
+
+__`keep_backup`__: how many days to keep backup
+
+__`backup_dir`__: where to store backups
+
+__`backup_dir_owner`__: what user should own backup_dir.  Default: 'postgres'
+
+__`backup_dir_group`__: what group should own backup_dir.  Default: 'root'
+
+__`backup_dir_mode`__: what permissions to use on backup_dir.  Default: '0750'
+
+__`server`__: server name to connect to (default is local socket)
+
+__`initscript`__: to check if service is running
+
+__`cluster`__: what cluster to dump (default "", which means connect to port 5432)
+
+__`skip_databases`__: array of databases to skip
+
+__`log_method`__: where to log.  default is "console" (ie., stderr)
+
+__`syslog_facility`__: where to log.  default is 'daemon'
+
+__`environ`__: array of extra environment variables (example: ["HOME=/root"])
 
 Example usage:
 
