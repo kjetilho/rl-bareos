@@ -9,6 +9,7 @@ class bareos::server(
   $client_file_prefix = '/etc/bareos/clients.d/',
   $job_file_prefix = '/etc/bareos/jobs.d/',
   $fileset_file_prefix = '/etc/bareos/filesets.d/',
+  $reload_exec = 'default',
   $default_secrets = {},
 )
 {
@@ -18,6 +19,16 @@ class bareos::server(
 
   include bareos
   require bareos::server::install
+
+  if $reload_exec == 'default' {
+    exec { 'reload bareos-dir':
+      command     => '/bin/systemctl reload bareos-dir.service',
+      refreshonly => true,
+    }
+    File { notify => Exec['reload bareos-dir'] }
+  } else {
+    File { notify => Exec[$reload_exec] }
+  }
 
   file {
     [ $client_file_prefix, $job_file_prefix, $fileset_file_prefix ]:
