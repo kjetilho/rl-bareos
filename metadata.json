@@ -1,6 +1,6 @@
 {
     "name": "rl-bareos",
-    "version": "1.0.11",
+    "version": "1.2.8",
     "author": "Kjetil Torgrim Homme <kjetil.homme@redpill-linpro.com>",
     "summary": "Manage Bareos clients and jobs",
     "license": "GPL-3.0+",
@@ -11,7 +11,19 @@
         {
             "operatingsystem": "CentOS",
             "operatingsystemrelease": [
-                "7"
+                "7", "8"
+            ]
+        },
+        {
+            "operatingsystem": "Rocky",
+            "operatingsystemrelease": [
+                "7", "8", "9"
+            ]
+        },
+        {
+            "operatingsystem": "AlmaLinux",
+            "operatingsystemrelease": [
+                "7", "8", "9"
             ]
         },
         {
@@ -23,7 +35,7 @@
         {
             "operatingsystem": "Ubuntu",
             "operatingsystemrelease": [
-                "14.04"
+                "14.04", "16.04", "18.04", "20.04", "22.04"
             ]
         },
         {
@@ -39,6 +51,5 @@
             "version_requirement": ">= 4.10.0"
         }
     ],
-    "tags": ["backup", "bacula", "bareos"],
-    "data_provider": "hiera"
+    "tags": ["backup", "bacula", "bareos"]
 }
